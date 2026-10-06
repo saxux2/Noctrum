@@ -2,12 +2,12 @@ import { Composer, InlineKeyboard } from "grammy";
 import { ethers } from "ethers";
 import { VAULT_ADDRESS } from "../config";
 import {
-  ERC20_ABI, VAULT_ABI, GHOST_DOMAIN,
+  ERC20_ABI, VAULT_ABI, NOCTRUM_DOMAIN,
   BORROW_TYPES, CANCEL_BORROW_TYPES,
   ACCEPT_PROPOSAL_TYPES, REJECT_PROPOSAL_TYPES,
 } from "../constants";
 import {
-  ghostPost, ghostGet, privateTransfer, getPoolAddress, ensureGasBalance, ensureTokenBalance,
+  noctrumPost, noctrumGet, privateTransfer, getPoolAddress, ensureGasBalance, ensureTokenBalance,
   ts, toWei, fmtEth, tokenSymbol, resolveToken, encryptRate,
 } from "../api";
 import { getProvider } from "../wallet";
@@ -22,14 +22,14 @@ composer.command("borrow", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 5) {
     const kb = new InlineKeyboard()
-      .text("\u{1F4B5} Borrow gUSD", "borrow_example_gusd")
-      .text("\u{1FA99} Borrow gETH", "borrow_example_geth");
+      .text("\u{1F4B5} Borrow nUSD", "borrow_example_gusd")
+      .text("\u{1FA99} Borrow nETH", "borrow_example_geth");
     await ctx.reply(
       `\u{1F3E6} <b>Borrow Tokens</b>\n\n` +
       `<b>Usage:</b> <code>/borrow [amount] [token] [collateral] [collToken] [maxRate%]</code>\n\n` +
       `<b>Examples:</b>\n` +
-      `<code>/borrow 800 gUSD 5 gETH 10</code>\nBorrow 800 gUSD with 5 gETH collateral, max 10% rate\n\n` +
-      `<code>/borrow 500 gUSD 3 gETH 8</code>\nBorrow 500 gUSD with 3 gETH collateral, max 8% rate`,
+      `<code>/borrow 800 nUSD 5 nETH 10</code>\nBorrow 800 nUSD with 5 nETH collateral, max 10% rate\n\n` +
+      `<code>/borrow 500 nUSD 3 nETH 8</code>\nBorrow 500 nUSD with 3 nETH collateral, max 8% rate`,
       { parse_mode: "HTML", reply_markup: kb },
     );
     return;
@@ -43,9 +43,9 @@ composer.command("borrow", async (ctx) => {
   const maxRate = parseFloat(parts[4]);
 
   if (isNaN(borrowAmt) || borrowAmt <= 0) { await ctx.reply("\u{274C} Invalid borrow amount."); return; }
-  if (!borrowToken) { await ctx.reply("\u{274C} Unknown borrow token. Use <b>gUSD</b> or <b>gETH</b>.", { parse_mode: "HTML" }); return; }
+  if (!borrowToken) { await ctx.reply("\u{274C} Unknown borrow token. Use <b>nUSD</b> or <b>nETH</b>.", { parse_mode: "HTML" }); return; }
   if (isNaN(collateralAmt) || collateralAmt <= 0) { await ctx.reply("\u{274C} Invalid collateral amount."); return; }
-  if (!collateralToken) { await ctx.reply("\u{274C} Unknown collateral token. Use <b>gUSD</b> or <b>gETH</b>.", { parse_mode: "HTML" }); return; }
+  if (!collateralToken) { await ctx.reply("\u{274C} Unknown collateral token. Use <b>nUSD</b> or <b>nETH</b>.", { parse_mode: "HTML" }); return; }
   if (isNaN(maxRate) || maxRate <= 0 || maxRate > 100) { await ctx.reply("\u{274C} Max rate must be between 0-100%."); return; }
 
   const msg = await ctx.reply(
@@ -105,8 +105,8 @@ composer.command("borrow", async (ctx) => {
       encryptedMaxRate: encrypted,
       timestamp,
     };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, BORROW_TYPES, borrowMsg);
-    const result = await ghostPost("/api/v1/borrow-intent", { ...borrowMsg, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, BORROW_TYPES, borrowMsg);
+    const result = await noctrumPost("/api/v1/borrow-intent", { ...borrowMsg, auth });
 
     const kb = new InlineKeyboard()
       .text("\u{1F4CA} Borrower Status", "action_borrower_status")
@@ -148,8 +148,8 @@ composer.command("cancel_borrow", async (ctx) => {
   try {
     const timestamp = ts();
     const message = { account: wallet.address, intentId, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, CANCEL_BORROW_TYPES, message);
-    const result = await ghostPost("/api/v1/cancel-borrow", { ...message, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, CANCEL_BORROW_TYPES, message);
+    const result = await noctrumPost("/api/v1/cancel-borrow", { ...message, auth });
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Borrow Cancelled</b>\n\nTransfer ID: <code>${result.transferId}</code>\nCollateral will be returned.`,
     );
@@ -164,7 +164,7 @@ composer.command("borrower_status", async (ctx) => {
   const wallet = requireWallet(ctx.from!.id);
   const msg = await ctx.reply("\u{23F3} Fetching borrower status...");
   try {
-    const data = await ghostGet(`/api/v1/borrower-status/${wallet.address}`);
+    const data = await noctrumGet(`/api/v1/borrower-status/${wallet.address}`);
     const intents = data.pendingIntents ?? [];
     const proposals = data.pendingProposals ?? [];
     const loans = data.activeLoans ?? [];
@@ -229,8 +229,8 @@ composer.command("accept_proposal", async (ctx) => {
   try {
     const timestamp = ts();
     const message = { account: wallet.address, proposalId, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, ACCEPT_PROPOSAL_TYPES, message);
-    const result = await ghostPost("/api/v1/accept-proposal", { ...message, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, ACCEPT_PROPOSAL_TYPES, message);
+    const result = await noctrumPost("/api/v1/accept-proposal", { ...message, auth });
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Proposal Accepted!</b>\n\n` +
       `\u{1F4CB} Loan ID: <code>${result.loanId}</code>\n` +
@@ -261,8 +261,8 @@ composer.command("reject_proposal", async (ctx) => {
   try {
     const timestamp = ts();
     const message = { account: wallet.address, proposalId, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, REJECT_PROPOSAL_TYPES, message);
-    const result = await ghostPost("/api/v1/reject-proposal", { ...message, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, REJECT_PROPOSAL_TYPES, message);
+    const result = await noctrumPost("/api/v1/reject-proposal", { ...message, auth });
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Proposal Rejected</b>\n\n` +
       `\u{274C} Slashed: <code>${fmtEth(result.slashed)}</code>\n` +
@@ -279,9 +279,9 @@ composer.command("reject_proposal", async (ctx) => {
 composer.callbackQuery("borrow_example_gusd", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `\u{1F4B5} <b>Borrow gUSD Example</b>\n\n` +
-    `<code>/borrow 800 gUSD 5 gETH 10</code>\n\n` +
-    `Borrow 800 gUSD, put up 5 gETH as collateral, max 10% rate.\n` +
+    `\u{1F4B5} <b>Borrow nUSD Example</b>\n\n` +
+    `<code>/borrow 800 nUSD 5 nETH 10</code>\n\n` +
+    `Borrow 800 nUSD, put up 5 nETH as collateral, max 10% rate.\n` +
     `Adjust amounts to your needs.`,
     { parse_mode: "HTML" },
   );
@@ -290,9 +290,9 @@ composer.callbackQuery("borrow_example_gusd", async (ctx) => {
 composer.callbackQuery("borrow_example_geth", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `\u{1FA99} <b>Borrow gETH Example</b>\n\n` +
-    `<code>/borrow 2 gETH 5000 gUSD 8</code>\n\n` +
-    `Borrow 2 gETH, put up 5000 gUSD as collateral, max 8% rate.\n` +
+    `\u{1FA99} <b>Borrow nETH Example</b>\n\n` +
+    `<code>/borrow 2 nETH 5000 nUSD 8</code>\n\n` +
+    `Borrow 2 nETH, put up 5000 nUSD as collateral, max 8% rate.\n` +
     `Adjust amounts to your needs.`,
     { parse_mode: "HTML" },
   );
@@ -303,7 +303,7 @@ composer.callbackQuery("action_borrower_status", async (ctx) => {
   const wallet = requireWallet(ctx.from.id);
   const msg = await ctx.reply("\u{23F3} Fetching borrower status...");
   try {
-    const data = await ghostGet(`/api/v1/borrower-status/${wallet.address}`);
+    const data = await noctrumGet(`/api/v1/borrower-status/${wallet.address}`);
     const intents = data.pendingIntents ?? [];
     const proposals = data.pendingProposals ?? [];
     const loans = data.activeLoans ?? [];
@@ -325,16 +325,16 @@ composer.callbackQuery("action_borrower_status", async (ctx) => {
 composer.callbackQuery("menu_borrow", async (ctx) => {
   await ctx.answerCallbackQuery();
   const kb = new InlineKeyboard()
-    .text("\u{1F4B5} Borrow gUSD", "borrow_example_gusd")
-    .text("\u{1FA99} Borrow gETH", "borrow_example_geth").row()
+    .text("\u{1F4B5} Borrow nUSD", "borrow_example_gusd")
+    .text("\u{1FA99} Borrow nETH", "borrow_example_geth").row()
     .text("\u{1F4CA} My Status", "action_borrower_status")
     .text("\u{274C} Cancel Borrow", "borrow_cancel_help");
   await ctx.reply(
     `\u{1F3E6} <b>Borrow Tokens</b>\n\n` +
     `Get a loan with collateral and encrypted max rate.\n\n` +
     `<b>Quick start:</b>\n` +
-    `<code>/borrow 800 gUSD 5 gETH 10</code>\n` +
-    `Borrow 800 gUSD, 5 gETH collateral, max 10%\n\n` +
+    `<code>/borrow 800 nUSD 5 nETH 10</code>\n` +
+    `Borrow 800 nUSD, 5 nETH collateral, max 10%\n\n` +
     `Use /collateral_quote to check how much collateral you need.`,
     { parse_mode: "HTML", reply_markup: kb },
   );

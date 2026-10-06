@@ -151,7 +151,7 @@ composer.command("create_wallet", async (ctx) => {
     `<b>Wallet Created</b>\n\n` +
     `Address: <code>${wallet.address}</code>\n` +
     `Type: Embedded\n\n` +
-    `Fund it with Sepolia ETH and gUSD or gETH to start.`,
+    `Fund it with Monad Testnet MON and nUSD or nETH to start.`,
     { parse_mode: "HTML", reply_markup: mainMenuKeyboard() },
   );
 });
@@ -289,18 +289,18 @@ composer.callbackQuery("wallet_check_bal", async (ctx) => {
   try {
     const [onChain, vault] = await Promise.all([
       getOnChainBalances(wallet.address, getProvider()),
-      getVaultBalances(wallet).catch(() => ({ gUSD: "0", gETH: "0" })),
+      getVaultBalances(wallet).catch(() => ({ nUSD: "0", nETH: "0" })),
     ]);
     await ctx.api.editMessageText(loadMsg.chat.id, loadMsg.message_id,
       `<b>Wallet Balances</b>\n` +
       `<code>${wallet.address}</code>\n\n` +
       `<b>On Chain</b>\n` +
-      `\u{1FA99} gUSD  <code>${fmtEth(onChain.gUSD)}</code>\n` +
-      `\u{1FA99} gETH  <code>${fmtEth(onChain.gETH)}</code>\n` +
-      `\u{26AA} ETH   <code>${fmtEth(onChain.ETH)}</code>\n\n` +
+      `\u{1FA99} nUSD  <code>${fmtEth(onChain.nUSD)}</code>\n` +
+      `\u{1FA99} nETH  <code>${fmtEth(onChain.nETH)}</code>\n` +
+      `\u{26AA} MON   <code>${fmtEth(onChain.MON)}</code>\n\n` +
       `<b>Private Vault</b>\n` +
-      `\u{1FA99} gUSD  <code>${fmtEth(vault.gUSD)}</code>\n` +
-      `\u{1FA99} gETH  <code>${fmtEth(vault.gETH)}</code>`,
+      `\u{1FA99} nUSD  <code>${fmtEth(vault.nUSD)}</code>\n` +
+      `\u{1FA99} nETH  <code>${fmtEth(vault.nETH)}</code>`,
       { parse_mode: "HTML" },
     );
   } catch (err: any) {

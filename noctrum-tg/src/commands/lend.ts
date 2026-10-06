@@ -1,9 +1,9 @@
 import { Composer, InlineKeyboard } from "grammy";
 import { ethers } from "ethers";
 import { VAULT_ADDRESS } from "../config";
-import { ERC20_ABI, VAULT_ABI, GHOST_DOMAIN, CONFIRM_DEPOSIT_TYPES, CANCEL_LEND_TYPES } from "../constants";
+import { ERC20_ABI, VAULT_ABI, NOCTRUM_DOMAIN, CONFIRM_DEPOSIT_TYPES, CANCEL_LEND_TYPES } from "../constants";
 import {
-  ghostPost, ghostGet, privateTransfer, getPoolAddress, ensureGasBalance, ensureTokenBalance,
+  noctrumPost, noctrumGet, privateTransfer, getPoolAddress, ensureGasBalance, ensureTokenBalance,
   ts, toWei, fmtEth, tokenSymbol, resolveToken, encryptRate,
 } from "../api";
 import { getProvider } from "../wallet";
@@ -18,14 +18,14 @@ composer.command("lend", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 3) {
     const kb = new InlineKeyboard()
-      .text("\u{1FA99} Lend gUSD", "lend_example_gusd")
-      .text("\u{1FA99} Lend gETH", "lend_example_geth");
+      .text("\u{1FA99} Lend nUSD", "lend_example_gusd")
+      .text("\u{1FA99} Lend nETH", "lend_example_geth");
     await ctx.reply(
       `\u{1FA99} <b>Lend Tokens</b>\n\n` +
       `<b>Usage:</b> <code>/lend [amount] [token] [rate%]</code>\n\n` +
       `<b>Examples:</b>\n` +
-      `<code>/lend 500 gUSD 5</code> — Lend 500 gUSD at 5%\n` +
-      `<code>/lend 2 gETH 3.5</code> — Lend 2 gETH at 3.5%\n\n` +
+      `<code>/lend 500 nUSD 5</code> — Lend 500 nUSD at 5%\n` +
+      `<code>/lend 2 nETH 3.5</code> — Lend 2 nETH at 3.5%\n\n` +
       `Rate is encrypted and hidden from everyone except the matching engine.`,
       { parse_mode: "HTML", reply_markup: kb },
     );
@@ -38,7 +38,7 @@ composer.command("lend", async (ctx) => {
   const rate = parseFloat(parts[2]);
 
   if (isNaN(amount) || amount <= 0) { await ctx.reply("\u{274C} Invalid amount."); return; }
-  if (!token) { await ctx.reply("\u{274C} Unknown token. Use <b>gUSD</b> or <b>gETH</b>.", { parse_mode: "HTML" }); return; }
+  if (!token) { await ctx.reply("\u{274C} Unknown token. Use <b>nUSD</b> or <b>nETH</b>.", { parse_mode: "HTML" }); return; }
   if (isNaN(rate) || rate <= 0 || rate > 100) { await ctx.reply("\u{274C} Rate must be between 0-100%."); return; }
 
   const msg = await ctx.reply(
@@ -78,7 +78,7 @@ composer.command("lend", async (ctx) => {
     );
 
     // Step 3: Init + Private transfer
-    const init = await ghostPost("/api/v1/deposit-lend/init", {
+    const init = await noctrumPost("/api/v1/deposit-lend/init", {
       account: wallet.address,
       token,
       amount: amountWei,
@@ -94,8 +94,8 @@ composer.command("lend", async (ctx) => {
     const encrypted = encryptRate(rateDecimal);
     const timestamp = ts();
     const confirmMsg = { account: wallet.address, slotId: init.slotId, encryptedRate: encrypted, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, CONFIRM_DEPOSIT_TYPES, confirmMsg);
-    const result = await ghostPost("/api/v1/deposit-lend/confirm", { ...confirmMsg, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, CONFIRM_DEPOSIT_TYPES, confirmMsg);
+    const result = await noctrumPost("/api/v1/deposit-lend/confirm", { ...confirmMsg, auth });
 
     const kb = new InlineKeyboard()
       .text("\u{1F4CA} Lender Status", "action_lender_status")
@@ -137,8 +137,8 @@ composer.command("cancel_lend", async (ctx) => {
   try {
     const timestamp = ts();
     const message = { account: wallet.address, slotId, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, CANCEL_LEND_TYPES, message);
-    const result = await ghostPost("/api/v1/cancel-lend", { ...message, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, CANCEL_LEND_TYPES, message);
+    const result = await noctrumPost("/api/v1/cancel-lend", { ...message, auth });
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Lend Cancelled</b>\n\nTransfer ID: <code>${result.transferId}</code>\nFunds will be returned via private transfer.`,
     );
@@ -153,7 +153,7 @@ composer.command("lender_status", async (ctx) => {
   const wallet = requireWallet(ctx.from!.id);
   const msg = await ctx.reply("\u{23F3} Fetching lender status...");
   try {
-    const data = await ghostGet(`/api/v1/lender-status/${wallet.address}`);
+    const data = await noctrumGet(`/api/v1/lender-status/${wallet.address}`);
     const lends = data.activeLends ?? [];
     const loans = data.activeLoans ?? [];
     const pendingPay = data.pendingPayouts ?? [];
@@ -199,9 +199,9 @@ composer.command("lender_status", async (ctx) => {
 composer.callbackQuery("lend_example_gusd", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `\u{1FA99} <b>Lend gUSD Example</b>\n\n` +
-    `<code>/lend 500 gUSD 5</code>\n\n` +
-    `This lends 500 gUSD at 5% interest rate.\n` +
+    `\u{1FA99} <b>Lend nUSD Example</b>\n\n` +
+    `<code>/lend 500 nUSD 5</code>\n\n` +
+    `This lends 500 nUSD at 5% interest rate.\n` +
     `Change the amount and rate to your preference.`,
     { parse_mode: "HTML" },
   );
@@ -210,9 +210,9 @@ composer.callbackQuery("lend_example_gusd", async (ctx) => {
 composer.callbackQuery("lend_example_geth", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `\u{1FA99} <b>Lend gETH Example</b>\n\n` +
-    `<code>/lend 2 gETH 3.5</code>\n\n` +
-    `This lends 2 gETH at 3.5% interest rate.\n` +
+    `\u{1FA99} <b>Lend nETH Example</b>\n\n` +
+    `<code>/lend 2 nETH 3.5</code>\n\n` +
+    `This lends 2 nETH at 3.5% interest rate.\n` +
     `Change the amount and rate to your preference.`,
     { parse_mode: "HTML" },
   );
@@ -223,7 +223,7 @@ composer.callbackQuery("action_lender_status", async (ctx) => {
   const wallet = requireWallet(ctx.from.id);
   const msg = await ctx.reply("\u{23F3} Fetching lender status...");
   try {
-    const data = await ghostGet(`/api/v1/lender-status/${wallet.address}`);
+    const data = await noctrumGet(`/api/v1/lender-status/${wallet.address}`);
     const lends = data.activeLends ?? [];
     const loans = data.activeLoans ?? [];
     let text = `\u{1FA99} <b>Lender Status</b>\n\n`;
@@ -243,16 +243,16 @@ composer.callbackQuery("action_lender_status", async (ctx) => {
 composer.callbackQuery("menu_lend", async (ctx) => {
   await ctx.answerCallbackQuery();
   const kb = new InlineKeyboard()
-    .text("\u{1FA99} Lend gUSD", "lend_example_gusd")
-    .text("\u{1FA99} Lend gETH", "lend_example_geth").row()
+    .text("\u{1FA99} Lend nUSD", "lend_example_gusd")
+    .text("\u{1FA99} Lend nETH", "lend_example_geth").row()
     .text("\u{1F4CA} My Positions", "action_lender_status")
     .text("\u{274C} Cancel Lend", "lend_cancel_help");
   await ctx.reply(
     `\u{1FA99} <b>Lend Tokens</b>\n\n` +
     `Earn yield by lending your tokens with encrypted rates.\n\n` +
     `<b>Quick start:</b>\n` +
-    `<code>/lend 500 gUSD 5</code> — Lend 500 gUSD at 5%\n` +
-    `<code>/lend 2 gETH 3.5</code> — Lend 2 gETH at 3.5%`,
+    `<code>/lend 500 nUSD 5</code> — Lend 500 nUSD at 5%\n` +
+    `<code>/lend 2 nETH 3.5</code> — Lend 2 nETH at 3.5%`,
     { parse_mode: "HTML", reply_markup: kb },
   );
 });

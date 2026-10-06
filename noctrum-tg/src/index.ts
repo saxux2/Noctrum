@@ -13,4 +13,4 @@ bot.catch((err) => {
 
 startNotifier(bot);
 bot.start();
-console.log("GHOST Telegram bot started!");
+console.log("NOCTRUM Telegram bot started!");

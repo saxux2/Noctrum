@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { encrypt } from "eciesjs";
-import { GHOST_API, EXTERNAL_API, CRE_PUBKEY, gUSD, gETH, RPC_URL } from "./config";
+import { NOCTRUM_API, EXTERNAL_API, CRE_PUBKEY, nUSD, nETH, RPC_URL } from "./config";
 import { EXTERNAL_DOMAIN, PRIVATE_TRANSFER_TYPES, BALANCE_TYPES, WITHDRAW_TYPES } from "./constants";
 
 // Signer type that works for both ethers.Wallet and WCSigner
@@ -19,15 +19,15 @@ export const fmtEth = (wei: string | bigint) => {
 
 export function tokenSymbol(addr: string): string {
   const lower = addr.toLowerCase();
-  if (lower === gUSD.toLowerCase()) return "gUSD";
-  if (lower === gETH.toLowerCase()) return "gETH";
+  if (lower === nUSD.toLowerCase()) return "nUSD";
+  if (lower === nETH.toLowerCase()) return "nETH";
   return addr.slice(0, 6) + "...";
 }
 
 export function resolveToken(input: string): string | null {
   const lower = input.toLowerCase().trim();
-  if (lower === "gusd" || lower === "usd" || lower === "g-usd" || lower === "dollar") return gUSD;
-  if (lower === "geth" || lower === "eth" || lower === "g-eth" || lower === "ether") return gETH;
+  if (lower === "nusd" || lower === "usd" || lower === "n-usd" || lower === "dollar") return nUSD;
+  if (lower === "neth" || lower === "eth" || lower === "n-eth" || lower === "ether") return nETH;
   if (lower.startsWith("0x") && lower.length === 42) return input;
   return null;
 }
@@ -37,17 +37,18 @@ export function encryptRate(rate: string): string {
   return "0x" + Buffer.from(buf).toString("hex");
 }
 
-const MIN_GAS_WEI = ethers.parseEther("0.001"); // ~0.001 ETH minimum for gas
+// Monad charges gas on the limit at a 100 gwei minimum base fee (D-16)
+const MIN_GAS_WEI = ethers.parseEther("0.05"); // ~0.05 MON minimum for gas
 
 export async function ensureGasBalance(address: string, provider: ethers.Provider): Promise<void> {
   const balance = await provider.getBalance(address);
   if (balance < MIN_GAS_WEI) {
     const bal = Number(balance) / 1e18;
     throw new Error(
-      `Not enough ETH for gas fees.\n\n` +
-      `Your ETH balance: ${bal.toFixed(6)} ETH\n` +
-      `Minimum required: ~0.001 ETH\n\n` +
-      `Get Sepolia ETH from a faucet first.`
+      `Not enough MON for gas fees.\n\n` +
+      `Your MON balance: ${bal.toFixed(6)} MON\n` +
+      `Minimum required: ~0.05 MON\n\n` +
+      `Get Monad Testnet MON from https://faucet.monad.xyz first.`
     );
   }
 }
@@ -74,10 +75,10 @@ export async function ensureTokenBalance(
   }
 }
 
-// ── Ghost API ──
+// ── Noctrum API ──
 
-export async function ghostPost(path: string, body: Record<string, unknown>): Promise<any> {
-  const res = await fetch(`${GHOST_API}${path}`, {
+export async function noctrumPost(path: string, body: Record<string, unknown>): Promise<any> {
+  const res = await fetch(`${NOCTRUM_API}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -87,8 +88,8 @@ export async function ghostPost(path: string, body: Record<string, unknown>): Pr
   return data;
 }
 
-export async function ghostGet(path: string): Promise<any> {
-  const res = await fetch(`${GHOST_API}${path}`, {
+export async function noctrumGet(path: string): Promise<any> {
+  const res = await fetch(`${NOCTRUM_API}${path}`, {
     headers: { "Content-Type": "application/json" },
   });
   return res.json();
@@ -132,7 +133,7 @@ export async function privateTransfer(
 
 export async function getVaultBalances(
   wallet: Signer,
-): Promise<{ gUSD: string; gETH: string }> {
+): Promise<{ nUSD: string; nETH: string }> {
   const timestamp = ts();
   const message = { account: wallet.address, timestamp };
   const auth = await wallet.signTypedData(EXTERNAL_DOMAIN, BALANCE_TYPES, message);
@@ -145,7 +146,7 @@ export async function getVaultBalances(
   const balances = data.balances ?? [];
   const find = (tok: string) =>
     balances.find((b: any) => b.token?.toLowerCase() === tok.toLowerCase())?.amount ?? "0";
-  return { gUSD: find(gUSD), gETH: find(gETH) };
+  return { nUSD: find(nUSD), nETH: find(nETH) };
 }
 
 export async function requestWithdrawTicket(
@@ -167,25 +168,25 @@ export async function requestWithdrawTicket(
 }
 
 export async function getPoolAddress(): Promise<string> {
-  const data = await ghostGet("/health");
+  const data = await noctrumGet("/health");
   return data.poolAddress;
 }
 
 export async function getOnChainBalances(
   address: string,
   provider: ethers.Provider,
-): Promise<{ gUSD: string; gETH: string; ETH: string }> {
+): Promise<{ nUSD: string; nETH: string; MON: string }> {
   const erc20Abi = ["function balanceOf(address) view returns (uint256)"];
-  const gusdContract = new ethers.Contract(gUSD, erc20Abi, provider);
-  const gethContract = new ethers.Contract(gETH, erc20Abi, provider);
-  const [gusdBal, gethBal, ethBal] = await Promise.all([
-    gusdContract.balanceOf(address),
-    gethContract.balanceOf(address),
+  const nusdContract = new ethers.Contract(nUSD, erc20Abi, provider);
+  const nethContract = new ethers.Contract(nETH, erc20Abi, provider);
+  const [nusdBal, nethBal, monBal] = await Promise.all([
+    nusdContract.balanceOf(address),
+    nethContract.balanceOf(address),
     provider.getBalance(address),
   ]);
   return {
-    gUSD: gusdBal.toString(),
-    gETH: gethBal.toString(),
-    ETH: ethBal.toString(),
+    nUSD: nusdBal.toString(),
+    nETH: nethBal.toString(),
+    MON: monBal.toString(),
   };
 }

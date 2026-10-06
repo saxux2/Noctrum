@@ -2,7 +2,7 @@ import { Composer, InlineKeyboard } from "grammy";
 import { ethers } from "ethers";
 import { SWAP_POOL_ADDRESS } from "../config";
 import { ERC20_ABI, SWAP_POOL_ABI } from "../constants";
-import { ghostGet, toWei, fmtEth, tokenSymbol, resolveToken, ensureGasBalance } from "../api";
+import { noctrumGet, toWei, fmtEth, tokenSymbol, resolveToken, ensureGasBalance } from "../api";
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
@@ -15,14 +15,14 @@ composer.command("swap", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 3) {
     const kb = new InlineKeyboard()
-      .text("\u{1F4B5} gUSD \u{2192} gETH", "swap_example_gusd_geth")
-      .text("\u{1FA99} gETH \u{2192} gUSD", "swap_example_geth_gusd");
+      .text("\u{1F4B5} nUSD \u{2192} nETH", "swap_example_gusd_geth")
+      .text("\u{1FA99} nETH \u{2192} nUSD", "swap_example_geth_gusd");
     await ctx.reply(
       `\u{1F504} <b>Swap Tokens</b>\n\n` +
       `<b>Usage:</b> <code>/swap [amount] [from] [to]</code>\n\n` +
       `<b>Examples:</b>\n` +
-      `<code>/swap 100 gUSD gETH</code> — Swap 100 gUSD for gETH\n` +
-      `<code>/swap 0.5 gETH gUSD</code> — Swap 0.5 gETH for gUSD`,
+      `<code>/swap 100 nUSD nETH</code> — Swap 100 nUSD for nETH\n` +
+      `<code>/swap 0.5 nETH nUSD</code> — Swap 0.5 nETH for nUSD`,
       { parse_mode: "HTML", reply_markup: kb },
     );
     return;
@@ -34,7 +34,7 @@ composer.command("swap", async (ctx) => {
   const tokenOut = resolveToken(parts[2]);
 
   if (isNaN(amount) || amount <= 0) { await ctx.reply("\u{274C} Invalid amount."); return; }
-  if (!tokenIn || !tokenOut) { await ctx.reply("\u{274C} Unknown token. Use <b>gUSD</b> or <b>gETH</b>.", { parse_mode: "HTML" }); return; }
+  if (!tokenIn || !tokenOut) { await ctx.reply("\u{274C} Unknown token. Use <b>nUSD</b> or <b>nETH</b>.", { parse_mode: "HTML" }); return; }
   if (tokenIn.toLowerCase() === tokenOut.toLowerCase()) { await ctx.reply("\u{274C} Can't swap same token."); return; }
 
   const msg = await ctx.reply(`\u{23F3} Swapping ${amount} ${tokenSymbol(tokenIn)} \u{2192} ${tokenSymbol(tokenOut)}...`);
@@ -76,7 +76,7 @@ composer.command("swap_quote", async (ctx) => {
     await ctx.reply(
       `\u{1F4B1} <b>Swap Quote</b>\n\n` +
       `<b>Usage:</b> <code>/swap_quote [amount] [from] [to]</code>\n\n` +
-      `<b>Example:</b> <code>/swap_quote 100 gUSD gETH</code>`,
+      `<b>Example:</b> <code>/swap_quote 100 nUSD nETH</code>`,
       { parse_mode: "HTML" },
     );
     return;
@@ -87,7 +87,7 @@ composer.command("swap_quote", async (ctx) => {
   const tokenOut = resolveToken(parts[2]);
 
   if (isNaN(amount) || amount <= 0 || !tokenIn || !tokenOut) {
-    await ctx.reply("\u{274C} Invalid parameters. Use: <code>/swap_quote 100 gUSD gETH</code>", { parse_mode: "HTML" });
+    await ctx.reply("\u{274C} Invalid parameters. Use: <code>/swap_quote 100 nUSD nETH</code>", { parse_mode: "HTML" });
     return;
   }
 
@@ -95,7 +95,7 @@ composer.command("swap_quote", async (ctx) => {
     const params = new URLSearchParams({
       tokenIn, tokenOut, amountIn: toWei(amount),
     });
-    const data = await ghostGet(`/api/v1/swap-quote?${params}`);
+    const data = await noctrumGet(`/api/v1/swap-quote?${params}`);
 
     const kb = new InlineKeyboard()
       .text(`\u{1F504} Swap Now`, "swap_now_help");
@@ -118,9 +118,9 @@ composer.command("swap_quote", async (ctx) => {
 composer.callbackQuery("swap_example_gusd_geth", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `\u{1F504} <b>Swap gUSD to gETH</b>\n\n` +
-    `<code>/swap 100 gUSD gETH</code>\n\n` +
-    `Or check the rate first:\n<code>/swap_quote 100 gUSD gETH</code>`,
+    `\u{1F504} <b>Swap nUSD to nETH</b>\n\n` +
+    `<code>/swap 100 nUSD nETH</code>\n\n` +
+    `Or check the rate first:\n<code>/swap_quote 100 nUSD nETH</code>`,
     { parse_mode: "HTML" },
   );
 });
@@ -128,9 +128,9 @@ composer.callbackQuery("swap_example_gusd_geth", async (ctx) => {
 composer.callbackQuery("swap_example_geth_gusd", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `\u{1F504} <b>Swap gETH to gUSD</b>\n\n` +
-    `<code>/swap 0.5 gETH gUSD</code>\n\n` +
-    `Or check the rate first:\n<code>/swap_quote 0.5 gETH gUSD</code>`,
+    `\u{1F504} <b>Swap nETH to nUSD</b>\n\n` +
+    `<code>/swap 0.5 nETH nUSD</code>\n\n` +
+    `Or check the rate first:\n<code>/swap_quote 0.5 nETH nUSD</code>`,
     { parse_mode: "HTML" },
   );
 });
@@ -148,15 +148,15 @@ composer.callbackQuery("swap_now_help", async (ctx) => {
 composer.callbackQuery("menu_swap", async (ctx) => {
   await ctx.answerCallbackQuery();
   const kb = new InlineKeyboard()
-    .text("\u{1F4B5} gUSD \u{2192} gETH", "swap_example_gusd_geth")
-    .text("\u{1FA99} gETH \u{2192} gUSD", "swap_example_geth_gusd").row()
+    .text("\u{1F4B5} nUSD \u{2192} nETH", "swap_example_gusd_geth")
+    .text("\u{1FA99} nETH \u{2192} nUSD", "swap_example_geth_gusd").row()
     .text("\u{1F4B1} Get Quote", "swap_quote_help");
   await ctx.reply(
     `\u{1F504} <b>Swap Tokens</b>\n\n` +
-    `Swap between gUSD and gETH on-chain with 5% slippage protection.\n\n` +
+    `Swap between nUSD and nETH on-chain with 5% slippage protection.\n\n` +
     `<b>Quick start:</b>\n` +
-    `<code>/swap 100 gUSD gETH</code>\n` +
-    `<code>/swap_quote 100 gUSD gETH</code>`,
+    `<code>/swap 100 nUSD nETH</code>\n` +
+    `<code>/swap_quote 100 nUSD nETH</code>`,
     { parse_mode: "HTML", reply_markup: kb },
   );
 });
@@ -165,8 +165,8 @@ composer.callbackQuery("swap_quote_help", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1F4B1} <b>Get a Quote</b>\n\n` +
-    `<code>/swap_quote 100 gUSD gETH</code>\n` +
-    `<code>/swap_quote 0.5 gETH gUSD</code>`,
+    `<code>/swap_quote 100 nUSD nETH</code>\n` +
+    `<code>/swap_quote 0.5 nETH nUSD</code>`,
     { parse_mode: "HTML" },
   );
 });

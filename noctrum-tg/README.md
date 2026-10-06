@@ -1,6 +1,6 @@
-# GHOST Finance — Telegram Bot
+# NOCTRUM Finance — Telegram Bot
 
-Telegram interface for [GHOST Protocol](https://github.com/ghost-protocol) — private P2P lending with encrypted rate discovery powered by Chainlink CRE.
+Telegram interface for NOCTRUM Protocol — private P2P lending with encrypted rate discovery powered by Chainlink CRE.
 
 Lend, borrow, swap, and manage private vault balances directly from Telegram. Rates are encrypted client-side using secp256k1 and only decrypted inside Chainlink's Confidential Computing Environment — the server never sees your rates.
 
@@ -13,7 +13,7 @@ Lend, borrow, swap, and manage private vault balances directly from Telegram. Ra
 - **Collateralized borrowing** — Post collateral and submit borrow intents with encrypted max rate caps
 - **Automated matching** — CRE matches lenders and borrowers at optimal rates; accept or reject proposals from Telegram
 - **Loan lifecycle** — Repay loans, claim excess collateral, track credit score progression
-- **On-chain swaps** — Swap between gUSD and gETH through an on-chain AMM pool
+- **On-chain swaps** — Swap between nUSD and nETH through an on-chain AMM pool
 - **Private transfers** — Move tokens between vault accounts with EIP-712 signed authorization
 - **Real-time alerts** — Poll-based notifications for new proposals, settlements, and payouts
 
@@ -25,7 +25,7 @@ Lend, borrow, swap, and manage private vault balances directly from Telegram. Ra
 |-------|-----------|
 | Runtime | [Bun](https://bun.sh) |
 | Bot Framework | [grammY](https://grammy.dev) |
-| Blockchain | [ethers.js](https://docs.ethers.org/v6/) v6 on Sepolia |
+| Blockchain | [ethers.js](https://docs.ethers.org/v6/) v6 on Monad Testnet (chain 10143) |
 | Encryption | [eciesjs](https://github.com/nicknisi/eciesjs) (secp256k1 ECIES) |
 | Wallet Connect | [@walletconnect/sign-client](https://docs.walletconnect.com/) v2 |
 | Auth | EIP-712 typed data signatures on every action |
@@ -38,7 +38,7 @@ Lend, borrow, swap, and manage private vault balances directly from Telegram. Ra
 
 - [Bun](https://bun.sh) v1.0+
 - A Telegram bot token from [@BotFather](https://t.me/BotFather)
-- A running GHOST API server (see `../server/`)
+- A running Noctrum API server (see `../server/`) and vault API (see `../noctrum-vault-api/`)
 
 ### Setup
 
@@ -55,6 +55,10 @@ bun run start
 
 # Or with hot reload for development
 bun run dev
+
+# Docker: env is passed at runtime, never baked into the image
+docker build -t noctrum-tg .
+docker run --env-file .env -v noctrum-tg-data:/app/data noctrum-tg
 ```
 
 ### Environment Variables
@@ -62,13 +66,13 @@ bun run dev
 | Variable | Description | Required |
 |----------|------------|----------|
 | `BOT_TOKEN` | Telegram bot token from @BotFather | Yes |
-| `GHOST_API_URL` | GHOST server endpoint | No (defaults to `http://localhost:8080`) |
-| `EXTERNAL_API_URL` | Vault/token API endpoint | No |
-| `RPC_URL` | Sepolia JSON-RPC endpoint | No (defaults to publicnode) |
+| `NOCTRUM_API_URL` | Noctrum server endpoint | No (defaults to `http://localhost:8080`) |
+| `EXTERNAL_API_URL` | Noctrum vault API endpoint | No (defaults to `http://localhost:8081`) |
+| `RPC_URL` | Monad Testnet JSON-RPC endpoint | No (defaults to `https://testnet-rpc.monad.xyz`) |
 | `CRE_PUBLIC_KEY` | CRE secp256k1 public key for rate encryption | No |
-| `VAULT_ADDRESS` | External vault contract address | No |
-| `CHAIN_ID` | EVM chain ID | No (defaults to `11155111`) |
-| `WC_PROJECT_ID` | WalletConnect Cloud project ID | No |
+| `VAULT_ADDRESS` | NoctrumVault contract address | No (defaults to the deployed vault) |
+| `CHAIN_ID` | EVM chain ID | No (defaults to `10143`) |
+| `WC_PROJECT_ID` | WalletConnect Cloud project ID | Required for Connect Wallet |
 
 ---
 
@@ -79,7 +83,7 @@ src/
 ├── index.ts              # Bot entry point — setup + start
 ├── config.ts             # Environment variables + defaults
 ├── constants.ts          # ABIs, EIP-712 domains & typed data
-├── api.ts                # GHOST API + external vault API clients
+├── api.ts                # Noctrum API + vault API clients
 ├── wallet.ts             # Wallet persistence, cache, signer management
 ├── wc.ts                 # WalletConnect v2 integration + WCSigner
 ├── notifier.ts           # Real-time settlement notification poller
@@ -93,7 +97,7 @@ src/
     ├── borrow.ts         # /borrow, /cancel_borrow, /borrower_status, proposals
     ├── loans.ts          # /active_loans, /repay, /claim_collateral
     ├── transfer.ts       # /send (private), /withdraw (vault → on-chain)
-    ├── swap.ts           # /swap, /swap_quote (gUSD ↔ gETH)
+    ├── swap.ts           # /swap, /swap_quote (nUSD ↔ nETH)
     ├── info.ts           # /balance, /private_balance, /credit_score, /price, /pool_status
     └── help.ts           # /help, /alerts_on, /alerts_off
 ```
@@ -152,7 +156,7 @@ src/
 
 | Command | Description |
 |---------|------------|
-| `/balance` | On-chain balances (gUSD, gETH, ETH) |
+| `/balance` | On-chain balances (nUSD, nETH, MON) |
 | `/private_balance` | Private vault balances |
 | `/credit_score` | Credit tier + collateral multiplier |
 | `/collateral_quote <amt> <token> <collToken>` | Required collateral calculator |
@@ -168,14 +172,14 @@ src/
 ### How Lending Works
 
 ```
-User → /lend 500 gUSD 5
-  ├─ Step 1: Approve gUSD on vault contract
-  ├─ Step 2: Deposit gUSD into vault
-  ├─ Step 3: Private transfer to GHOST pool
+User → /lend 500 nUSD 5
+  ├─ Step 1: Approve nUSD on vault contract
+  ├─ Step 2: Deposit nUSD into vault
+  ├─ Step 3: Private transfer to Noctrum pool
   └─ Step 4: Sign EIP-712 confirmation with encrypted rate → API
 ```
 
-The rate (`5%`) is encrypted with the CRE's secp256k1 public key before leaving the client. The GHOST server stores the ciphertext — only the Chainlink CRE workflow can decrypt and match rates.
+The rate (`5%`) is encrypted with the CRE's secp256k1 public key before leaving the client. The Noctrum server stores the ciphertext — only the Chainlink CRE workflow can decrypt and match rates.
 
 ### Wallet Types
 
@@ -203,7 +207,7 @@ The rate (`5%`) is encrypted with the CRE's secp256k1 public key before leaving 
 bun run dev
 
 # Type check
-bunx tsc --noEmit
+bunx -p typescript@5 tsc --noEmit
 
 # Add a new command module
 # 1. Create src/commands/myfeature.ts using Composer pattern
@@ -238,4 +242,4 @@ commands.use(myfeature);
 
 ## License
 
-Part of the GHOST Protocol. See root repository for license details.
+Part of the NOCTRUM Protocol. See root repository for license details.

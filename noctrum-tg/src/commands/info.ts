@@ -1,5 +1,5 @@
 import { Composer, InlineKeyboard } from "grammy";
-import { ghostGet, getOnChainBalances, getVaultBalances, toWei, fmtEth, tokenSymbol, resolveToken } from "../api";
+import { noctrumGet, getOnChainBalances, getVaultBalances, toWei, fmtEth, tokenSymbol, resolveToken } from "../api";
 import { hasWallet, getWallet, getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, editProgress, editError } from "../ui";
@@ -16,9 +16,9 @@ composer.command("balance", async (ctx) => {
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{1F4B0} <b>On-Chain Balances</b>\n\n` +
       `\u{1F464} <code>${wallet.address}</code>\n\n` +
-      `\u{1FA99} gUSD: <code>${fmtEth(bal.gUSD)}</code>\n` +
-      `\u{1FA99} gETH: <code>${fmtEth(bal.gETH)}</code>\n` +
-      `\u{26AA} ETH:  <code>${fmtEth(bal.ETH)}</code>`,
+      `\u{1FA99} nUSD: <code>${fmtEth(bal.nUSD)}</code>\n` +
+      `\u{1FA99} nETH: <code>${fmtEth(bal.nETH)}</code>\n` +
+      `\u{26AA} MON:  <code>${fmtEth(bal.MON)}</code>`,
     );
   } catch (err: any) {
     await editError(ctx, msg.chat.id, msg.message_id, err);
@@ -35,8 +35,8 @@ composer.command("private_balance", async (ctx) => {
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{1F512} <b>Private Vault Balances</b>\n\n` +
       `\u{1F464} <code>${wallet.address}</code>\n\n` +
-      `\u{1FA99} gUSD: <code>${fmtEth(bal.gUSD)}</code>\n` +
-      `\u{1FA99} gETH: <code>${fmtEth(bal.gETH)}</code>`,
+      `\u{1FA99} nUSD: <code>${fmtEth(bal.nUSD)}</code>\n` +
+      `\u{1FA99} nETH: <code>${fmtEth(bal.nETH)}</code>`,
     );
   } catch (err: any) {
     await editError(ctx, msg.chat.id, msg.message_id, err);
@@ -48,7 +48,7 @@ composer.command("private_balance", async (ctx) => {
 composer.command("credit_score", async (ctx) => {
   const wallet = requireWallet(ctx.from!.id);
   try {
-    const data = await ghostGet(`/api/v1/credit-score/${wallet.address}`);
+    const data = await noctrumGet(`/api/v1/credit-score/${wallet.address}`);
     const tierEmoji: Record<string, string> = {
       bronze: "\u{1F949}", silver: "\u{1F948}", gold: "\u{1F947}", platinum: "\u{1F48E}",
     };
@@ -72,7 +72,7 @@ composer.command("credit_score", async (ctx) => {
 composer.command("collateral_quote", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 3) {
-    await ctx.reply("\u{26A0} Usage: <code>/collateral_quote 800 gUSD gETH</code>", { parse_mode: "HTML" });
+    await ctx.reply("\u{26A0} Usage: <code>/collateral_quote 800 nUSD nETH</code>", { parse_mode: "HTML" });
     return;
   }
 
@@ -90,7 +90,7 @@ composer.command("collateral_quote", async (ctx) => {
       amount: toWei(amount),
       collateralToken: collToken,
     });
-    const data = await ghostGet(`/api/v1/collateral-quote?${params}`);
+    const data = await noctrumGet(`/api/v1/collateral-quote?${params}`);
     await ctx.reply(
       `\u{1F4CA} <b>Collateral Quote</b>\n\n` +
       `Borrow: <code>${amount} ${tokenSymbol(token)}</code>\n` +
@@ -109,7 +109,7 @@ composer.command("collateral_quote", async (ctx) => {
 
 composer.command("price", async (ctx) => {
   try {
-    const data = await ghostGet(`/api/v1/credit-score/0x0000000000000000000000000000000000000000`);
+    const data = await noctrumGet(`/api/v1/credit-score/0x0000000000000000000000000000000000000000`);
     await ctx.reply(`\u{1F4B5} <b>ETH/USD:</b> <code>$${data.ethPrice?.toFixed(2)}</code>`, { parse_mode: "HTML" });
   } catch (err: any) {
     await ctx.reply(`\u{274C} ${escapeHtml(err.message)}`, { parse_mode: "HTML" });
@@ -122,8 +122,8 @@ composer.command("pool_status", async (ctx) => {
   const msg = await ctx.reply("\u{23F3} Fetching protocol stats...");
   try {
     const [health, intents] = await Promise.all([
-      ghostGet("/health"),
-      ghostGet("/api/v1/internal/pending-intents"),
+      noctrumGet("/health"),
+      noctrumGet("/api/v1/internal/pending-intents"),
     ]);
 
     const lendCount = intents.lendIntents?.length ?? 0;
@@ -134,7 +134,7 @@ composer.command("pool_status", async (ctx) => {
       (s: bigint, b: any) => s + BigInt(b.amount ?? "0"), 0n);
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
-      `\u{1F47B} <b>GHOST Protocol Status</b>\n\n` +
+      `\u{1F47B} <b>NOCTRUM Protocol Status</b>\n\n` +
       `Pool: <code>${health.poolAddress}</code>\n` +
       `Version: <code>${health.version}</code>\n\n` +
       `<b>Pending Intents</b>\n` +
@@ -181,9 +181,9 @@ composer.callbackQuery("action_balance", async (ctx) => {
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{1F4B0} <b>On-Chain Balances</b>\n\n` +
       `\u{1F464} <code>${wallet.address}</code>\n\n` +
-      `\u{1FA99} gUSD: <code>${fmtEth(bal.gUSD)}</code>\n` +
-      `\u{1FA99} gETH: <code>${fmtEth(bal.gETH)}</code>\n` +
-      `\u{26AA} ETH:  <code>${fmtEth(bal.ETH)}</code>`,
+      `\u{1FA99} nUSD: <code>${fmtEth(bal.nUSD)}</code>\n` +
+      `\u{1FA99} nETH: <code>${fmtEth(bal.nETH)}</code>\n` +
+      `\u{26AA} MON:  <code>${fmtEth(bal.MON)}</code>`,
     );
   } catch (err: any) {
     await editError(ctx, msg.chat.id, msg.message_id, err);
@@ -200,8 +200,8 @@ composer.callbackQuery("action_private_balance", async (ctx) => {
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{1F512} <b>Private Vault Balances</b>\n\n` +
       `\u{1F464} <code>${wallet.address}</code>\n\n` +
-      `\u{1FA99} gUSD: <code>${fmtEth(bal.gUSD)}</code>\n` +
-      `\u{1FA99} gETH: <code>${fmtEth(bal.gETH)}</code>`,
+      `\u{1FA99} nUSD: <code>${fmtEth(bal.nUSD)}</code>\n` +
+      `\u{1FA99} nETH: <code>${fmtEth(bal.nETH)}</code>`,
     );
   } catch (err: any) {
     await editError(ctx, msg.chat.id, msg.message_id, err);
@@ -215,8 +215,8 @@ composer.callbackQuery("action_active_loans", async (ctx) => {
   const msg = await ctx.reply("\u{23F3} Fetching active loans...");
   try {
     const [bData, lData] = await Promise.all([
-      ghostGet(`/api/v1/borrower-status/${wallet.address}`),
-      ghostGet(`/api/v1/lender-status/${wallet.address}`),
+      noctrumGet(`/api/v1/borrower-status/${wallet.address}`),
+      noctrumGet(`/api/v1/lender-status/${wallet.address}`),
     ]);
     const borrowLoans = bData.activeLoans ?? [];
     const lendLoans = lData.activeLoans ?? [];
@@ -248,7 +248,7 @@ composer.callbackQuery("action_credit_score", async (ctx) => {
   const wallet = getWallet(ctx.from.id);
   if (!wallet) { await ctx.reply("No wallet connected."); return; }
   try {
-    const data = await ghostGet(`/api/v1/credit-score/${wallet.address}`);
+    const data = await noctrumGet(`/api/v1/credit-score/${wallet.address}`);
     const tierEmoji: Record<string, string> = {
       bronze: "\u{1F949}", silver: "\u{1F948}", gold: "\u{1F947}", platinum: "\u{1F48E}",
     };
@@ -270,7 +270,7 @@ composer.callbackQuery("action_credit_score", async (ctx) => {
 composer.callbackQuery("action_price", async (ctx) => {
   await ctx.answerCallbackQuery();
   try {
-    const data = await ghostGet(`/api/v1/credit-score/0x0000000000000000000000000000000000000000`);
+    const data = await noctrumGet(`/api/v1/credit-score/0x0000000000000000000000000000000000000000`);
     await ctx.reply(`\u{1F4B5} <b>ETH/USD:</b> <code>$${data.ethPrice?.toFixed(2)}</code>`, { parse_mode: "HTML" });
   } catch (err: any) {
     await ctx.reply(`\u{274C} ${escapeHtml(err.message)}`, { parse_mode: "HTML" });
@@ -282,8 +282,8 @@ composer.callbackQuery("action_pool_status", async (ctx) => {
   const msg = await ctx.reply("\u{23F3} Fetching protocol stats...");
   try {
     const [health, intents] = await Promise.all([
-      ghostGet("/health"),
-      ghostGet("/api/v1/internal/pending-intents"),
+      noctrumGet("/health"),
+      noctrumGet("/api/v1/internal/pending-intents"),
     ]);
     const lendCount = intents.lendIntents?.length ?? 0;
     const borrowCount = intents.borrowIntents?.length ?? 0;
@@ -292,7 +292,7 @@ composer.callbackQuery("action_pool_status", async (ctx) => {
     const totalBorrowWei = (intents.borrowIntents ?? []).reduce(
       (s: bigint, b: any) => s + BigInt(b.amount ?? "0"), 0n);
     await editProgress(ctx, msg.chat.id, msg.message_id,
-      `\u{1F47B} <b>GHOST Protocol Status</b>\n\n` +
+      `\u{1F47B} <b>NOCTRUM Protocol Status</b>\n\n` +
       `Pool: <code>${health.poolAddress}</code>\n` +
       `Version: <code>${health.version}</code>\n\n` +
       `<b>Pending Intents</b>\n` +

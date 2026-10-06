@@ -9,7 +9,7 @@ export function friendlyError(err: any): string {
   const msg = err?.message ?? String(err);
 
   if (err?.code === "INSUFFICIENT_FUNDS" || msg.includes("insufficient funds for gas"))
-    return "Not enough ETH for gas fees. Fund your wallet with Sepolia ETH first.";
+    return "Not enough MON for gas fees. Get Monad Testnet MON from https://faucet.monad.xyz first.";
 
   if (err?.code === "UNPREDICTABLE_GAS_LIMIT" || msg.includes("execution reverted"))
     return "Transaction would fail. Check your token balance and allowance.";

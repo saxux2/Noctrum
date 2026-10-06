@@ -1,5 +1,5 @@
 import { Bot } from "grammy";
-import { ghostGet, fmtEth, tokenSymbol } from "./api";
+import { noctrumGet, fmtEth, tokenSymbol } from "./api";
 import { getAddress } from "./wallet";
 
 // Maps userId -> chatId for notifications
@@ -32,7 +32,7 @@ export function startNotifier(bot: Bot) {
 
       try {
         // Check borrower status for proposals
-        const borrowerData = await ghostGet(`/api/v1/borrower-status/${address}`);
+        const borrowerData = await noctrumGet(`/api/v1/borrower-status/${address}`);
         const proposals = borrowerData.pendingProposals ?? [];
         const activeLoans = borrowerData.activeLoans ?? [];
 
@@ -79,7 +79,7 @@ export function startNotifier(bot: Bot) {
         lastBorrowerState.set(userId, borrowerKey);
 
         // Check lender status
-        const lenderData = await ghostGet(`/api/v1/lender-status/${address}`);
+        const lenderData = await noctrumGet(`/api/v1/lender-status/${address}`);
         const lenderLoans = lenderData.activeLoans ?? [];
         const completedPayouts = lenderData.completedPayouts ?? [];
 

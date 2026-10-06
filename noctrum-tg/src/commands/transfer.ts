@@ -18,7 +18,7 @@ composer.command("send", async (ctx) => {
       `\u{27A1}\u{FE0F} <b>Private Transfer</b>\n\n` +
       `<b>Usage:</b> <code>/send [address] [amount] [token]</code>\n\n` +
       `<b>Example:</b>\n` +
-      `<code>/send 0xABC...123 100 gUSD</code>`,
+      `<code>/send 0xABC...123 100 nUSD</code>`,
       { parse_mode: "HTML" },
     );
     return;
@@ -31,7 +31,7 @@ composer.command("send", async (ctx) => {
 
   if (!recipient.startsWith("0x")) { await ctx.reply("\u{274C} Invalid recipient address."); return; }
   if (isNaN(amount) || amount <= 0) { await ctx.reply("\u{274C} Invalid amount."); return; }
-  if (!token) { await ctx.reply("\u{274C} Unknown token. Use <b>gUSD</b> or <b>gETH</b>.", { parse_mode: "HTML" }); return; }
+  if (!token) { await ctx.reply("\u{274C} Unknown token. Use <b>nUSD</b> or <b>nETH</b>.", { parse_mode: "HTML" }); return; }
 
   const msg = await ctx.reply(`\u{23F3} Sending ${amount} ${tokenSymbol(token)} privately...`);
   try {
@@ -56,7 +56,7 @@ composer.command("withdraw", async (ctx) => {
       `\u{1F4E4} <b>Withdraw to On-Chain</b>\n\n` +
       `<b>Usage:</b> <code>/withdraw [amount] [token]</code>\n\n` +
       `<b>Example:</b>\n` +
-      `<code>/withdraw 100 gUSD</code>`,
+      `<code>/withdraw 100 nUSD</code>`,
       { parse_mode: "HTML" },
     );
     return;
@@ -67,7 +67,7 @@ composer.command("withdraw", async (ctx) => {
   const token = resolveToken(parts[1]);
 
   if (isNaN(amount) || amount <= 0) { await ctx.reply("\u{274C} Invalid amount."); return; }
-  if (!token) { await ctx.reply("\u{274C} Unknown token. Use <b>gUSD</b> or <b>gETH</b>.", { parse_mode: "HTML" }); return; }
+  if (!token) { await ctx.reply("\u{274C} Unknown token. Use <b>nUSD</b> or <b>nETH</b>.", { parse_mode: "HTML" }); return; }
 
   const msg = await ctx.reply(`\u{23F3} Withdrawing ${amount} ${tokenSymbol(token)} to on-chain wallet...`);
   try {

@@ -1,8 +1,8 @@
 import { Composer, InlineKeyboard } from "grammy";
 import { ethers } from "ethers";
 import { VAULT_ADDRESS } from "../config";
-import { ERC20_ABI, VAULT_ABI, GHOST_DOMAIN, REPAY_LOAN_TYPES, CLAIM_EXCESS_COLLATERAL_TYPES } from "../constants";
-import { ghostPost, ghostGet, privateTransfer, getPoolAddress, ensureGasBalance, ensureTokenBalance, ts, fmtEth, tokenSymbol } from "../api";
+import { ERC20_ABI, VAULT_ABI, NOCTRUM_DOMAIN, REPAY_LOAN_TYPES, CLAIM_EXCESS_COLLATERAL_TYPES } from "../constants";
+import { noctrumPost, noctrumGet, privateTransfer, getPoolAddress, ensureGasBalance, ensureTokenBalance, ts, fmtEth, tokenSymbol } from "../api";
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
@@ -16,8 +16,8 @@ composer.command("active_loans", async (ctx) => {
   const msg = await ctx.reply("\u{23F3} Fetching active loans...");
   try {
     const [bData, lData] = await Promise.all([
-      ghostGet(`/api/v1/borrower-status/${wallet.address}`),
-      ghostGet(`/api/v1/lender-status/${wallet.address}`),
+      noctrumGet(`/api/v1/borrower-status/${wallet.address}`),
+      noctrumGet(`/api/v1/lender-status/${wallet.address}`),
     ]);
     const borrowLoans = bData.activeLoans ?? [];
     const lendLoans = lData.activeLoans ?? [];
@@ -73,7 +73,7 @@ composer.command("repay", async (ctx) => {
     const prov = getProvider();
     await ensureGasBalance(wallet.address, prov);
 
-    const bData = await ghostGet(`/api/v1/borrower-status/${wallet.address}`);
+    const bData = await noctrumGet(`/api/v1/borrower-status/${wallet.address}`);
     const loan = (bData.activeLoans ?? []).find((l: any) => l.loanId === loanId);
     if (!loan) throw new Error("Loan not found or not active.");
 
@@ -109,8 +109,8 @@ composer.command("repay", async (ctx) => {
     // Step 3: Call repay
     const timestamp = ts();
     const repayMsg = { account: wallet.address, loanId, amount: totalDue, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, REPAY_LOAN_TYPES, repayMsg);
-    const result = await ghostPost("/api/v1/repay", { ...repayMsg, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, REPAY_LOAN_TYPES, repayMsg);
+    const result = await noctrumPost("/api/v1/repay", { ...repayMsg, auth });
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Loan Repaid!</b>\n\n` +
@@ -145,8 +145,8 @@ composer.command("claim_collateral", async (ctx) => {
   try {
     const timestamp = ts();
     const message = { account: wallet.address, loanId, timestamp };
-    const auth = await wallet.signTypedData(GHOST_DOMAIN, CLAIM_EXCESS_COLLATERAL_TYPES, message);
-    const result = await ghostPost("/api/v1/claim-excess-collateral", { ...message, auth });
+    const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, CLAIM_EXCESS_COLLATERAL_TYPES, message);
+    const result = await noctrumPost("/api/v1/claim-excess-collateral", { ...message, auth });
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Excess Collateral Claimed!</b>\n\n` +
       `\u{1FA99} Returned: <code>${fmtEth(result.excessReturned)}</code>\n` +

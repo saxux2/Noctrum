@@ -5,11 +5,10 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-# Copy source, assets, and env
+# Copy source and assets (env is supplied at runtime: docker run --env-file .env, D-18)
 COPY src/ src/
 COPY tsconfig.json .
 COPY welcome-banner.png .
-COPY .env .
 
 # Create data directory for wallet persistence
 RUN mkdir -p data/wallets

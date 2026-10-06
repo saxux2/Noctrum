@@ -3,8 +3,8 @@ const SignClient = (SignClientModule as any).default ?? SignClientModule;
 import { ethers } from "ethers";
 import { CHAIN_ID, RPC_URL, WC_PROJECT_ID } from "./config";
 
-// Default public project ID for GHOST Protocol
-const PROJECT_ID = WC_PROJECT_ID || "d6938b61b2f4abcfcc04bd30277cda42";
+// Noctrum WalletConnect Cloud project id (required for Connect Wallet)
+const PROJECT_ID = WC_PROJECT_ID;
 
 let signClient: InstanceType<typeof SignClient> | null = null;
 let initPromise: Promise<boolean> | null = null;
@@ -23,9 +23,9 @@ export async function initWC(): Promise<boolean> {
     signClient = await SignClient.init({
       projectId: PROJECT_ID,
       metadata: {
-        name: "GHOST Protocol",
-        description: "Private P2P Lending on Sepolia",
-        url: "https://ghost.protocol",
+        name: "NOCTRUM Protocol",
+        description: "Private P2P Lending on Monad",
+        url: "https://app.example.noctrum", // placeholder until D-9
         icons: [],
       },
     });

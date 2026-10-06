@@ -15,18 +15,18 @@ export const SWAP_POOL_ABI = [
   "function poolBalance(address token) view returns (uint256)",
 ];
 
-export const GHOST_DOMAIN = {
-  name: "GhostProtocol" as const,
+export const NOCTRUM_DOMAIN = {
+  name: "NoctrumProtocol" as const,
   version: "0.0.1" as const,
-  chainId: 11155111,
-  verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13" as `0x${string}`,
+  chainId: 10143,
+  verifyingContract: "0x65877F6BFd3f2D293454658BCb290b112397Eeb5" as `0x${string}`,
 };
 
 export const EXTERNAL_DOMAIN = {
-  name: "CompliantPrivateTokenDemo" as const,
+  name: "NoctrumPrivateToken" as const,
   version: "0.0.1" as const,
-  chainId: 11155111,
-  verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13" as `0x${string}`,
+  chainId: 10143,
+  verifyingContract: "0x65877F6BFd3f2D293454658BCb290b112397Eeb5" as `0x${string}`,
 };
 
 export const CONFIRM_DEPOSIT_TYPES = {

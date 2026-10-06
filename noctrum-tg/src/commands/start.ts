@@ -16,7 +16,7 @@ composer.command("start", async (ctx) => {
 
     await ctx.replyWithPhoto(new InputFile(BANNER_PATH), {
       caption:
-        `GM! Welcome back to <b>GHOST Finance</b>\n\n` +
+        `GM! Welcome back to <b>NOCTRUM Finance</b>\n\n` +
         `<code>${addr}</code>\n` +
         `Type: ${wType}\n\n` +
         `What would you like to do?`,
@@ -26,7 +26,7 @@ composer.command("start", async (ctx) => {
   } else {
     await ctx.replyWithPhoto(new InputFile(BANNER_PATH), {
       caption:
-        `GM! Welcome to <b>GHOST Finance</b>\n\n` +
+        `GM! Welcome to <b>NOCTRUM Finance</b>\n\n` +
         `Private P2P lending with encrypted rates powered by Chainlink CRE. Lend, borrow, and swap with complete rate privacy.\n\n` +
         `To get started, connect your wallet below.`,
       parse_mode: "HTML",

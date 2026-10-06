@@ -15,7 +15,7 @@ async function sendHelp(ctx: any) {
     .text("\u{1F514} Alerts On", "action_alerts_on").text("\u{1F515} Alerts Off", "action_alerts_off");
 
   await ctx.reply(
-    `\u{1F47B} <b>GHOST Protocol Commands</b>\n\n` +
+    `\u{1F47B} <b>NOCTRUM Protocol Commands</b>\n\n` +
 
     `<b>\u{1F4B0} Wallet</b>\n` +
     `/create_wallet — Create embedded wallet\n` +
@@ -30,15 +30,15 @@ async function sendHelp(ctx: any) {
 
     `<b>\u{1FA99} Lending</b>\n` +
     `/lend — Lend tokens at your rate\n` +
-    `  e.g. <code>/lend 500 gUSD 5</code>\n` +
-    `  e.g. <code>/lend 2 gETH 3.5</code>\n` +
+    `  e.g. <code>/lend 500 nUSD 5</code>\n` +
+    `  e.g. <code>/lend 2 nETH 3.5</code>\n` +
     `/cancel_lend — Cancel active lend\n` +
     `  e.g. <code>/cancel_lend abc123</code>\n` +
     `/lender_status — View lend positions\n\n` +
 
     `<b>\u{1F3E6} Borrowing</b>\n` +
     `/borrow — Borrow with collateral\n` +
-    `  e.g. <code>/borrow 800 gUSD 5 gETH 10</code>\n` +
+    `  e.g. <code>/borrow 800 nUSD 5 nETH 10</code>\n` +
     `/cancel_borrow — Cancel borrow intent\n` +
     `  e.g. <code>/cancel_borrow abc123</code>\n` +
     `/borrower_status — View borrow positions\n\n` +
@@ -55,21 +55,21 @@ async function sendHelp(ctx: any) {
     `  e.g. <code>/claim_collateral abc123</code>\n\n` +
 
     `<b>\u{1F504} Swap</b>\n` +
-    `/swap — Swap between gUSD and gETH\n` +
-    `  e.g. <code>/swap 100 gUSD gETH</code>\n` +
+    `/swap — Swap between nUSD and nETH\n` +
+    `  e.g. <code>/swap 100 nUSD nETH</code>\n` +
     `/swap_quote — Get swap price quote\n` +
-    `  e.g. <code>/swap_quote 100 gUSD gETH</code>\n\n` +
+    `  e.g. <code>/swap_quote 100 nUSD nETH</code>\n\n` +
 
     `<b>\u{27A1}\u{FE0F} Transfers</b>\n` +
     `/send — Private transfer\n` +
-    `  e.g. <code>/send 0xAbc...123 100 gUSD</code>\n` +
+    `  e.g. <code>/send 0xAbc...123 100 nUSD</code>\n` +
     `/withdraw — Vault to on-chain\n` +
-    `  e.g. <code>/withdraw 100 gUSD</code>\n\n` +
+    `  e.g. <code>/withdraw 100 nUSD</code>\n\n` +
 
     `<b>\u{1F4CA} Info</b>\n` +
     `/credit_score — Your credit tier\n` +
     `/collateral_quote — Required collateral\n` +
-    `  e.g. <code>/collateral_quote 800 gUSD gETH</code>\n` +
+    `  e.g. <code>/collateral_quote 800 nUSD nETH</code>\n` +
     `/price — Live ETH/USD price\n` +
     `/pool_status — Protocol statistics\n\n` +
 
@@ -129,7 +129,7 @@ composer.callbackQuery("action_main_menu", async (ctx) => {
   const { mainMenuKeyboard } = await import("../ui");
   const kb = mainMenuKeyboard();
   await ctx.reply(
-    `\u{1F47B} <b>GHOST Protocol</b>\n\nWhat would you like to do?`,
+    `\u{1F47B} <b>NOCTRUM Protocol</b>\n\nWhat would you like to do?`,
     { parse_mode: "HTML", reply_markup: kb },
   );
 });
