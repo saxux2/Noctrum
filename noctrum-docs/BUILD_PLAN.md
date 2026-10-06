@@ -42,7 +42,8 @@ Rules:
   ```bash
   bun --version
   forge --version            # ≥ 1.8.0
-  npm i -g @chainlink/cre-cli && cre version     # ≥ 1.30.0 if monad-testnet is in project.yaml
+  cre version                # ≥ 1.30.0; not on npm, install from GitHub releases (see TOOLCHAIN.md)
+  cre login                  # interactive; required by supported-chains
   cre workflow supported-chains --output json > noctrum-docs/cre-supported-chains.json
   ```
 - **AC:** versions recorded in `noctrum-docs/TOOLCHAIN.md`. `monad-testnet` is present in the supported-chains JSON (closes the ⚠️ in CRE_WORKFLOWS §0).

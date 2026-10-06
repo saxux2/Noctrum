@@ -1,0 +1,22 @@
+{
+  "chainId": 10143,
+  "rpc": "https://testnet-rpc.monad.xyz",
+  "explorer": "https://testnet.monadvision.com",
+  "NoctrumVault": "",
+  "PolicyEngineProxy": "",
+  "PolicyEngineImpl": "",
+  "nUSD": "",
+  "nETH": "",
+  "NoctrumSwapPool": "",
+  "ticketSigner": "",
+  "poolWallet": "",
+  "crePublicKey": "",
+  "deployBlock": 0,
+  "accounts": {
+    "deployer": "",
+    "lenderA": "",
+    "lenderB": "",
+    "borrower": "",
+    "account2": ""
+  }
+}

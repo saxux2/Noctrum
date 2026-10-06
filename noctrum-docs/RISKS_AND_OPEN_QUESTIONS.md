@@ -13,7 +13,7 @@
 | D-7 | Proposal TTL | 5 s (Ghost demo tweak, `tasks/demo-tweaks.md` §1) / 5 min (original) | 5 s for parity | — |
 | D-8 | Wormhole chain list | Home = MonadTestnet; Sepolia becomes a source (8 chains) / drop Sepolia | Keep Sepolia as a source | T6.1 |
 | D-9 | Domains, hosting, socials (API host, app/docs/marketing domains, Discord, Telegram bot handle, careers link, GitHub org, Raycast author) | — | You provide | T5.6, T6.4, T8.1 |
-| D-10 | Contracts folder | `contracts/` / keep `transfer-demo/` | `contracts/` | T0.2 |
+| D-10 | Contracts folder | `contracts/` / keep `transfer-demo/` | ✅ **Decided 2026-10-06: `contracts/`** | T0.2 |
 | D-11 | CRE SDK version | Keep 1.1.x (parity) / upgrade to ≥ 1.19.0 | Keep unless the Monad chain is used | T4.1 |
 | D-12 | Identifier renames (`ghostApiUrl`, `TOKEN_ADDRESS`, TG hard-coded addresses) | Rename per REBRAND / keep | REBRAND map | T4.1, T5.1 |
 | D-13 | Ghost's **production** CRE configs are incomplete (settle and execute lack the API URL / vault fields; check-loans prod points to localhost) | Replicate / complete them | Complete them (otherwise prod deploy cannot work) | T4.1 |
@@ -22,7 +22,7 @@
 | D-16 | Gas thresholds and funding: TG `MIN_GAS_WEI=0.001`, e2e funding 0.005 ETH | Keep numbers / adjust for Monad (100 gwei min base fee, gas-limit charging, 10 MON reserve) | Adjust (e.g. MIN 0.05 MON, fund 1 MON) ⚠️ VERIFY by measuring | T5.5, T7.1 |
 | D-17 | Stale tests (`lend.test.ts`, `main.test.ts`) | Port broken / rewrite | Rewrite (test-only) | T5.2, T4.2 |
 | D-18 | TG Dockerfile bakes `.env` into the image | Keep / runtime env | Runtime env | T5.5 |
-| 🔴 D-19 | Name spelling: folder `C:\Nocturm` vs product "Noctrum" | Noctrum / Nocturm | Confirm | T0.1 |
+| D-19 | Name spelling: folder `C:\Nocturm` vs product "Noctrum" | Noctrum / Nocturm | ✅ **Decided 2026-10-06: Noctrum** | T0.1 |
 | D-20 | `poolAddress` exposure requires `POOL_PRIVATE_KEY` on the server | Keep / add `POOL_ADDRESS` env | Keep (parity), Later | — |
 
 ## B. Unverified values (⚠️ VERIFY before use)
