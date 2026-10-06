@@ -19,7 +19,7 @@
 | D-13 | Ghost's **production** CRE configs are incomplete (settle and execute lack the API URL / vault fields; check-loans prod points to localhost) | Replicate / complete them | Complete them (otherwise prod deploy cannot work) | T4.1 |
 | D-14 | Explorer | MonadVision / Monadscan | MonadVision (Sourcify verify) | T6.1 |
 | D-15 | `next.config.ts` rewrites hard-code `http://localhost:3000` | Keep / env-driven | Env-driven (needed to deploy the web app) | T6.1 |
-| D-16 | Gas thresholds and funding: TG `MIN_GAS_WEI=0.001`, e2e funding 0.005 ETH | Keep numbers / adjust for Monad (100 gwei min base fee, gas-limit charging, 10 MON reserve) | Adjust (e.g. MIN 0.05 MON, fund 1 MON) ⚠️ VERIFY by measuring | T5.5, T7.1 |
+| D-16 | Gas thresholds and funding: TG `MIN_GAS_WEI=0.001`, e2e funding 0.005 ETH | Keep numbers / adjust for Monad (100 gwei min base fee, gas-limit charging, 10 MON reserve) | Adjust (e.g. MIN 0.05 MON, fund 1 MON) ⚠️ VERIFY by measuring. Measured 2026-10-06: a plain MON transfer costs 21000 gas at ~102 gwei ≈ 0.0022 MON; a 0.5 MON transfer from a 5 MON EOA succeeded (no reserve-balance issue) | T5.5, T7.1 |
 | D-17 | Stale tests (`lend.test.ts`, `main.test.ts`) | Port broken / rewrite | Rewrite (test-only) | T5.2, T4.2 |
 | D-18 | TG Dockerfile bakes `.env` into the image | Keep / runtime env | Runtime env | T5.5 |
 | D-19 | Name spelling: folder `C:\Nocturm` vs product "Noctrum" | Noctrum / Nocturm | ✅ **Decided 2026-10-06: Noctrum** | T0.1 |
