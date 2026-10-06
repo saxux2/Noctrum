@@ -20,19 +20,18 @@ interface IVault {
 ///         5. Register token + PolicyEngine on Vault
 ///         6. Deposit 10 tokens into Vault
 contract SetupAll is Script {
-    address constant VAULT = 0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13;
-
     function run() external {
+        address vault = vm.envAddress("VAULT_ADDRESS");
         uint256 deployerPK = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPK);
 
         console.log("Deployer:", deployer);
-        console.log("Vault:", VAULT);
+        console.log("Vault:", vault);
 
         vm.startBroadcast(deployerPK);
 
         // 1. Deploy SimpleToken ERC20
-        SimpleToken token = new SimpleToken("Ghost ETH", "gETH", deployer);
+        SimpleToken token = new SimpleToken("Noctrum ETH", "nETH", deployer);
         console.log("1) SimpleToken deployed at:", address(token));
 
         // 2. Deploy PolicyEngine (behind proxy)
@@ -52,16 +51,16 @@ contract SetupAll is Script {
         console.log("3) Minted 100 tokens to:", deployer);
 
         // 4. Approve Vault to spend all tokens
-        token.approve(VAULT, type(uint256).max);
+        token.approve(vault, type(uint256).max);
         console.log("4) Approved vault to spend tokens");
 
         // 5. Register token + PolicyEngine on Vault
-        IVault(VAULT).register(address(token), address(proxy));
+        IVault(vault).register(address(token), address(proxy));
         console.log("5) Registered token and PolicyEngine on vault");
 
         // 6. Deposit 10 tokens into Vault
         uint256 depositAmount = 100 ether;
-        IVault(VAULT).deposit(address(token), depositAmount);
+        IVault(vault).deposit(address(token), depositAmount);
         console.log("6) Deposited 10 tokens into vault");
 
         vm.stopBroadcast();
@@ -73,16 +72,16 @@ contract SetupAll is Script {
         console.log("SimpleToken:        ", address(token));
         console.log("PolicyEngine proxy: ", address(proxy));
         console.log("PolicyEngine impl:  ", address(policyEngineImpl));
-        console.log("Vault:              ", VAULT);
+        console.log("Vault:              ", vault);
         console.log("Minted:              100 tokens");
         console.log("Deposited:           10 tokens");
         console.log("============================================");
         console.log("");
-        console.log("You can now use the Private Token API:");
-        console.log("  - Check balance:    https://convergence2026-token-api.cldev.cloud/balances");
-        console.log("  - Private transfer: https://convergence2026-token-api.cldev.cloud/private-transfer");
-        console.log("  - Shielded address: https://convergence2026-token-api.cldev.cloud/shielded-address");
-        console.log("  - Withdraw:         https://convergence2026-token-api.cldev.cloud/withdraw");
-        console.log("  - Transactions:     https://convergence2026-token-api.cldev.cloud/transactions");
+        console.log("You can now use the noctrum-vault-api:");
+        console.log("  - Check balance:    <VAULT_API_URL>/balances");
+        console.log("  - Private transfer: <VAULT_API_URL>/private-transfer");
+        console.log("  - Shielded address: <VAULT_API_URL>/shielded-address");
+        console.log("  - Withdraw:         <VAULT_API_URL>/withdraw");
+        console.log("  - Transactions:     <VAULT_API_URL>/transactions");
     }
 }

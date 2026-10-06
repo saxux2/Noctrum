@@ -6,7 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {PolicyEngine} from "@chainlink/policy-management/core/PolicyEngine.sol";
 
 /// @title DeployPolicyEngine
-/// @notice Deploys a Chainlink ACE PolicyEngine (behind an ERC1967 proxy) on Sepolia.
+/// @notice Deploys a Chainlink ACE PolicyEngine (behind an ERC1967 proxy) on Monad Testnet.
 ///         The engine is initialized with defaultAllow = true, meaning all operations
 ///         are permitted by default unless specific policies are attached to reject them.
 contract DeployPolicyEngine is Script {

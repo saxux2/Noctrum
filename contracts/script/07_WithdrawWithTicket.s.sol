@@ -18,9 +18,8 @@ interface IVault {
 ///           WITHDRAW_AMOUNT - Amount in wei (e.g. "1000000000000000000" for 1 token)
 ///           TICKET          - The ticket hex string returned by the /withdraw API
 contract WithdrawWithTicket is Script {
-    address constant VAULT = 0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13;
-
     function run() external {
+        address vault = vm.envAddress("VAULT_ADDRESS");
         uint256 accountPK = vm.envUint("PRIVATE_KEY_2");
         address account = vm.addr(accountPK);
 
@@ -31,11 +30,11 @@ contract WithdrawWithTicket is Script {
         console.log("Account:", account);
         console.log("Token:", tokenAddr);
         console.log("Amount:", amount);
-        console.log("Vault:", VAULT);
+        console.log("Vault:", vault);
 
         vm.startBroadcast(accountPK);
 
-        IVault(VAULT).withdrawWithTicket(tokenAddr, amount, ticket);
+        IVault(vault).withdrawWithTicket(tokenAddr, amount, ticket);
 
         vm.stopBroadcast();
 

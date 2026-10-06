@@ -5,7 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {SimpleToken} from "../src/SimpleToken.sol";
 
 /// @title DeployToken
-/// @notice Deploys the SimpleToken ERC20 contract on Sepolia.
+/// @notice Deploys the SimpleToken ERC20 contract on Monad Testnet.
 contract DeployToken is Script {
     function run() external {
         uint256 deployerPK = vm.envUint("PRIVATE_KEY");
@@ -15,7 +15,7 @@ contract DeployToken is Script {
 
         vm.startBroadcast(deployerPK);
 
-        SimpleToken token = new SimpleToken("Ghost USD", "gUSD", deployer);
+        SimpleToken token = new SimpleToken("Noctrum USD", "nUSD", deployer);
 
         vm.stopBroadcast();
 

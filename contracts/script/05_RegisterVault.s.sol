@@ -11,9 +11,8 @@ interface IVault {
 /// @notice Registers an ERC20 token and its PolicyEngine on the Vault contract.
 ///         Set TOKEN_ADDRESS and POLICY_ENGINE_ADDRESS env vars.
 contract RegisterVault is Script {
-    address constant VAULT = 0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13;
-
     function run() external {
+        address vault = vm.envAddress("VAULT_ADDRESS");
         uint256 deployerPK = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPK);
 
@@ -23,11 +22,11 @@ contract RegisterVault is Script {
         console.log("Registrar:", deployer);
         console.log("Token:", tokenAddr);
         console.log("PolicyEngine:", policyEngineAddr);
-        console.log("Vault:", VAULT);
+        console.log("Vault:", vault);
 
         vm.startBroadcast(deployerPK);
 
-        IVault(VAULT).register(tokenAddr, policyEngineAddr);
+        IVault(vault).register(tokenAddr, policyEngineAddr);
 
         vm.stopBroadcast();
 

@@ -11,9 +11,8 @@ interface IVault {
 /// @notice Deposits 10 tokens into the Vault contract.
 ///         Set TOKEN_ADDRESS env var to the ERC20 token address.
 contract DepositToVault is Script {
-    address constant VAULT = 0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13;
-
     function run() external {
+        address vault = vm.envAddress("VAULT_ADDRESS");
         uint256 deployerPK = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPK);
 
@@ -22,12 +21,12 @@ contract DepositToVault is Script {
 
         console.log("Depositor:", deployer);
         console.log("Token:", tokenAddr);
-        console.log("Vault:", VAULT);
+        console.log("Vault:", vault);
         console.log("Amount: 10 tokens");
 
         vm.startBroadcast(deployerPK);
 
-        IVault(VAULT).deposit(tokenAddr, amount);
+        IVault(vault).deposit(tokenAddr, amount);
 
         vm.stopBroadcast();
 
