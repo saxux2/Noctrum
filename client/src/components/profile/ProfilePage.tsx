@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { Loader2 } from "lucide-react";
-import { get } from "@/lib/ghost";
+import { get } from "@/lib/noctrum";
 import ProfileHeader from "./ProfileHeader";
 import ProfileStats from "./ProfileStats";
 import ProfileCharts from "./ProfileCharts";

@@ -10,6 +10,7 @@ import type {
 } from "@wormhole-foundation/sdk";
 import evm from "@wormhole-foundation/sdk/evm";
 import type { ethers } from "ethers";
+import { EXPLORER_URL } from "./constants";
 
 let _wh: Wormhole<"Testnet"> | null = null;
 
@@ -29,6 +30,7 @@ export interface ChainInfo {
 }
 
 export const CHAINS: ChainInfo[] = [
+  { id: "MonadTestnet", label: "Monad Testnet", logo: "/chains/monad.png", explorer: EXPLORER_URL, chainId: 10143, nativeSymbol: "MON" },
   { id: "Sepolia", label: "Sepolia", logo: "/chains/ethereum.png", explorer: "https://sepolia.etherscan.io", chainId: 11155111, nativeSymbol: "ETH" },
   { id: "BaseSepolia", label: "Base Sepolia", logo: "/chains/base.png", explorer: "https://sepolia.basescan.org", chainId: 84532, nativeSymbol: "ETH" },
   { id: "ArbitrumSepolia", label: "Arbitrum Sepolia", logo: "/chains/arbitrum.png", explorer: "https://sepolia.arbiscan.io", chainId: 421614, nativeSymbol: "ETH" },
@@ -89,7 +91,7 @@ export async function executeBridge(
     amt,
     { chain: srcChain.chain, address: Wormhole.chainAddress(srcChain.chain, params.srcAddress).address },
     { chain: dstChain.chain, address: Wormhole.chainAddress(dstChain.chain, params.dstAddress).address },
-    false,
+    "TokenBridge", // manual transfer, no relayer (SDK 1.x: automatic = false)
   );
 
   // Use the SDK's native EVM signer wrapper — handles gas, nonce, tx formatting

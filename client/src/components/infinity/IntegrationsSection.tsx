@@ -5,7 +5,7 @@ const categories = [
   },
   {
     title: "Lend",
-    description: "Deposit gUSD at your chosen rate. Your rate is sealed — only Chainlink CRE can read it.",
+    description: "Deposit nUSD at your chosen rate. Your rate is sealed — only Chainlink CRE can read it.",
   },
   {
     title: "Rate Discovery",

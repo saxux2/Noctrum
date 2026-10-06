@@ -12,7 +12,7 @@ const StakeCard = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Supported Assets</span>
-          <span className="font-medium text-foreground">gUSD, gETH</span>
+          <span className="font-medium text-foreground">nUSD, nETH</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Network</span>

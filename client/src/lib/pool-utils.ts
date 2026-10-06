@@ -1,4 +1,4 @@
-import { gUSD, gETH, type Coin, COINS } from "./constants";
+import { nUSD, nETH, type Coin, COINS } from "./constants";
 
 export function getTokenMeta(ticker: string): Coin & { iconSrc: string } {
   const coin = COINS.find((c) => c.symbol === ticker);

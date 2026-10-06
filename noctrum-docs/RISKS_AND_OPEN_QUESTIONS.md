@@ -18,7 +18,7 @@
 | D-12 | Identifier renames (`ghostApiUrl`, `TOKEN_ADDRESS`, TG hard-coded addresses) | Rename per REBRAND / keep | ✅ **Applied 2026-10-06 (T4.1): REBRAND map** (`noctrumApiUrl`, namespace `noctrum-protocol`) | T4.1, T5.1 |
 | D-13 | Ghost's **production** CRE configs are incomplete (settle and execute lack the API URL / vault fields; check-loans prod points to localhost) | Replicate / complete them | ✅ **Applied 2026-10-06 (T4.1): completed** with the staging values; API hosts are `*.example.noctrum` placeholders until D-9 | T4.1 |
 | D-14 | Explorer | MonadVision / Monadscan | MonadVision (Sourcify verify) | T6.1 |
-| D-15 | `next.config.ts` rewrites hard-code `http://localhost:3000` | Keep / env-driven | Env-driven (needed to deploy the web app) | T6.1 |
+| D-15 | `next.config.ts` rewrites hard-code `http://localhost:3000` | Keep / env-driven | ✅ **Applied 2026-10-07 (T6.1): env-driven** (`NOCTRUM_API_ORIGIN`, `NOCTRUM_VAULT_API_URL`, default localhost:8080/8081) | T6.1 |
 | D-16 | Gas thresholds and funding: TG `MIN_GAS_WEI=0.001`, e2e funding 0.005 ETH | Keep numbers / adjust for Monad (100 gwei min base fee, gas-limit charging, 10 MON reserve) | ✅ **TG applied 2026-10-06 (T5.5): `MIN_GAS_WEI` = 0.05 MON.** Measured: a plain MON transfer costs 21000 gas at ~102 gwei ≈ 0.0022 MON; a 0.5 MON transfer from a 5 MON EOA succeeded (no reserve-balance issue); the TG `/lend` flow (approve + deposit) cost ≈ 0.021 MON. e2e funding still open (T7.1) | T5.5, T7.1 |
 | D-17 | Stale tests (`lend.test.ts`, `main.test.ts`) | Port broken / rewrite | ✅ **Applied 2026-10-06 (T4.2, T5.2): rewritten** (server: Mongo via `mongodb-memory-server`, price feed mocked) | T5.2, T4.2 |
 | D-18 | TG Dockerfile bakes `.env` into the image | Keep / runtime env | ✅ **Applied 2026-10-06 (T5.5): runtime env** (`docker run --env-file .env`; `.env` in `.dockerignore`) | T5.5 |
@@ -37,7 +37,7 @@
 | Monad Testnet block time / finality | docs mention 400/800 ms (testnet era) and 300/600 ms (mainnet since 2026-07) | docs.monad.xyz at build time |
 | Reserve-balance semantics for plain EOAs | "Default reserve balance 10 MON" | Monad docs + a test tx |
 | Monad Testnet ETH/USD feed `0x0c76859E85727683Eeba0C70Bc2e0F5781337818` | Chainlink changelog, pre-reset | docs.chain.link feed list |
-| Wormhole `MonadTestnet` (id 10009), TokenBridge `0xF97B81E513f53c7a6B57Bd0b103a6c295b3096C5` | wormhole-sdk-ts main branch | Check the npm version that includes it; do a test bridge |
+| ✅ Wormhole `MonadTestnet` (id 10009), TokenBridge `0xF97B81E513f53c7a6B57Bd0b103a6c295b3096C5` | Verified 2026-10-07 in `@wormhole-foundation/sdk-base`: first in 5.0.0 (absent in 1.24.1–4.x). Client pinned to **6.1.4** (6.1.5 is a broken publish: `sdk-algorand`/`sdk-cosmwasm-core` 6.1.5 do not exist). 6.x `tokenTransfer` takes `"TokenBridge"` instead of `automatic=false` | Test bridge still pending (T7.2) |
 | Privy support for Monad Testnet with the app's wallets | — | Privy dashboard + manual test |
 | WalletConnect wallets accepting `eip155:10143` as a required namespace | — | Pair MetaMask Mobile / Trust |
 | ✅ ACE PolicyEngine v1.0.0 call interface used by the vault | `run`/`check(Payload)`; the vault must `attach()` first. Verified from source 2026-10-06 (CONTRACTS §4) | — |

@@ -34,7 +34,7 @@ const UnstakeTab = () => {
         <div className="space-y-1">
           <TokenInput
             label="You're repaying"
-            token="gUSD"
+            token="nUSD"
             tokenIcon={<GUSDIcon />}
             value={repayAmount}
             usdValue="0"
@@ -44,7 +44,7 @@ const UnstakeTab = () => {
 
           <TokenInput
             label="Collateral returned"
-            token="gETH"
+            token="nETH"
             tokenIcon={<GETHIcon />}
             value={collateralReturn}
             usdValue="0"

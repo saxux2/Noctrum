@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@privy-io/react-auth": "^3.16.0",
+    "@wormhole-foundation/sdk": "6.1.4",
+    "@wormhole-foundation/sdk-evm": "6.1.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eciesjs": "^0.4.17",
-    "@wormhole-foundation/sdk": "^1.0.0",
-    "@wormhole-foundation/sdk-evm": "^1.0.0",
     "ethers": "^6.16.0",
     "lucide-react": "^0.576.0",
     "motion": "^12.35.1",

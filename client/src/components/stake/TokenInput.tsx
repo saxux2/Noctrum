@@ -17,8 +17,8 @@ interface TokenInputProps {
 }
 
 const tokenIcons: Record<string, React.ReactNode> = {
-  gUSD: <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400" />,
-  gETH: <div className="w-5 h-5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500" />,
+  nUSD: <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400" />,
+  nETH: <div className="w-5 h-5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500" />,
 };
 
 const TokenInput = ({

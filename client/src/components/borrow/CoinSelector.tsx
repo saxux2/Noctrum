@@ -18,7 +18,7 @@ interface CoinSelectorProps {
 
 const CoinIcon = ({ symbol }: { symbol: string }) => (
   <img
-    src={symbol === "gUSD" ? "/gusd.png" : "/geth.png"}
+    src={symbol === "nUSD" ? "/nusd.png" : "/neth.png"}
     alt={symbol}
     className="w-5 h-5 rounded-full object-cover"
   />

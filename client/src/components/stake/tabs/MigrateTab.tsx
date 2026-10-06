@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { ethers } from "ethers";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { post, get, ts } from "@/lib/ghost";
+import { post, get, ts } from "@/lib/noctrum";
 import {
   CHAIN_ID,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
   CANCEL_LEND_TYPES,
   VAULT_ADDRESS,
   VAULT_ABI,
-  gUSD,
+  nUSD,
 } from "@/lib/constants";
 
 const MigrateTab = () => {
@@ -55,7 +55,7 @@ const MigrateTab = () => {
       const timestamp = ts();
 
       const message = { account, slotId, timestamp };
-      const auth = await signer.signTypedData(GHOST_DOMAIN, CANCEL_LEND_TYPES, message);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CANCEL_LEND_TYPES, message);
       await post("/api/v1/cancel-lend", { ...message, auth });
       await loadPositions();
     } catch (err: unknown) {
@@ -89,7 +89,7 @@ const MigrateTab = () => {
         return;
       }
 
-      const tx = await vault.withdrawWithTicket(gUSD, totalDeposited, "0x");
+      const tx = await vault.withdrawWithTicket(nUSD, totalDeposited, "0x");
       await tx.wait();
       await loadPositions();
     } catch (err: unknown) {
@@ -182,7 +182,7 @@ const MigrateTab = () => {
               >
                 <div className="space-y-0.5">
                   <p className="text-sm font-medium text-foreground">
-                    {(Number(BigInt(slot.amount ?? "0")) / 1e18).toLocaleString()} gUSD
+                    {(Number(BigInt(slot.amount ?? "0")) / 1e18).toLocaleString()} nUSD
                   </p>
                   <p className="text-xs text-muted-foreground font-mono">
                     {slot.slotId?.slice(0, 12)}...

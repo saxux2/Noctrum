@@ -6,8 +6,8 @@ import { ethers } from "ethers";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatTokenAmount } from "@/lib/pool-utils";
-import { COINS, GHOST_DOMAIN, REPAY_LOAN_TYPES } from "@/lib/constants";
-import { post, ts } from "@/lib/ghost";
+import { COINS, NOCTRUM_DOMAIN, REPAY_LOAN_TYPES } from "@/lib/constants";
+import { post, ts } from "@/lib/noctrum";
 import Image from "next/image";
 
 interface ProfilePositionsProps {
@@ -25,7 +25,7 @@ function tokenSymbol(address: string): string {
 }
 
 function tokenImage(address: string): string {
-  return tokenSymbol(address) === "gETH" ? "/geth.png" : "/gusd.png";
+  return tokenSymbol(address) === "nETH" ? "/neth.png" : "/nusd.png";
 }
 
 function displayRate(loan: any): string {
@@ -61,7 +61,7 @@ const ProfilePositions = ({
       const amount = loan.totalDue;
       const message = { account, loanId: loan.loanId, amount, timestamp };
       const auth = await signer.signTypedData(
-        GHOST_DOMAIN,
+        NOCTRUM_DOMAIN,
         REPAY_LOAN_TYPES,
         message,
       );

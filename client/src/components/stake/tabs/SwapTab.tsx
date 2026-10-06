@@ -28,7 +28,7 @@ const SwapTab = () => {
         <div className="space-y-1">
           <TokenInput
             label="You're borrowing"
-            token="gUSD"
+            token="nUSD"
             tokenIcon={<GUSDIcon />}
             value={borrowAmount}
             usdValue="0"
@@ -38,7 +38,7 @@ const SwapTab = () => {
 
           <TokenInput
             label="Collateral"
-            token="gETH"
+            token="nETH"
             tokenIcon={<GETHIcon />}
             value={collateralAmount}
             usdValue="0"

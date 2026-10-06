@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { EXPLORER_URL } from "@/lib/constants";
 
 const PFP_COUNT = 3;
 
@@ -117,7 +118,7 @@ const ProfileHeader = ({ address, tier, multiplier, loansRepaid, loansDefaulted 
                 {copied ? "Copied" : "Copy"}
               </button>
               <a
-                href={`https://sepolia.etherscan.io/address/${address}`}
+                href={`${EXPLORER_URL}/address/${address}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"

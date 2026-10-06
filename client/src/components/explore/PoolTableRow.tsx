@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import type { PoolRow } from "./data/mockData";
-import { gUSD, gETH } from "@/lib/constants";
+import { nUSD, nETH } from "@/lib/constants";
 
 const contractAddress = (ticker: string) => {
-  if (ticker === "gUSD") return gUSD;
-  if (ticker === "gETH") return gETH;
+  if (ticker === "nUSD") return nUSD;
+  if (ticker === "nETH") return nETH;
   return "";
 };
 

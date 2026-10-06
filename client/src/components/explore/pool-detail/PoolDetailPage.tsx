@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { get } from "@/lib/ghost";
+import { get } from "@/lib/noctrum";
 import { getTokenMeta, computePoolStats } from "@/lib/pool-utils";
 import PoolHeader from "./PoolHeader";
 import ReserveStatus from "./ReserveStatus";
@@ -18,7 +18,7 @@ interface PoolDetailPageProps {
 
 const PoolDetailPage = ({ ticker }: PoolDetailPageProps) => {
   const meta = getTokenMeta(ticker);
-  const collateralTicker = ticker === "gUSD" ? "gETH" : "gUSD";
+  const collateralTicker = ticker === "nUSD" ? "nETH" : "nUSD";
 
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();

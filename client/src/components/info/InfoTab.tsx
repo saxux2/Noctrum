@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowDownUp, Loader2, AlertCircle, ChevronDown, Check } from "lucide-react";
 import { ethers } from "ethers";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { get } from "@/lib/ghost";
+import { get } from "@/lib/noctrum";
 import { pushNotification } from "@/hooks/useNotifications";
 import { RollingNumber, RollingText } from "@/components/ui/rolling-text";
 import {
   CHAIN_ID,
-  gUSD,
-  gETH,
+  EXPLORER_URL,
+  nUSD,
+  nETH,
   ERC20_ABI,
   SWAP_POOL_ADDRESS,
   SWAP_POOL_ABI,
@@ -23,9 +24,9 @@ import {
   type ChainInfo,
 } from "@/lib/wormhole";
 
-const GHOST_TOKENS = [
-  { symbol: "gUSD", name: "Ghost USD", address: gUSD, icon: "/gusd.png" },
-  { symbol: "gETH", name: "Ghost ETH", address: gETH, icon: "/geth.png" },
+const NOCTRUM_TOKENS = [
+  { symbol: "nUSD", name: "Ghost USD", address: nUSD, icon: "/nusd.png" },
+  { symbol: "nETH", name: "Ghost ETH", address: nETH, icon: "/neth.png" },
 ];
 
 type Status =
@@ -53,11 +54,11 @@ const SwapTab = () => {
   const { authenticated, login } = usePrivy();
   const { wallets } = useWallets();
 
-  // Source chain (0 = Sepolia, others = bridge)
+  // Source chain (0 = Monad Testnet, others = bridge)
   const [srcChainIdx, setSrcChainIdx] = useState(0);
-  // Source token index (for Sepolia: gUSD/gETH, for others: native only)
+  // Source token index (for Monad Testnet: nUSD/nETH, for others: native only)
   const [fromTokenIdx, setFromTokenIdx] = useState(0);
-  // Destination token: always gUSD or gETH
+  // Destination token: always nUSD or nETH
   const [toTokenIdx, setToTokenIdx] = useState(1);
 
   const [amount, setAmount] = useState("");
@@ -77,16 +78,16 @@ const SwapTab = () => {
   const [toDropdownOpen, setToDropdownOpen] = useState(false);
 
   const srcChain = CHAINS[srcChainIdx];
-  const isSepolia = srcChain.id === "Sepolia";
+  const isHomeChain = srcChain.id === "MonadTestnet";
 
-  // On Sepolia: swap between gUSD/gETH. Off-chain: bridge native → gUSD/gETH
-  const fromToken = isSepolia
-    ? GHOST_TOKENS[fromTokenIdx]
+  // On Monad Testnet: swap between nUSD/nETH. Off-chain: bridge native → nUSD/nETH
+  const fromToken = isHomeChain
+    ? NOCTRUM_TOKENS[fromTokenIdx]
     : { symbol: srcChain.nativeSymbol, name: srcChain.label, address: "", icon: srcChain.logo };
-  const toToken = GHOST_TOKENS[toTokenIdx];
+  const toToken = NOCTRUM_TOKENS[toTokenIdx];
 
   const flip = () => {
-    if (isSepolia) {
+    if (isHomeChain) {
       // Swap from/to tokens
       const newFrom = toTokenIdx;
       const newTo = fromTokenIdx;
@@ -109,7 +110,7 @@ const SwapTab = () => {
 
   // Fetch from-token balance
   useEffect(() => {
-    if (!isSepolia || !wallets[0] || !fromToken.address) {
+    if (!isHomeChain || !wallets[0] || !fromToken.address) {
       setFromBalance("");
       return;
     }
@@ -128,11 +129,11 @@ const SwapTab = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, [isSepolia, fromToken.address, wallets, status]);
+  }, [isHomeChain, fromToken.address, wallets, status]);
 
-  // Fetch swap quote when on Sepolia
+  // Fetch swap quote when on Monad Testnet
   useEffect(() => {
-    if (!isSepolia) {
+    if (!isHomeChain) {
       // For bridge, output = input (native → native, 1:1 before fees)
       if (amount && parseFloat(amount) > 0) {
         setAmountOut(amount);
@@ -178,7 +179,7 @@ const SwapTab = () => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [amount, fromToken.address, toToken.address, isSepolia]);
+  }, [amount, fromToken.address, toToken.address, isHomeChain]);
 
   const handleSwap = async () => {
     const wallet = wallets[0];
@@ -236,7 +237,7 @@ const SwapTab = () => {
       const result = await executeBridge(
         {
           srcChain: srcChain.id,
-          dstChain: "Sepolia",
+          dstChain: "MonadTestnet",
           amount,
           srcAddress: address,
           dstAddress: address,
@@ -250,7 +251,7 @@ const SwapTab = () => {
       if (result.dstTxHash) setBridgeDstHash(result.dstTxHash);
       pushNotification({
         title: "Bridge Complete",
-        message: `Bridged ${amount} from ${srcChain.label} to Sepolia`,
+        message: `Bridged ${amount} from ${srcChain.label} to Monad Testnet`,
       });
     } catch (err: unknown) {
       setError(friendlyBridgeError(err));
@@ -259,7 +260,7 @@ const SwapTab = () => {
   };
 
   const handleAction = () => {
-    if (isSepolia) handleSwap();
+    if (isHomeChain) handleSwap();
     else handleBridge();
   };
 
@@ -279,13 +280,13 @@ const SwapTab = () => {
     swapping: `Swapping ${fromToken.symbol} for ${toToken.symbol}...`,
     initiating: `Initiating bridge on ${srcChain.label}...`,
     attesting: "Waiting for attestation from guardians...",
-    redeeming: "Completing bridge on Sepolia...",
+    redeeming: "Completing bridge on Monad Testnet...",
   };
 
   const buttonLabel = isProcessing
     ? statusLabel[status] ?? "Processing..."
     : canExecute
-    ? isSepolia
+    ? isHomeChain
       ? "Swap"
       : "Bridge"
     : "Enter an amount";
@@ -314,7 +315,7 @@ const SwapTab = () => {
                 setSrcChainIdx(i);
                 setChainDropdownOpen(false);
                 setFromTokenIdx(0);
-                setToTokenIdx(CHAINS[i].id === "Sepolia" ? 1 : 0);
+                setToTokenIdx(CHAINS[i].id === "MonadTestnet" ? 1 : 0);
                 resetState();
               }}
             />
@@ -331,9 +332,9 @@ const SwapTab = () => {
               placeholder="0.00"
               className="bg-transparent text-[28px] font-medium text-foreground outline-none flex-1 min-w-0 placeholder:text-muted-foreground/40"
             />
-            {isSepolia ? (
+            {isHomeChain ? (
               <TokenDropdown
-                tokens={GHOST_TOKENS}
+                tokens={NOCTRUM_TOKENS}
                 selectedIdx={fromTokenIdx}
                 open={fromDropdownOpen}
                 setOpen={setFromDropdownOpen}
@@ -361,7 +362,7 @@ const SwapTab = () => {
           <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2">
             <button
               onClick={flip}
-              disabled={!isSepolia}
+              disabled={!isHomeChain}
               className="w-10 h-10 rounded-xl border border-border bg-card flex items-center justify-center hover:bg-accent active:scale-95 transition-all cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ArrowDownUp className="w-4 h-4 text-muted-foreground" />
@@ -373,10 +374,10 @@ const SwapTab = () => {
         <div className="px-5 pt-5 pb-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-muted-foreground">You receive</p>
-            {!isSepolia && (
+            {!isHomeChain && (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <img src="/chains/ethereum.png" alt="" className="w-4 h-4 rounded-full" />
-                <span>Sepolia</span>
+                <span>Monad Testnet</span>
               </div>
             )}
           </div>
@@ -385,13 +386,13 @@ const SwapTab = () => {
               <RollingNumber value={amountOut || "0.00"} />
             </p>
             <TokenDropdown
-              tokens={GHOST_TOKENS}
+              tokens={NOCTRUM_TOKENS}
               selectedIdx={toTokenIdx}
               open={toDropdownOpen}
               setOpen={setToDropdownOpen}
               onSelect={(i) => {
                 setToTokenIdx(i);
-                if (isSepolia) setFromTokenIdx(i === 0 ? 1 : 0);
+                if (isHomeChain) setFromTokenIdx(i === 0 ? 1 : 0);
                 setToDropdownOpen(false);
                 resetState();
               }}
@@ -403,12 +404,12 @@ const SwapTab = () => {
       {/* Info row */}
       <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
         <span>
-          <RollingText text={isSepolia
+          <RollingText text={isHomeChain
             ? rateLabel || "Enter amount for quote"
             : "Bridged via Wormhole (manual, no relayer fee)"} />
         </span>
         <span>
-          {isSepolia ? "Sepolia" : `${srcChain.label} → Sepolia`}
+          {isHomeChain ? "Monad Testnet" : `${srcChain.label} → Monad Testnet`}
         </span>
       </div>
 
@@ -426,10 +427,10 @@ const SwapTab = () => {
       )}
       {status === "done" && (
         <div className="text-sm px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 space-y-1">
-          <span>{isSepolia ? "Swap successful!" : "Bridge complete!"}</span>
+          <span>{isHomeChain ? "Swap successful!" : "Bridge complete!"}</span>
           {txHash && (
             <a
-              href={`https://sepolia.etherscan.io/tx/${txHash}`}
+              href={`${EXPLORER_URL}/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block text-xs text-emerald-400/70 hover:text-emerald-300 underline underline-offset-2 truncate"
@@ -449,7 +450,7 @@ const SwapTab = () => {
           )}
           {bridgeDstHash && (
             <a
-              href={`https://sepolia.etherscan.io/tx/${bridgeDstHash}`}
+              href={`${EXPLORER_URL}/tx/${bridgeDstHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block text-xs text-emerald-400/70 hover:text-emerald-300 underline underline-offset-2 truncate"
@@ -494,7 +495,7 @@ const SwapTab = () => {
       )}
 
       {/* Pool info */}
-      {ethPrice && isSepolia && (
+      {ethPrice && isHomeChain && (
         <div className="text-center text-xs text-muted-foreground/60">
           ETH/USD: ${ethPrice.toFixed(2)} (Chainlink)
         </div>
@@ -573,7 +574,7 @@ function TokenDropdown({
   setOpen,
   onSelect,
 }: {
-  tokens: typeof GHOST_TOKENS;
+  tokens: typeof NOCTRUM_TOKENS;
   selectedIdx: number;
   open: boolean;
   setOpen: (v: boolean) => void;

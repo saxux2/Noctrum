@@ -23,7 +23,7 @@ const StakeCard = () => {
       <div className="space-y-2">
         <TokenInput
           label="You're lending"
-          token="gUSD"
+          token="nUSD"
           tokenIcon={<GUSDIcon />}
           value={depositAmount}
           usdValue="0"
@@ -32,7 +32,7 @@ const StakeCard = () => {
 
         <TokenInput
           label="Collateral required"
-          token="gETH"
+          token="nETH"
           tokenIcon={<GETHIcon />}
           value={collateralAmount}
           usdValue="0"

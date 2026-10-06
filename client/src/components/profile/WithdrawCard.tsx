@@ -11,16 +11,16 @@ import {
   CHAIN_ID,
   VAULT_ADDRESS,
   VAULT_ABI,
-  gUSD,
-  gETH,
+  nUSD,
+  nETH,
 } from "@/lib/constants";
-import { fetchPrivateBalances, requestWithdrawTicket } from "@/lib/ghost";
+import { fetchPrivateBalances, requestWithdrawTicket } from "@/lib/noctrum";
 
 type Step = "idle" | "signing" | "confirming" | "success" | "error";
 
 const TOKENS = [
-  { symbol: "gUSD", address: gUSD, logo: "/gusd.png" },
-  { symbol: "gETH", address: gETH, logo: "/geth.png" },
+  { symbol: "nUSD", address: nUSD, logo: "/nusd.png" },
+  { symbol: "nETH", address: nETH, logo: "/neth.png" },
 ];
 
 const PRESETS = [25, 50, 75, 100] as const;
@@ -59,7 +59,7 @@ export default function WithdrawCard({ addr }: { addr: string }) {
           map[b.token?.toLowerCase()] = b.balance ?? b.amount ?? "0";
         }
       } else if (data.balance !== undefined) {
-        map[gUSD.toLowerCase()] = data.balance;
+        map[nUSD.toLowerCase()] = data.balance;
       }
       setBalances(map);
     } catch {

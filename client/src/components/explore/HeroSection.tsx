@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { get } from "@/lib/ghost";
+import { get } from "@/lib/noctrum";
 
 const HeroSection = () => {
   const [stats, setStats] = useState({ lends: 0, borrows: 0 });

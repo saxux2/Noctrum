@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { get } from "@/lib/ghost";
+import { get } from "@/lib/noctrum";
 
 export interface Notification {
   id: string;

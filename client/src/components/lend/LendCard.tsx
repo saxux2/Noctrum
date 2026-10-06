@@ -10,17 +10,17 @@ import {
   COINS,
   CHAIN_ID,
   VAULT_ADDRESS,
-  gUSD,
-  gETH,
+  nUSD,
+  nETH,
   ERC20_ABI,
   VAULT_ABI,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
   CONFIRM_DEPOSIT_TYPES,
   CANCEL_LEND_TYPES,
   fetchPoolAddress,
   type Coin,
 } from "@/lib/constants";
-import { encryptRate, get, post, privateTransfer, toWei, ts } from "@/lib/ghost";
+import { encryptRate, get, post, privateTransfer, toWei, ts } from "@/lib/noctrum";
 
 type Status =
   | "idle"
@@ -68,8 +68,8 @@ function friendlyError(err: unknown): string {
 
 const tokenSymbol = (addr: string) => {
   const lower = addr.toLowerCase();
-  if (lower === gUSD.toLowerCase()) return "gUSD";
-  if (lower === gETH.toLowerCase()) return "gETH";
+  if (lower === nUSD.toLowerCase()) return "nUSD";
+  if (lower === nETH.toLowerCase()) return "nETH";
   return addr.slice(0, 6) + "...";
 };
 
@@ -198,7 +198,7 @@ const LendCard = () => {
       const encrypted = encryptRate(rateDecimal);
       const timestamp = ts();
       const confirmMsg = { account, slotId, encryptedRate: encrypted, timestamp };
-      const auth = await signer.signTypedData(GHOST_DOMAIN, CONFIRM_DEPOSIT_TYPES, confirmMsg);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CONFIRM_DEPOSIT_TYPES, confirmMsg);
       const result: any = await post("/api/v1/deposit-lend/confirm", { ...confirmMsg, auth });
 
       setResultIntentId(result.intentId);
@@ -226,7 +226,7 @@ const LendCard = () => {
       const timestamp = ts();
 
       const message = { account, slotId, timestamp };
-      const auth = await signer.signTypedData(GHOST_DOMAIN, CANCEL_LEND_TYPES, message);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CANCEL_LEND_TYPES, message);
       await post("/api/v1/cancel-lend", { ...message, auth });
       await loadIntents();
     } catch (err: unknown) {
@@ -385,7 +385,7 @@ const LendCard = () => {
                 className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <Image src={tokenSymbol(intent.token) === "gETH" ? "/geth.png" : "/gusd.png"} alt="" width={32} height={32} className="rounded-full" />
+                  <Image src={tokenSymbol(intent.token) === "nETH" ? "/neth.png" : "/nusd.png"} alt="" width={32} height={32} className="rounded-full" />
                   <div>
                     <div className="text-sm font-medium text-foreground">
                       {formatAmount(intent.amount)} {tokenSymbol(intent.token)}

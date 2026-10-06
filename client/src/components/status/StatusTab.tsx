@@ -6,15 +6,15 @@ import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { Loader2, AlertCircle } from "lucide-react";
 import {
   CHAIN_ID,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
   CANCEL_BORROW_TYPES,
   CANCEL_LEND_TYPES,
   CLAIM_EXCESS_COLLATERAL_TYPES,
   REPAY_LOAN_TYPES,
-  gUSD,
-  gETH,
+  nUSD,
+  nETH,
 } from "@/lib/constants";
-import { get, post, ts } from "@/lib/ghost";
+import { get, post, ts } from "@/lib/noctrum";
 
 interface BorrowIntent {
   intentId: string;
@@ -58,16 +58,16 @@ const formatAmount = (wei: string) => {
 };
 
 const tokenSymbol = (addr?: string) => {
-  if (!addr) return "gUSD";
+  if (!addr) return "nUSD";
   const lower = addr.toLowerCase();
-  if (lower === gUSD.toLowerCase()) return "gUSD";
-  if (lower === gETH.toLowerCase()) return "gETH";
+  if (lower === nUSD.toLowerCase()) return "nUSD";
+  if (lower === nETH.toLowerCase()) return "nETH";
   return addr.slice(0, 6) + "...";
 };
 
 const tokenLogo = (addr?: string) => {
-  if (addr && addr.toLowerCase() === gETH.toLowerCase()) return "/geth.png";
-  return "/gusd.png";
+  if (addr && addr.toLowerCase() === nETH.toLowerCase()) return "/neth.png";
+  return "/nusd.png";
 };
 
 function friendlyError(err: unknown): string {
@@ -134,7 +134,7 @@ const StatusTab = () => {
 
       const message = { account, intentId, timestamp };
       const auth = await signer.signTypedData(
-        GHOST_DOMAIN,
+        NOCTRUM_DOMAIN,
         CANCEL_BORROW_TYPES,
         message,
       );
@@ -163,7 +163,7 @@ const StatusTab = () => {
 
       const message = { account, slotId, timestamp };
       const auth = await signer.signTypedData(
-        GHOST_DOMAIN,
+        NOCTRUM_DOMAIN,
         CANCEL_LEND_TYPES,
         message,
       );
@@ -192,7 +192,7 @@ const StatusTab = () => {
 
       const message = { account, loanId, timestamp };
       const auth = await signer.signTypedData(
-        GHOST_DOMAIN,
+        NOCTRUM_DOMAIN,
         CLAIM_EXCESS_COLLATERAL_TYPES,
         message,
       );
@@ -221,7 +221,7 @@ const StatusTab = () => {
 
       const message = { account, loanId: loan.loanId, amount: loan.totalDue, timestamp };
       const auth = await signer.signTypedData(
-        GHOST_DOMAIN,
+        NOCTRUM_DOMAIN,
         REPAY_LOAN_TYPES,
         message,
       );

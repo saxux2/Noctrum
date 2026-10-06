@@ -12,15 +12,15 @@ import {
   VAULT_ADDRESS,
   ERC20_ABI,
   VAULT_ABI,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
   BORROW_TYPES,
   CANCEL_BORROW_TYPES,
   fetchPoolAddress,
-  gUSD,
-  gETH,
+  nUSD,
+  nETH,
   type Coin,
 } from "@/lib/constants";
-import { encryptRate, get, post, privateTransfer, toWei, ts } from "@/lib/ghost";
+import { encryptRate, get, post, privateTransfer, toWei, ts } from "@/lib/noctrum";
 import { RollingNumber, RollingText } from "@/components/ui/rolling-text";
 
 type Status = "idle" | "approving" | "depositing" | "transferring" | "submitting" | "done" | "error";
@@ -52,8 +52,8 @@ const formatAmount = (wei: string) => {
 
 const tokenSymbol = (addr: string) => {
   const lower = addr.toLowerCase();
-  if (lower === gUSD.toLowerCase()) return "gUSD";
-  if (lower === gETH.toLowerCase()) return "gETH";
+  if (lower === nUSD.toLowerCase()) return "nUSD";
+  if (lower === nETH.toLowerCase()) return "nETH";
   return addr.slice(0, 6) + "...";
 };
 
@@ -115,8 +115,8 @@ const BorrowCard = () => {
   const [collateralAmount, setCollateralAmount] = useState("");
   const [maxRate, setMaxRate] = useState("");
   const [duration, setDuration] = useState("30");
-  const [borrowCoin, setBorrowCoin] = useState(COINS[0]); // gUSD
-  const [collateralCoin, setCollateralCoin] = useState(COINS[1]); // gETH
+  const [borrowCoin, setBorrowCoin] = useState(COINS[0]); // nUSD
+  const [collateralCoin, setCollateralCoin] = useState(COINS[1]); // nETH
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteMeta, setQuoteMeta] = useState<{ tier: string; multiplier: number; ethPrice: number | null } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -198,7 +198,7 @@ const BorrowCard = () => {
 
   const handleBorrowCoinChange = (coin: Coin) => {
     setBorrowCoin(coin);
-    setCollateralCoin(coin.symbol === "gUSD" ? COINS[1] : COINS[0]);
+    setCollateralCoin(coin.symbol === "nUSD" ? COINS[1] : COINS[0]);
   };
 
   const validateInputs = (): string | null => {
@@ -285,7 +285,7 @@ const BorrowCard = () => {
         timestamp,
       };
 
-      const auth = await signer.signTypedData(GHOST_DOMAIN, BORROW_TYPES, borrowMsg);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, BORROW_TYPES, borrowMsg);
       const result = await post("/api/v1/borrow-intent", { ...borrowMsg, auth });
 
       setIntentId(result.intentId);
@@ -314,7 +314,7 @@ const BorrowCard = () => {
       const timestamp = ts();
 
       const message = { account, intentId: intentIdToCancel, timestamp };
-      const auth = await signer.signTypedData(GHOST_DOMAIN, CANCEL_BORROW_TYPES, message);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CANCEL_BORROW_TYPES, message);
       await post("/api/v1/cancel-borrow", { ...message, auth });
       await loadIntents();
     } catch (err: unknown) {
@@ -376,7 +376,7 @@ const BorrowCard = () => {
             <div className="shrink-0">
               <div className="flex items-center gap-2 bg-muted/50 rounded-xl px-4 py-3 border border-border">
                 <img
-                  src={collateralCoin.symbol === "gUSD" ? "/gusd.png" : "/geth.png"}
+                  src={collateralCoin.symbol === "nUSD" ? "/nusd.png" : "/neth.png"}
                   alt={collateralCoin.symbol}
                   className="w-5 h-5 rounded-full object-cover"
                 />
@@ -528,7 +528,7 @@ const BorrowCard = () => {
                 className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <Image src={tokenSymbol(intent.token) === "gETH" ? "/geth.png" : "/gusd.png"} alt="" width={32} height={32} className="rounded-full" />
+                  <Image src={tokenSymbol(intent.token) === "nETH" ? "/neth.png" : "/nusd.png"} alt="" width={32} height={32} className="rounded-full" />
                   <div>
                     <div className="text-sm font-medium text-foreground">
                       {formatAmount(intent.amount)} {tokenSymbol(intent.token)}

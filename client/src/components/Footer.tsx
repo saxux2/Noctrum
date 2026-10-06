@@ -23,12 +23,12 @@ const faqItems = [
   {
     question: "How does collateral and liquidation work?",
     answer:
-      "Borrowers post collateral (e.g. gETH) before submitting a borrow intent. If the loan becomes undercollateralized, CRE detects it and seizes collateral. Higher-rate lenders absorb losses first, protecting conservative lenders.",
+      "Borrowers post collateral (e.g. nETH) before submitting a borrow intent. If the loan becomes undercollateralized, CRE detects it and seizes collateral. Higher-rate lenders absorb losses first, protecting conservative lenders.",
   },
   {
     question: "What tokens are supported?",
     answer:
-      "GHOST currently supports gUSD for lending/borrowing and gETH as collateral, operating on Sepolia testnet via the Chainlink Compliant Private Transfer vault.",
+      "GHOST currently supports nUSD for lending/borrowing and nETH as collateral, operating on Sepolia testnet via the Chainlink Compliant Private Transfer vault.",
   },
   {
     question: "Is GHOST safe?",

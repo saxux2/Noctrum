@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: "What tokens does Ghost support?",
-    a: "Ghost currently supports gUSD (Ghost USD) for lending and gETH (Ghost ETH) as collateral, both on Sepolia testnet.",
+    a: "Ghost currently supports nUSD (Ghost USD) for lending and nETH (Ghost ETH) as collateral, both on Sepolia testnet.",
   },
   {
     q: "How does the credit tier system work?",

@@ -2,6 +2,7 @@
 
 import { PrivyProvider as Provider } from "@privy-io/react-auth";
 import {
+  monadTestnet,
   sepolia,
   baseSepolia,
   arbitrumSepolia,
@@ -25,8 +26,9 @@ export default function PrivyProviderWrapper({
           accentColor: "#4f46e5",
         },
         loginMethods: ["wallet"],
-        defaultChain: sepolia,
+        defaultChain: monadTestnet,
         supportedChains: [
+          monadTestnet,
           sepolia,
           baseSepolia,
           arbitrumSepolia,

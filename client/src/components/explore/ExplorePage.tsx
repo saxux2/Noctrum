@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { get } from "@/lib/ghost";
-import { gUSD, gETH } from "@/lib/constants";
+import { get } from "@/lib/noctrum";
+import { nUSD, nETH } from "@/lib/constants";
 import type { PoolRow } from "./data/mockData";
 import HeroSection from "./HeroSection";
 import FeaturedCarousel from "./FeaturedCarousel";
@@ -24,23 +24,23 @@ const ExplorePage = () => {
         const borrowIntents = data.borrowIntents ?? [];
 
         const gusdLends = lendIntents.filter(
-          (i: any) => i.token?.toLowerCase() === gUSD.toLowerCase()
+          (i: any) => i.token?.toLowerCase() === nUSD.toLowerCase()
         ).length;
         const gusdBorrows = borrowIntents.filter(
-          (i: any) => i.token?.toLowerCase() === gUSD.toLowerCase()
+          (i: any) => i.token?.toLowerCase() === nUSD.toLowerCase()
         ).length;
         const gethBorrows = borrowIntents.filter(
-          (i: any) => i.token?.toLowerCase() === gETH.toLowerCase()
+          (i: any) => i.token?.toLowerCase() === nETH.toLowerCase()
         ).length;
 
         setRows([
-          { rank: 1, name: "Ghost USD", ticker: "gUSD", iconSrc: "/gusd.png", lendIntents: gusdLends, borrowIntents: gusdBorrows },
-          { rank: 2, name: "Ghost ETH", ticker: "gETH", iconSrc: "/geth.png", lendIntents: 0, borrowIntents: gethBorrows },
+          { rank: 1, name: "Ghost USD", ticker: "nUSD", iconSrc: "/nusd.png", lendIntents: gusdLends, borrowIntents: gusdBorrows },
+          { rank: 2, name: "Ghost ETH", ticker: "nETH", iconSrc: "/neth.png", lendIntents: 0, borrowIntents: gethBorrows },
         ]);
       } catch {
         setRows([
-          { rank: 1, name: "Ghost USD", ticker: "gUSD", iconSrc: "/gusd.png", lendIntents: 0, borrowIntents: 0 },
-          { rank: 2, name: "Ghost ETH", ticker: "gETH", iconSrc: "/geth.png", lendIntents: 0, borrowIntents: 0 },
+          { rank: 1, name: "Ghost USD", ticker: "nUSD", iconSrc: "/nusd.png", lendIntents: 0, borrowIntents: 0 },
+          { rank: 2, name: "Ghost ETH", ticker: "nETH", iconSrc: "/neth.png", lendIntents: 0, borrowIntents: 0 },
         ]);
       }
     };

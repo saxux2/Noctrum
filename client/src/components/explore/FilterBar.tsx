@@ -14,7 +14,7 @@ interface FilterBarProps {
   onSearchChange: (v: string) => void;
 }
 
-const tokenOptions = ["All Tokens", "gUSD", "gETH"];
+const tokenOptions = ["All Tokens", "nUSD", "nETH"];
 const networkOptions = ["All Networks", "Sepolia"];
 const statusOptions = ["All Status", "Active"];
 

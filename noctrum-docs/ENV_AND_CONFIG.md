@@ -131,8 +131,12 @@ MONADSCAN_API_KEY=<for etherscan-style verify>
 ```dotenv
 NEXT_PUBLIC_PRIVY_APP_ID=<privy app id>
 NEXT_PUBLIC_NOCTRUM_API_URL=https://api.example.noctrum   # Ghost: NEXT_PUBLIC_GHOST_API_URL (default http://localhost:8080)
+NEXT_PUBLIC_NOCTRUM_VAULT_API_URL=https://vault-api.example.noctrum   # EXTERNAL_API constant (default http://localhost:8081)
 NEXT_PUBLIC_CRE_PUBLIC_KEY=<02…>
+NOCTRUM_API_ORIGIN=https://api.example.noctrum          # next.config.ts rewrites /api/v1, /health (D-15)
+NOCTRUM_VAULT_API_URL=https://vault-api.example.noctrum # next.config.ts rewrite /external
 ```
+Deployed values (T5.6): `https://server-production-291b.up.railway.app`, `https://vault-api-production-30bb.up.railway.app`.
 Constants that Ghost hard-codes in `src/lib/constants.ts` (keep them hard-coded for parity, with Monad values): `RPC_URL`, `EXTERNAL_API`, `VAULT_ADDRESS`, `CHAIN_ID`, `nUSD`, `nETH`, `SWAP_POOL_ADDRESS`.
 `next.config.ts` rewrites: `/api/v1/*`, `/health` → API origin (Ghost: localhost:3000); `/external/*` → vault-api.
 
