@@ -30,7 +30,7 @@ The acronym "GHOST (Generalized Heuristic for Obfuscated Settlement and Transfer
 **Do NOT rename**:
 - the shadcn Badge/Button variant `ghost` (`client/src/components/ui/badge.tsx:19`) and any Tailwind/shadcn "ghost" button style — this is a generic UI term
 - third-party identifiers
-- the CPT EIP-712 domain name `CompliantPrivateTokenDemo` unless D-5 decides otherwise
+- ~~the CPT EIP-712 domain name `CompliantPrivateTokenDemo`~~: D-5 decided to rename it to `NoctrumPrivateToken`
 
 ## 2. File and folder renames
 

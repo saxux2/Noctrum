@@ -40,9 +40,9 @@
 | Wormhole `MonadTestnet` (id 10009), TokenBridge `0xF97B81E513f53c7a6B57Bd0b103a6c295b3096C5` | wormhole-sdk-ts main branch | Check the npm version that includes it; do a test bridge |
 | Privy support for Monad Testnet with the app's wallets | — | Privy dashboard + manual test |
 | WalletConnect wallets accepting `eip155:10143` as a required namespace | — | Pair MetaMask Mobile / Trust |
-| ACE PolicyEngine v1.0.0 call interface used by the vault | not in the Ghost repo | Read `lib/chainlink-ace` source |
-| CPT ticket typed-data struct and API timestamp window | not published | Irrelevant if D-1 = B (we define our own) |
-| CPT vault `depositWithPermit` and `check*Allowed` exact signatures | names only, from the API docs | Etherscan ABI of `0xE588…2d13` on Sepolia |
+| ✅ ACE PolicyEngine v1.0.0 call interface used by the vault | `run`/`check(Payload)`; the vault must `attach()` first. Verified from source 2026-10-06 (CONTRACTS §4) | — |
+| CPT ticket typed-data struct and API timestamp window | ✅ struct `WithdrawTicket(address withdrawer,address token,uint256 amount,uint128 nonce,uint64 deadline)` from the Sourcify-verified CPT source (2026-10-06). API timestamp window still unpublished; irrelevant with D-1 = B | — |
+| ✅ CPT vault `depositWithPermit` and `check*Allowed` exact signatures | Read from the Sourcify-verified source of `0xE588…2d13` (2026-10-06). `check*Allowed` return nothing and revert on rejection (CONTRACTS §3.1) | — |
 | ✅ eciesjs public-key helper API | `PublicKey.toHex(true)` = compressed; verified with 0.4.17 on 2026-10-06 | — |
 | viem version used inside Privy (Monad recommends ≥ 2.40.0) | — | `bun pm ls` |
 

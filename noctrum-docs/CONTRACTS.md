@@ -29,7 +29,7 @@ forge-std/=lib/forge-std/src/
 ```
 
 Monad changes to `foundry.toml` ([Monad verify guide](https://docs.monad.xyz/guides/verify-smart-contract/foundry.md)):
-- Add `metadata = true`, `metadata_hash = "none"`, `use_literal_content = true`, `chain_id = 10143`.
+- Add `use_literal_content = true`, `chain_id = 10143`. The guide also lists `metadata = true` / `metadata_hash = "none"`, but those are **not Foundry keys** (forge 1.8.3 warns "unknown config" and ignores them). Foundry's defaults (`cbor_metadata = true`, `bytecode_hash = "ipfs"`) are kept, as in Ghost; they give Sourcify a full match. (Found in T1.4, 2026-10-06.)
 - Keep `evm_version = "cancun"`. Monad supports every opcode up to its current fork (Fusaka per [summary](https://docs.monad.xyz/developer-essentials/summary)), so cancun bytecode is valid.
 - Foundry ≥ 1.8.0 recommended.
 
@@ -100,64 +100,55 @@ Monad note: the scripted deploy does ~6 txs. Monad charges the **gas limit**, so
 
 > ❌ The Chainlink "Compliant Private Token Demo" vault (`0xE588a6c7…2d13`) and its API exist **only on Ethereum Sepolia**. The API docs list only chainId 11155111 and never mention Monad ([API docs](https://convergence2026-token-api.cldev.cloud/docs)). This section specifies an ABI-compatible replacement so that every Ghost client call works unchanged. Recommended option B in RISKS (D-1). The vault source is not public in the Ghost repo. Everything below comes from what Ghost calls, plus the public API docs. Items marked ⚠️ are our design choices.
 
-### 3.1 ABI that Ghost clients call (must match exactly)
-```solidity
-function deposit(address token, uint256 amount) external;
-function withdrawWithTicket(address token, uint256 amount, bytes calldata ticket) external;
-function register(address token, address policyEngine) external;   // scripts 05 / SetupAll
-```
-The public API docs also list the following. Implement them for completeness; no Ghost client calls them:
-```solidity
-function depositWithPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external; // ⚠️ VERIFY exact signature
-function checkDepositAllowed(address user, address token, uint256 amount) external view returns (bool);          // ⚠️ VERIFY
-function checkWithdrawAllowed(address user, address token, uint256 amount) external view returns (bool);         // ⚠️ VERIFY
-function checkPrivateTransferAllowed(address from, address to, address token, uint256 amount) external view returns (bool); // ⚠️ VERIFY
-```
+### 3.0 Source of truth (✅ verified 2026-10-06)
+The Sepolia CPT vault `0xE588…2d13` is verified on Sourcify as `DemoCompliantPrivateTokenVault` (solc 0.8.30, BUSL-1.1). Its ABI, ticket struct and policy payloads were read from that source. `NoctrumVault` is an independent MIT implementation (no BUSL code copied) that matches it on the wire. The intended differences are listed in §3.4.
 
-### 3.2 Events (from the CPT API docs; keep these exact names/params)
+### 3.1 ABI (✅ matches CPT exactly)
+```solidity
+function register(address token, address policyEngine) external;   // scripts 05 / SetupAll; policyEngine = 0 deletes
+function deposit(address token, uint256 amount) external;
+function depositWithPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external;
+function withdrawWithTicket(address token, uint256 amount, bytes calldata ticket) external;
+function checkDepositAllowed(address depositor, address token, uint256 amount) external view;                 // reverts if rejected (no return value)
+function checkWithdrawAllowed(address withdrawer, address token, uint256 amount) external view;               // reverts if rejected
+function checkPrivateTransferAllowed(address from, address to, address token, uint256 amount) external view; // reverts if rejected
+```
+Getters are named differently from CPT; no Ghost client reads them: `policyEngineOf` (CPT `sPolicyEngines`), `registrarOf` (`sRegistrars`), `ticketSigner` (`I_WITHDRAW_TICKET_SIGNER`). Extras: `usedNonce(uint128)`, `hashWithdrawTicket(withdrawer,token,amount,nonce,deadline)`, `setTicketSigner(address)` (onlyOwner), `WITHDRAW_TICKET_TYPEHASH`, `TICKET_LENGTH`, Ownable, `eip712Domain()`.
+
+### 3.2 Events (✅ exact CPT signatures)
 ```solidity
 event Deposit(address indexed user, address indexed token, uint256 amount);
-event Withdraw(address indexed user, address indexed token, uint256 amount, bytes32 indexed withdrawTicketHash);
+event Withdraw(address indexed user, address indexed token, uint256 amount, bytes32 indexed withdrawTicketHash); // = EIP-712 digest
 event TokenRegistered(address indexed token, address indexed policyEngine, address indexed registrar);
 event TokenUpdated(address indexed token, address indexed policyEngine, address indexed registrar);
 event TokenDeleted(address indexed token, address indexed registrar);
+event TicketSignerUpdated(address indexed previousSigner, address indexed newSigner); // Noctrum only
 ```
 
-### 3.3 Storage (⚠️ design)
+### 3.3 Storage and EIP-712
 | Var | Type | Purpose |
 |---|---|---|
 | `policyEngineOf` | `mapping(address token => address)` | Registration (zero means not registered) |
-| `registrarOf` | `mapping(address token => address)` | Who registered the token (for update/delete) |
-| `usedNonce` | `mapping(uint128 => bool)` | Ticket replay protection |
-| `ticketSigner` | `address` | Key held by noctrum-vault-api that signs tickets |
-| EIP712 | OZ `EIP712("CompliantPrivateTokenDemo","0.0.1")` ⚠️ (D-5: keep the CPT domain name for wire-compat, or rename to `NoctrumPrivateToken`) | Domain for tickets and for vault-API request auth |
-| Ownable / AccessControl | — | Admin can rotate `ticketSigner` |
+| `registrarOf` | `mapping(address token => address)` | Who registered the token (only it can update/delete) |
+| `usedNonce` | `mapping(uint128 => bool)` | Ticket replay protection (global nonce space) |
+| `ticketSigner` | `address` | Key held by noctrum-vault-api; owner can rotate |
+| `_engineTokenCount` | `mapping(address engine => uint256)` (private) | ACE attach ref-count (see §4) |
+
+EIP-712 domain: `EIP712("NoctrumPrivateToken", "0.0.1")` (D-5), chainId 10143, verifyingContract = vault.
+Ticket struct (✅ same as CPT): `WithdrawTicket(address withdrawer,address token,uint256 amount,uint128 nonce,uint64 deadline)`, with `withdrawer = msg.sender`.
+Ticket bytes: `nonce` (16, big-endian) ‖ `deadline` (8) ‖ `r` (32) ‖ `s` (32) ‖ `v` (1) = 89 bytes. Expiry chosen by the vault-api (1 h).
 
 ### 3.4 Behaviour
-- `register(token, policyEngine)`:
-  - Ghost's scripts call it as a normal user (any deployer registered their own token on Chainlink's shared vault).
-  - Noctrum: **permissionless first registration**. The registrar can update or delete afterwards ⚠️ (matches the scripts' assumptions). Emits `TokenRegistered`.
-  - Reverts if already registered by someone else.
-- `deposit(token, amount)`:
-  1. Requires a registered token and `amount > 0`.
-  2. Calls `IPolicyEngine(pe).check…` ⚠️ (exact ACE call; see §4). It must pass with defaultAllow.
-  3. `safeTransferFrom(msg.sender, this, amount)`.
-  4. `emit Deposit(msg.sender, token, amount)`.
-  
-  The vault keeps **no per-user balances** (privacy). The vault-api credits the user off-chain when it indexes the event.
-- `withdrawWithTicket(token, amount, ticket)`:
-  1. Requires `ticket.length == 89`.
-  2. Parse `nonce = uint128(bytes16(ticket[0:16]))`, `deadline = uint64(bytes8(ticket[16:24]))`, `sig = ticket[24:89]`.
-  3. Require `block.timestamp <= deadline` and `!usedNonce[nonce]`.
-  4. Recover the signer of the EIP-712 struct `WithdrawTicket(address account,address token,uint256 amount,uint128 nonce,uint64 deadline)` ⚠️ with `account = msg.sender`. It must equal `ticketSigner`.
-  5. Policy check.
-  6. Mark the nonce used, `safeTransfer(msg.sender, amount)`.
-  7. `emit Withdraw(msg.sender, token, amount, keccak256(ticket))`.
+- `register(token, policyEngine)` (same rules as CPT): first-come; a different caller reverts `TokenAlreadyRegistered(token, registrar)`; the registrar calling again updates (`TokenUpdated`); `policyEngine = 0` deletes (`TokenDeleted`; reverts `TokenNotRegistered` if nothing to delete). The vault `attach()`es to the engine on registration and `detach()`es on delete/change.
+  - **Difference from CPT:** attachment is ref-counted per engine, so one PolicyEngine can guard several tokens (CPT reverts `TargetAlreadyAttached` on the second token). Needed for §7 step 5 ("the same PolicyEngine is fine").
+- `deposit(token, amount)` / `depositWithPermit`: requires registration and `amount > 0` (**difference:** CPT allows 0) → `PolicyEngine.run(payload)` → `safeTransferFrom` → `Deposit`. `depositWithPermit` ignores a failing `permit` (front-run safe; the transfer still needs allowance). No per-user balances.
+- `withdrawWithTicket(token, amount, ticket)`: registration, `amount > 0`, length 89, `block.timestamp <= deadline`, `!usedNonce[nonce]`, signer == `ticketSigner` (OZ `tryRecoverCalldata`; malleable `s` rejected) → mark nonce → `PolicyEngine.run` → `safeTransfer` → `Withdraw(…, digest)`.
+  - **Difference from CPT:** replay is keyed by nonce (CPT: by digest), so a nonce is single-use across all accounts and amounts. The vault-api must generate unique 128-bit nonces.
+- Policy payloads (✅ same as CPT, so CPT-style ACE policies work): `selector` = `deposit(address,address,uint256)` / `withdraw(address,address,uint256)` / `privateTransfer(address,address,address,uint256)`; `sender` = the user (`from` for transfers); `data` = `abi.encode(user, token, amount)` (`abi.encode(from,to,token,amount)` for transfers); `context` = "". ACE reverts (`PolicyRunRejected`, …) bubble up unchanged.
+- **Difference from CPT:** the policy check runs before the token transfer (CPT transfers first). This is atomic either way.
 
-  Ticket layout matches the CPT spec: "Bytes 0-15 nonce (uint128), 16-23 deadline (uint64), 24-88 signature (bytes65)", expiry 1 hour.
-
-### 3.5 Errors (⚠️ design)
-`TokenNotRegistered(address)`, `TokenAlreadyRegistered(address)`, `NotRegistrar(address)`, `ZeroAmount()`, `InvalidTicketLength()`, `TicketExpired(uint64)`, `TicketAlreadyUsed(uint128)`, `InvalidTicketSignature()`, `PolicyCheckFailed(address token, address account)`.
+### 3.5 Errors
+`TokenNotRegistered(address token)`, `TokenAlreadyRegistered(address token, address registrar)`, `ZeroAmount()`, `ZeroTicketSigner()`, `InvalidTicketLength()`, `TicketExpired(uint64 deadline)`, `TicketAlreadyUsed(uint128 nonce)`, `InvalidTicketSignature()`, plus OZ (`SafeERC20FailedOperation`, `OwnableUnauthorizedAccount`, …) and ACE errors. CPT uses `require` strings; Ghost clients do not decode vault errors.
 
 ### 3.6 Invariants
 - `token.balanceOf(vault)` ≥ Σ(private balances in vault-api for that token) + Σ(outstanding unredeemed tickets). Enforced off-chain by the vault-api; tested in TESTING.
@@ -171,8 +162,8 @@ event TokenDeleted(address indexed token, address indexed registrar);
 
 - Deploy with `script/02_DeployPolicyEngine.s.sol`: new `PolicyEngine()` implementation, then `ERC1967Proxy(impl, abi.encodeWithSelector(PolicyEngine.initialize.selector, true /*defaultAllow*/, deployer))`.
 - Source: `lib/chainlink-ace/packages/policy-management/src/core/PolicyEngine.sol` @ v1.0.0.
-- ⚠️ VERIFY which PolicyEngine entry point NoctrumVault should call for deposit/withdraw/private-transfer checks. Read `chainlink-ace` v1.0.0 `IPolicyEngine` (e.g. a `check`/`run` with a payload) and the ACE [getting-started guide](https://github.com/smartcontractkit/chainlink-ace/blob/main/getting_started/GETTING_STARTED.md). With `defaultAllow=true` and no policies attached, every check passes.
-- Monad: plain EVM contract, no chain-specific dependency. ⚠️ VERIFY that ACE does not hard-code chain IDs.
+- ✅ Verified 2026-10-06 (v1.0.0 source): the vault calls `run(Payload)` on deposit/withdraw and `check(Payload)` (view) in the `check*Allowed` dry-runs. Both revert `TargetNotAttached(msg.sender)` unless the vault has called `attach()` on the engine, and `attach()` reverts if already attached, so NoctrumVault attaches on register (ref-counted, §3.4). With `defaultAllow=true` and no policies attached, every check passes.
+- Monad: plain EVM contract, no chain-specific dependency. ✅ ACE v1.0.0 never reads `block.chainid` (it appears only in factory comments).
 
 ## 5. Interfaces and library (carried, not implemented)
 

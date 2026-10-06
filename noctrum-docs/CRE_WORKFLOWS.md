@@ -110,7 +110,7 @@ Steps:
 3. Pool key from the secret. Add `0x` if missing. `privateKeyToAccount` (viem). If the key is empty, `"error:no-pool-key"`.
 4. For each transfer:
    - Build `{sender: pool, recipient, token, amount: BigInt, flags: [], timestamp: BigInt(now s)}`.
-   - `signTypedData({domain:{name:"CompliantPrivateTokenDemo",version:"0.0.1",chainId,verifyingContract:vaultAddress}, types:{"Private Token Transfer":[sender address, recipient address, token address, amount uint256, flags string[], timestamp uint256]}, primaryType, message})`.
+   - `signTypedData({domain:{name:"NoctrumPrivateToken",version:"0.0.1",chainId,verifyingContract:vaultAddress}, types:{"Private Token Transfer":[sender address, recipient address, token address, amount uint256, flags string[], timestamp uint256]}, primaryType, message})`.
    - POST `{externalApiUrl}/private-transfer` with body `{account, recipient, token, amount (string), flags: [], timestamp (number), auth}`, `vaultDonSecrets: []`.
    - ok → executed, otherwise failed (exceptions count as failed).
 5. If nothing executed, return `"error:all-failed"`. Failed transfers stay `pending` and are retried next cycle; there is no `failed` status update.

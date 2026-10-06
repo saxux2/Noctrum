@@ -50,7 +50,7 @@ Note: `lib/ghost.ts` calls `${SERVER}${path}` where `SERVER = NEXT_PUBLIC_GHOST_
 | `POOL_ADDRESS` | runtime from `/health` | same |
 | `ERC20_ABI`, `VAULT_ABI` | approve/balanceOf/transfer; deposit/withdrawWithTicket | same |
 | `GHOST_DOMAIN` | `{name:"GhostProtocol", version:"0.0.1", chainId, verifyingContract: VAULT_ADDRESS}` | `NOCTRUM_DOMAIN` `{name:"NoctrumProtocol", …}` |
-| `EXTERNAL_DOMAIN` | `{name:"CompliantPrivateTokenDemo", version:"0.0.1", chainId, verifyingContract: VAULT}` | name per D-5 |
+| `EXTERNAL_DOMAIN` | `{name:"NoctrumPrivateToken", version:"0.0.1", chainId, verifyingContract: VAULT}` | name per D-5 |
 | Typed data sets | BORROW, PRIVATE_TRANSFER, CONFIRM_DEPOSIT, CANCEL_LEND, CANCEL_BORROW, REPAY_LOAN, CLAIM_EXCESS_COLLATERAL, WITHDRAW, BALANCE | identical field lists |
 | `COINS` | `[{gUSD,"Ghost USD"},{gETH,"Ghost ETH"}]` | `[{nUSD,"Noctrum USD"},{nETH,"Noctrum ETH"}]` |
 | `SWAP_POOL_ADDRESS` | `0xF683c97a1072e4C41ae568341141b7553d40B08B` | `<NoctrumSwapPool>` |

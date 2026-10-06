@@ -11,6 +11,6 @@ evm_version = "cancun"
 chain_id = 10143
 
 # Monad verification (Sourcify): https://docs.monad.xyz/guides/verify-smart-contract/foundry
-metadata = true
-metadata_hash = "none"
+# The guide's `metadata`/`metadata_hash` keys are not Foundry keys (ignored by forge 1.8.3);
+# Foundry defaults (cbor_metadata = true, bytecode_hash = "ipfs") give Sourcify a full match.
 use_literal_content = true

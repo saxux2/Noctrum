@@ -131,7 +131,7 @@ Internal (`x-api-key` when the key is set):
 - `price.ts`: ethers `JsonRpcProvider(ARBITRUM_RPC_URL)`, `latestAnswer/decimals`, 60 s cache.
 
 ### 1.8 External API client (`src/external-api.ts`)
-- Domain `CompliantPrivateTokenDemo` (D-5).
+- Domain `NoctrumPrivateToken` (D-5).
 - `requestWithdrawTicket`, `privateTransfer` (flags []), `getBalance`, each signed with the pool wallet.
 - **Not called by any controller** (transfers moved to CRE); keep it for parity.
 
@@ -149,7 +149,7 @@ Purpose: reproduce `https://convergence2026-token-api.cldev.cloud` on Monad so t
 Bun + Hono + Mongoose + ethers 6. Port 8081. Dockerfile like `server/`.
 
 ### 2.2 Auth
-- EIP-712 domain `{name: "CompliantPrivateTokenDemo" (D-5), version:"0.0.1", chainId:10143, verifyingContract: NoctrumVault}`.
+- EIP-712 domain `{name: "NoctrumPrivateToken" (D-5), version:"0.0.1", chainId:10143, verifyingContract: NoctrumVault}`.
 - Timestamp window ⚠️ VERIFY. CPT uses the error `request_auth_expired`; adopt ±5 min, as the Noctrum API does.
 - Error format: `{"error": "<code>", "error_details": "<text>", "request_id": "<uuid>"}`.
 - Codes: `bad_request`, `request_auth_failed`, `request_auth_expired`, `insufficient_balance`, `operation_denied_by_policy`, `invalid_recipient`.
