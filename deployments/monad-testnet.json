@@ -26,6 +26,6 @@
     "server": "https://server-production-291b.up.railway.app",
     "vaultApi": "https://vault-api-production-30bb.up.railway.app",
     "mongo": "mongo.railway.internal:27017 (replica set rs0, private network only)",
-    "tg": "not deployed (Railway free plan service limit)"
+    "tg": "runs inside the vault-api service (Railway free plan service limit); wallets on volume vault-api-volume at /app/tg-data; deploy with deploy/vault-api-tg/deploy.sh"
   }
 }
