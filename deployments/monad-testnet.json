@@ -13,7 +13,7 @@
   "crePublicKey": "",
   "deployBlock": 0,
   "accounts": {
-    "deployer": "",
+    "deployer": "0xeD0ee48b41BfcB01dB298A2a9E09F4b34F9B15a2",
     "lenderA": "",
     "lenderB": "",
     "borrower": "",
