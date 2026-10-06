@@ -1,0 +1,641 @@
+\documentclass[a4paper,11pt]{article}
+
+% --- Packages ---
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, shadows, fit, calc, backgrounds}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{caption}
+\usepackage{tcolorbox}
+\usepackage{parskip}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% --- Style Settings ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=blue,
+    pdftitle={GHOST Protocol Litepaper v1.0},
+}
+
+\definecolor{ghostblue}{RGB}{20, 40, 80}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{14pt}
+\rhead{\textcolor{gray}{GHOST Protocol v1.0}}
+\lhead{\textcolor{gray}{Litepaper}}
+\cfoot{\thepage}
+
+% --- Title Page ---
+\title{
+    \vspace*{3cm}
+    \textbf{\huge GHOST Protocol} \\[0.5em]
+    \Large Privacy-Preserving Rate Discovery for Decentralised Lending \\[0.2em]
+    \large \textit{Litepaper v1.0}
+    \vspace{2cm}
+}
+\author{Snehendu Roy \quad Debanjan Mondal \quad Abhirup Banerjee}
+\date{2025}
+
+\begin{document}
+
+% --- Page 1: Dedicated Title Page ---
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+    \noindent Decentralised lending today suffers from a fundamental tension: rate
+    transparency enables market efficiency but invites strategic manipulation,
+    front-running, and collusion. We present \textbf{GHOST} (\textbf{G}eneral
+    \textbf{H}osting \textbf{o}f \textbf{S}ealed \textbf{T}icks), a protocol
+    that resolves this tension by combining sealed-bid discriminatory-price
+    auctions with confidential compute execution. Lenders submit rate bids
+    encrypted under a secp256k1 public key held by a Chainlink Confidential
+    Runtime Environment (CRE) node. Neither the storage layer, other
+    participants, nor any single node operator can observe plaintext rates.
+    Matching, rate validation, and fund disbursement occur entirely within the
+    CRE's trusted execution boundary, producing a system where price discovery
+    is both market-driven and manipulation-resistant. GHOST achieves what open
+    order books cannot: \textit{truthful rate revelation without the attack
+    surface of public bids.}
+\end{abstract}
+
+\clearpage
+\setcounter{page}{2}
+
+\tableofcontents
+\vspace{2em}
+\clearpage
+
+\section{Introduction}
+
+The dominant interest rate model in DeFi, pioneered by Aave and Compound,
+computes borrowing rates algorithmically from pool utilisation:
+
+\begin{equation}
+    R_t = R_0 + R_{\text{slope}_1} \cdot \frac{U}{U_{\text{optimal}}}
+    \qquad \text{if } U \leq U_{\text{optimal}}
+    \label{eq:utilisation}
+\end{equation}
+
+This mechanism, while elegant, \textit{conflates liquidity risk with credit
+risk}. All borrowers pay the same rate regardless of creditworthiness. The
+rate reflects how much capital is available, not whether the borrower
+deserves it. For protocols aspiring to support undercollateralised or
+variable-collateral lending, where default probability is nonzero and
+heterogeneous, this is insufficient.
+
+Eli and Alexandre \cite{eli2025} proposed a tick-based auction framework
+where lending pools are decomposed into discrete rate ticks, each
+representing a sub-pool at a specific interest rate. Lenders select their
+rate; borrowers consume ticks cheapest first. Their simulations demonstrate
+convergence to a market-clearing rate that reflects the borrower's true
+default probability, with speed proportional to information disclosure.
+This framework builds on the classic credit rationing literature of
+Stiglitz and Weiss \cite{stiglitz1981} and Bester \cite{bester1985}, which
+established that asymmetric information between lenders and borrowers leads
+to inefficient rate-setting under centralised intermediation.
+
+However, their model assumes an \textit{open} auction: all bids are visible
+on-chain throughout the book-building phase. While this enables competitive
+rebidding, it also creates vulnerability to front-running, last-second
+sniping, and coordinated rate manipulation, precisely the market frictions
+the authors acknowledge as limitations.
+
+\begin{tcolorbox}[colback=backcolour, colframe=gray, arc=2pt, boxrule=0.5pt]
+\small\textbf{Core Contribution.}\quad
+GHOST resolves this by making the auction \textbf{sealed}. Every rate bid,
+both lender rates and borrower maximum rates, is encrypted client-side
+under a public key whose corresponding private key exists \textit{only}
+inside a Chainlink CRE workflow. The server that stores these bids is
+architecturally incapable of reading them. Decryption, matching, and
+settlement execute atomically within the CRE's confidential boundary,
+inheriting the security guarantees of Chainlink's Decentralised Oracle
+Network (DON) infrastructure.
+\end{tcolorbox}
+
+The result is a lending protocol with four guarantees:
+
+\begin{itemize}[leftmargin=1.4em, itemsep=3pt]
+  \item Rates are \textbf{market-discovered}, not algorithmically imposed.
+  \item Each lender earns their own bid rate (\textbf{discriminatory
+        pricing}), eliminating free-riding.
+  \item \textbf{No participant}, including the protocol operator, observes
+        rates before settlement.
+  \item Fund custody is \textbf{non-custodial}, mediated by a
+        privacy-preserving vault with compliance enforcement.
+\end{itemize}
+
+\section{Theoretical Foundation}
+
+\subsection{Tick-Based Rate Decomposition}
+
+We adopt the lending pool formalism of Eli and Alexandre \cite{eli2025}.
+A lending pool $LP_{B}$ for borrower class $B$ consists of $n$ ticks
+$\{r_1, r_2, \ldots, r_n\}$ with $0 < r_1 < r_2 < \cdots < r_n$, where
+each tick $r_i$ holds deposit volume $d_i \geq 0$. The cumulative deposit
+function is:
+
+\begin{equation}
+    CD_{r_i} = \sum_{j=1}^{i} d_j
+    \label{eq:cumdeposit}
+\end{equation}
+
+A borrower seeking principal $K$ consumes ticks in ascending rate order.
+The fill fractions $(\delta_1, \ldots, \delta_n)$ solve:
+
+\begin{equation}
+    \min_{\{\delta_i\}} \sum_{i} \delta_i \cdot r_i
+    \qquad \text{subject to} \quad
+    \sum_{i} \delta_i = K, \quad 0 \leq \delta_i \leq d_i
+    \label{eq:optim}
+\end{equation}
+
+The borrower's effective blended rate is:
+
+\begin{equation}
+    R_{\text{eff}} = \frac{\sum_{i} \delta_i \cdot r_i}{K}
+    \label{eq:blended}
+\end{equation}
+
+Under discriminatory pricing, each lender $k$ at tick $r_i$ receives
+exactly $r_i$ on their matched principal, not the blended rate. This
+preserves individual price signals and eliminates the payoff irrelevance
+of infra-marginal bids that enables collusion in uniform-price auctions,
+as documented by Myers et al.\ \cite{myers2021} and Goldreich
+\cite{goldreich2007}.
+
+\subsection{Lender Utility and Truthful Bidding}
+
+Lender $k$ evaluates a private default probability $p_{k,B}$ for borrower
+class $B$, with recovery rate $RR$. Their expected utility from depositing
+$m$ tokens at tick $r_i$ is:
+
+\begin{equation}
+    u_{\text{lender},k}(m, r_i)
+    = m \cdot \Bigl[(1 - p_{k,B}) \cdot r_i
+                    - p_{k,B} \cdot (1 - RR)\Bigr]
+      \cdot \mathbf{1}_{[CD_{r_i} \leq K]}
+    \label{eq:lenderutil}
+\end{equation}
+
+The indicator captures the matching constraint: the lender earns only if
+their tick is consumed. The lender's \textit{true-value rate} $r_k^*$, the
+minimum rate yielding non-negative expected utility, satisfies:
+
+\begin{equation}
+    \boxed{r_k^* = \frac{p_{k,B} \cdot (1 - RR)}{1 - p_{k,B}}}
+    \label{eq:truevalue}
+\end{equation}
+
+In an open auction with sufficient liquidity ($CD_{r^*+\epsilon} > K$),
+lenders are incentivised to bid at $r_k^*$: underbidding risks negative
+returns while overbidding risks exclusion. GHOST preserves this equilibrium
+property while removing the information leakage inherent in open auctions.
+This result extends the ascending-bid analysis of Ausubel \cite{ausubel2004}
+and the competitive bidding theory of Milgrom and Weber \cite{milgrom1982}
+to the sealed-bid lending context.
+
+\subsection{The Sealed-Bid Extension}
+
+In GHOST, lender bids are not observable during the book-building phase.
+Each lender encrypts their rate $r_i$ as:
+
+\begin{equation}
+    c_i = \mathrm{ECIES\_encrypt}(pk_{\mathrm{CRE}},\; r_i)
+    \label{eq:encrypt}
+\end{equation}
+
+where $pk_{\mathrm{CRE}}$ is the secp256k1 public key of the CRE workflow.
+The storage layer observes only ciphertext $c_i$. The borrower similarly
+encrypts their maximum acceptable rate:
+
+\begin{equation}
+    c_{\max} = \mathrm{ECIES\_encrypt}(pk_{\mathrm{CRE}},\; R_{\max})
+    \label{eq:borrowerencrypt}
+\end{equation}
+
+The CRE decrypts both sides and validates $R_{\text{eff}} \leq R_{\max}$
+within its confidential execution boundary.
+\textbf{No party outside the CRE ever observes plaintext rates.}
+
+In sealed-bid discriminatory auctions, truthful bidding remains a dominant
+strategy when the number of bidders is sufficiently large relative to units
+available \cite{monostori2014}. The discriminatory format further
+discourages strategic bid shading: each lender's payoff depends solely on
+their own bid, not on any clearing price. Klemperer \cite{klemperer2004}
+provides a comprehensive treatment of the trade-offs between auction formats
+that motivates this design choice.
+
+\subsection{Borrower Utility and the Acceptance Mechanism}
+
+The borrower's utility from accepting a proposal with blended rate
+$R_{\text{eff}}$ is:
+
+\begin{equation}
+    u_{\text{borrower}} = K \cdot (ROI - R_{\text{eff}})
+    \label{eq:borrowerutil}
+\end{equation}
+
+where $ROI$ is the borrower's expected return on borrowed capital. The
+borrower accepts if $R_{\text{eff}} \leq R_{\max} \leq ROI$.
+
+To prevent frivolous borrowing and ensure credible participation, GHOST
+requires borrowers to post collateral $C \geq K \cdot \mu(\tau)$, where
+$\mu(\tau)$ is a multiplier indexed by credit tier $\tau$:
+
+\begin{table}[H]
+\centering
+\caption{Collateral multiplier schedule. Lower tiers require more
+  collateral relative to principal, incentivising repayment and
+  reputation-building.}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}lcc@{}}
+  \toprule
+  \textbf{Credit Tier} & \textbf{Multiplier $\mu(\tau)$} & \textbf{Notes} \\
+  \midrule
+  Bronze   & $2.0\times$ & New borrowers \\
+  Silver   & $1.8\times$ & Established history \\
+  Gold     & $1.5\times$ & Strong repayment record \\
+  Platinum & $1.2\times$ & Prime borrowers \\
+  \bottomrule
+\end{tabular}
+\label{tab:tiers}
+\end{table}
+
+For cross-asset collateral (e.g.\ ETH against a USD-denominated loan),
+the requirement adjusts via a real-time Chainlink price feed:
+
+\begin{equation}
+    C_{\mathrm{ETH}} \geq \frac{K \cdot \mu(\tau)}{P_{\mathrm{ETH/USD}}}
+    \label{eq:crosscollateral}
+\end{equation}
+
+\section{Protocol Architecture}
+
+GHOST implements a three-layer separation of concerns, each operating under
+distinct trust assumptions.
+
+\begin{table}[H]
+\centering
+\caption{Three-layer architecture overview.}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}p{0.18\textwidth}p{0.22\textwidth}p{0.50\textwidth}@{}}
+  \toprule
+  \textbf{Layer} & \textbf{Component} & \textbf{Responsibilities} \\
+  \midrule
+  Layer 1: Custody & Chainlink CPT Vault &
+    Shielded addresses, private off-chain transfers, withdrawal tickets,
+    ACE compliance checks. GHOST never takes direct custody. \\
+  Layer 2: Storage & GHOST API Server (Hono) &
+    Stores encrypted blobs only, EIP-712 authentication, tracks loan
+    lifecycle state, queues fund movements. Cannot decrypt rates or
+    execute matching. \\
+  Layer 3: Settlement & Chainlink CRE (DON) &
+    Decrypts sealed rates, runs matching engine, disburses principal,
+    monitors loan health. Holds $sk_{\mathrm{CRE}}$ as a
+    threshold-encrypted DON secret. \\
+  \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Layer 1: Privacy-Preserving Custody}
+
+All fund custody is delegated to a Chainlink Compliant Private Transfer
+vault on Ethereum Sepolia. This layer provides shielded addresses
+(unlinkable recipient identifiers), private transfers validated off-chain
+against the ACE PolicyEngine, withdrawal tickets redeemable on-chain within
+a time-bound window, and compliance enforcement without exposing transaction
+metadata publicly. The vault holds all deposited tokens; GHOST orchestrates
+movements through a pool wallet that signs EIP-712 typed-data messages
+against the vault's API.
+
+The proof-of-concept operates with two synthetic assets registered on the
+vault: \textbf{gUSD}, a USD-pegged stablecoin used as the primary lending
+denomination, and \textbf{gETH}, a synthetic ether token used as borrower
+collateral. Lenders deposit gUSD into tick positions at their chosen rate;
+borrowers post gETH collateral valued against a live Chainlink ETH/USD
+price feed. This two-token design captures the essential cross-asset
+dynamics of real lending markets, including currency risk in collateral
+valuation, liquidation threshold monitoring, and the need for
+oracle-sourced pricing, while remaining tractable for confidential compute execution within
+CRE's WASM runtime.
+
+\subsection{Layer 2: Blind Storage}
+
+The GHOST API server (Hono + Bun) functions as a deliberately blind storage
+layer. It maintains in-memory state across deposit slots, lend intents,
+borrow intents, match proposals, active loans, pending transfers, and credit
+scores. All user-facing endpoints authenticate via EIP-712 typed-data
+signatures with timestamp validation ($\pm 5$ minutes) to prevent replay
+attacks. The server \textit{cannot} decrypt rates, execute matching, or
+disburse funds autonomously.
+
+\subsection{Layer 3: Confidential Settlement}
+
+The Chainlink CRE serves as the protocol's settlement brain. Three
+independent CRE workflows orchestrate the lending lifecycle:
+
+\begin{table}[H]
+\centering
+\caption{CRE workflow schedule and responsibilities.}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}p{0.22\textwidth}cc p{0.42\textwidth}@{}}
+  \toprule
+  \textbf{Workflow} & \textbf{Interval} & \textbf{Function} \\
+  \midrule
+  Rate Discovery and Matching & 30\,s epoch &
+    Retrieves all pending intents, decrypts sealed rates using
+    $sk_{\mathrm{CRE}}$, executes tick matching, emits proposals \\
+  Transfer Execution & 15\,s cycle &
+    Polls pending fund movements; executes EIP-712-signed private
+    transfers through the vault API \\
+  Loan Health Monitoring & 60\,s cycle &
+    Checks active loans against collateralisation thresholds using
+    real-time ETH/USD Chainlink price feeds \\
+  \bottomrule
+\end{tabular}
+\label{tab:workflows}
+\end{table}
+
+\section{Matching Algorithm}
+
+The epoch-based matching engine operates within CRE Workflow 1. Let
+$\mathcal{L} = \{l_1, \ldots, l_m\}$ denote the active lend intents and
+$\mathcal{B} = \{b_1, \ldots, b_q\}$ the pending borrow intents.
+
+\begin{algorithm}[H]
+\caption{Greedy Tick Matching (within CRE confidential boundary)}
+\label{alg:matching}
+\begin{algorithmic}[1]
+  \State \textbf{Input:} $\mathcal{L}$ (lend intents, decrypted),
+         $\mathcal{B}$ (borrow intents, decrypted)
+  \State Sort $\mathcal{B}$ by $K_j$ \textsc{descending};
+         sort $\mathcal{L}$ by $r_i$ \textsc{ascending}
+  \For{each $b_j \in \mathcal{B}$}
+    \State $\text{filled}_j \gets 0$;\;
+           $\text{wSum}_j \gets 0$;\;
+           $\mathcal{T}_j \gets \emptyset$
+    \For{each $l_i \in \mathcal{L}$ with remaining capacity $a_i > 0$}
+      \State $\mathrm{take} \gets \min(a_i,\; K_j - \text{filled}_j)$
+      \State $\text{filled}_j \mathrel{+}= \mathrm{take}$;\quad
+             $\text{wSum}_j \mathrel{+}= \mathrm{take} \cdot r_i$;\quad
+             $a_i \mathrel{-}= \mathrm{take}$
+      \State Append $(l_i,\, \mathrm{take},\, r_i)$ to $\mathcal{T}_j$
+      \If{$\text{filled}_j = K_j$} \textbf{break} \EndIf
+    \EndFor
+    \State $R_{\mathrm{eff},j} \gets \text{wSum}_j \,/\, \text{filled}_j$
+    \If{$\text{filled}_j = K_j$ \textbf{and}
+        $R_{\mathrm{eff},j} \leq R_{\max,j}$}
+      \State Emit proposal $P_j = (b_j,\; \mathcal{T}_j,\;
+             R_{\mathrm{eff},j})$
+    \Else
+      \State Release all ticks in $\mathcal{T}_j$ back to $\mathcal{L}$
+    \EndIf
+  \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+The algorithm is greedy-optimal: sorting borrows largest-first maximises
+liquidity utilisation, while sorting lends cheapest-first minimises
+borrower cost. The blended rate $R_{\mathrm{eff}}$ is verified against the
+borrower's encrypted maximum before any proposal is emitted.
+
+\section{Incentive Mechanisms}
+
+\subsection{Rejection Penalty}
+
+A borrower who receives a valid proposal ($R_{\text{eff}} \leq R_{\max}$)
+and rejects it incurs a penalty that compensates lenders for locked capital
+during the proposal window:
+
+\begin{equation}
+    \text{penalty} = 0.05 \cdot C, \qquad \text{refund} = 0.95 \cdot C
+    \label{eq:penalty}
+\end{equation}
+
+\subsection{Liquidation and Loss Distribution}
+
+When a loan's health ratio breaches the liquidation threshold, the protocol
+seizes collateral and distributes it pro-rata by principal contribution:
+
+\begin{equation}
+    \text{protocol fee} = 0.05 \cdot C, \qquad
+    \text{lender}_i\text{ share}
+    = 0.95 \cdot C \cdot \frac{\delta_i}{\displaystyle\sum_i \delta_i}
+    \label{eq:liquidation}
+\end{equation}
+
+\section{Privacy Model}
+
+GHOST achieves a layered privacy architecture where information is
+compartmentalised by role. The critical invariant is:
+
+\begin{tcolorbox}[colback=backcolour, colframe=gray, arc=2pt, boxrule=0.5pt]
+\centering\small\bfseries
+No single entity possesses both the encrypted rates and the decryption key.
+\end{tcolorbox}
+
+\begin{table}[H]
+\centering
+\caption{Information compartmentalisation across protocol layers.}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}p{0.25\textwidth}ccc@{}}
+  \toprule
+  \textbf{Data} & \textbf{Public Chain} & \textbf{GHOST Server} & \textbf{CRE} \\
+  \midrule
+  Vault deposits        & Visible  & Hidden         & Hidden \\
+  Transfer amounts      & Hidden   & Known          & Known \\
+  Lender rates          & Hidden   & Encrypted blob & Plaintext at settlement \\
+  Borrower max rate     & Hidden   & Encrypted blob & Plaintext at settlement \\
+  Matched allocations   & Hidden   & Post-match     & Known at match time \\
+  Loan terms            & Hidden   & Recorded       & Known \\
+  \bottomrule
+\end{tabular}
+\label{tab:privacy}
+\end{table}
+
+\section{Role of Chainlink Infrastructure}
+
+GHOST is designed as a native CRE application, leveraging multiple Chainlink
+services as composable infrastructure primitives:
+
+\begin{table}[H]
+\centering
+\caption{Chainlink services consumed by GHOST.}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}p{0.28\textwidth}p{0.62\textwidth}@{}}
+  \toprule
+  \textbf{Chainlink Service} & \textbf{Role in GHOST} \\
+  \midrule
+  CRE Workflows &
+    Confidential compute for rate decryption, matching, and settlement \\
+  ConfidentialHTTPClient &
+    End-to-end encryption for all CRE to external service communication \\
+  Vault DON Secrets &
+    Threshold-encrypted storage of $sk_{\mathrm{CRE}}$ and pool wallet
+    key across DON nodes \\
+  Chainlink Price Feeds &
+    Real-time ETH/USD pricing for cross-asset collateral valuation \\
+  Chainlink ACE &
+    PolicyEngine compliance enforcement on every private transfer \\
+  \bottomrule
+\end{tabular}
+\label{tab:chainlink}
+\end{table}
+
+\section{Discussion}
+
+\subsection{Sealed vs.\ Open Auctions}
+
+The Eli--Alexandre model achieves rate convergence through iterative
+rebidding: lenders observe the order book and adjust rates competitively.
+GHOST's sealed-bid design sacrifices this iterative convergence for
+manipulation resistance. In practice, convergence emerges
+\textit{across epochs} rather than within a single auction, as market
+participants learn clearing rates from past loan originations and calibrate
+future bids accordingly. This inter-epoch learning dynamic mirrors the
+information aggregation properties documented in repeated sealed-bid
+auctions \cite{milgrom1982}.
+
+\subsection{Capital Efficiency}
+
+The tick-based model requires total liquidity $CD_{r_n} > K$ for
+competitive rate discovery. GHOST addresses this through continuous
+matching: lend intents persist across epochs until matched or cancelled,
+creating a standing liquidity book that grows over time. The credit tier
+system further improves capital efficiency by reducing collateral
+requirements for proven borrowers, unlocking leverage that would otherwise
+remain idle.
+
+\subsection{Limitations and Future Work}
+
+The current implementation uses in-memory state, suitable for
+proof-of-concept but requiring persistent storage for production
+deployment. The credit scoring mechanism is endogenous and simple; future
+iterations could integrate verifiable credential systems or zero-knowledge
+proof-based credit attestations. Multi-token lending pools, variable
+maturity structures, and secondary market trading of matched tick positions
+represent natural extensions of the framework.
+
+\section{Conclusion}
+
+GHOST demonstrates that privacy and market efficiency in decentralised
+lending are not mutually exclusive. By combining the tick-based rate
+discovery framework of Eli and Alexandre \cite{eli2025} with Chainlink
+CRE's confidential compute capabilities, the protocol achieves sealed-bid
+price discovery with discriminatory settlement.
+
+The three-layer architecture, comprising custody, blind storage, and
+confidential settlement, ensures that no single component can unilaterally
+observe rates, manipulate matching, or misappropriate funds. The sealed-bid
+format resolves the front-running and collusion vulnerabilities inherent in
+open order books while preserving the equilibrium properties of truthful
+rate revelation established in the auction theory literature
+\cite{milgrom1982, ausubel2004, klemperer2004}.
+
+Future work will explore the integration of zero-knowledge proofs for
+on-chain collateral verification, a lending-native vault with programmable
+lock and release semantics, and extension of the credit-tier mechanism to
+support fully undercollateralised lending for verified institutional
+borrowers.
+
+\begin{thebibliography}{99}
+\small
+
+\bibitem{eli2025}
+C.\ Eli and H.\ Alexandre,
+``Rate Discovery in Decentralised Lending,''
+\textit{Journal of The British Blockchain Association},
+vol.~8, no.~2, 2025.
+
+\bibitem{stiglitz1981}
+J.\ E.\ Stiglitz and A.\ Weiss,
+``Credit Rationing in Markets with Imperfect Information,''
+\textit{American Economic Review},
+vol.~71, no.~3, pp.~393--410, 1981.
+
+\bibitem{bester1985}
+H.\ Bester,
+``Screening vs.\ Rationing in Credit Markets with Imperfect Information,''
+\textit{American Economic Review},
+vol.~75, no.~4, pp.~850--855, 1985.
+
+\bibitem{monostori2014}
+Z.\ Monostori,
+``Discriminatory versus Uniform Price Auctions,''
+\textit{MNB Occasional Papers},
+no.~111, 2014.
+
+\bibitem{myers2021}
+E.\ Myers, A.\ Bostian, and H.\ Fell,
+``Asymmetric Cost Pass-Through in Multi-Unit Procurement Auctions:
+An Experimental Approach,''
+\textit{Journal of Industrial Economics},
+vol.~69, pp.~109--130, 2021.
+
+\bibitem{ausubel2004}
+L.\ M.\ Ausubel,
+``An Efficient Ascending-Bid Auction for Multiple Objects,''
+\textit{American Economic Review},
+vol.~94, no.~5, pp.~1452--1475, 2004.
+
+\bibitem{milgrom1982}
+P.\ Milgrom and R.\ J.\ Weber,
+``A Theory of Auctions and Competitive Bidding,''
+\textit{Econometrica},
+vol.~50, pp.~1089--1122, 1982.
+
+\bibitem{goldreich2007}
+D.\ Goldreich,
+``Underpricing in Discriminatory and Uniform Price Treasury Auctions,''
+\textit{Journal of Financial and Quantitative Analysis},
+vol.~42, no.~2, pp.~443--466, 2007.
+
+\bibitem{klemperer2004}
+P.\ Klemperer,
+``Auctions: Theory and Practice,''
+\textit{SSRN Electronic Journal}, 2004.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,7 @@
+{
+  "schedule": "*/30 * * * * *",
+  "ghostApiUrl": "http://localhost:3000/api/v1",
+  "feedChainName": "ethereum-mainnet-arbitrum-1",
+  "ethUsdFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+  "liquidationThreshold": 1.5
+}

@@ -1,0 +1,7 @@
+{
+  "schedule": "*/15 * * * * *",
+  "ghostApiUrl": "https://do.roydevelops.tech/ghost-server/api/v1",
+  "externalApiUrl": "https://convergence2026-token-api.cldev.cloud",
+  "vaultAddress": "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13",
+  "chainId": 11155111
+}

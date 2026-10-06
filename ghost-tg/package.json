@@ -1,0 +1,18 @@
+{
+  "name": "ghost-tg",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --hot src/index.ts"
+  },
+  "dependencies": {
+    "@walletconnect/sign-client": "^2.23.7",
+    "eciesjs": "^0.4.13",
+    "ethers": "^6.13.4",
+    "grammy": "^1.35.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.10"
+  }
+}
