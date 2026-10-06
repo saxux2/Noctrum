@@ -33,7 +33,7 @@
 | CRE Monad Testnet minimum versions CLI v1.30.0+, TS SDK v1.19.0+ | docs.chain.link/cre/supported-networks-ts | Re-check at build time |
 | ✅ Monad Testnet forwarder address | `0xF8344CFd5c43616a4366C34E3EEE75af79a74482` (cre v1.37.0); not needed (no EVM writes) | — |
 | Whether `project.yaml` accepts `monad-testnet` with the old CLI | unknown | T0.3 |
-| `cre workflow deploy` / secrets CLI syntax and deploy access | Ghost never documented a deploy | `cre --help`; Chainlink account |
+| `cre workflow deploy` / secrets CLI syntax and deploy access | Syntax: `cre workflow deploy <dir> --target …`, `cre secrets create <yaml>` (cre v1.37.0). Org had no deploy access; **access requested 2026-10-06** via `cre account access`, awaiting Chainlink approval (blocks T5.6 CRE part) | `cre account access` shows the status |
 | Monad Testnet block time / finality | docs mention 400/800 ms (testnet era) and 300/600 ms (mainnet since 2026-07) | docs.monad.xyz at build time |
 | Reserve-balance semantics for plain EOAs | "Default reserve balance 10 MON" | Monad docs + a test tx |
 | Monad Testnet ETH/USD feed `0x0c76859E85727683Eeba0C70Bc2e0F5781337818` | Chainlink changelog, pre-reset | docs.chain.link feed list |
