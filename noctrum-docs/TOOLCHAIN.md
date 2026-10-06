@@ -18,8 +18,7 @@ Recorded 2026-10-06 on Windows 11 (Git Bash + PowerShell 5.1).
 
 ## monad-testnet support
 - The `cre` v1.37.0 binary embeds the chain name `monad-testnet` and the selector `2183018362218727504`. Both match CRE_WORKFLOWS §0.
-- ⚠️ OPEN: `cre workflow supported-chains --output json` needs `cre login` (interactive) or `CRE_API_KEY`. Once logged in, run:
-  ```bash
-  cre workflow supported-chains --output json > noctrum-docs/cre-supported-chains.json
-  ```
-  and confirm `monad-testnet` is listed. This closes the ⚠️ in CRE_WORKFLOWS §0.
+- ✅ VERIFIED 2026-10-06 after `cre login`: `cre workflow supported-chains --output json` → `noctrum-docs/cre-supported-chains.json` lists
+  `monad-testnet`, selector `2183018362218727504`, forwarder `0xF8344CFd5c43616a4366C34E3EEE75af79a74482` (mock `0xB9F79d863261869B234c481D1f9A7af84AeAd192`).
+  This closes the ⚠️ in CRE_WORKFLOWS §0.
+- `cre` commands need an active `cre login` session (or `CRE_API_KEY` for non-interactive use).

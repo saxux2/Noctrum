@@ -29,9 +29,9 @@
 
 | Item | Current best info | How to verify |
 |---|---|---|
-| CRE chain name `monad-testnet`, selector `2183018362218727504` | chain-selectors repo | `cre workflow supported-chains --output json` |
+| ✅ CRE chain name `monad-testnet`, selector `2183018362218727504` | Verified 2026-10-06 with cre v1.37.0 (`cre-supported-chains.json`) | — |
 | CRE Monad Testnet minimum versions CLI v1.30.0+, TS SDK v1.19.0+ | docs.chain.link/cre/supported-networks-ts | Re-check at build time |
-| Monad Testnet forwarder address | not needed (no EVM writes) | same command, if ever needed |
+| ✅ Monad Testnet forwarder address | `0xF8344CFd5c43616a4366C34E3EEE75af79a74482` (cre v1.37.0); not needed (no EVM writes) | — |
 | Whether `project.yaml` accepts `monad-testnet` with the old CLI | unknown | T0.3 |
 | `cre workflow deploy` / secrets CLI syntax and deploy access | Ghost never documented a deploy | `cre --help`; Chainlink account |
 | Monad Testnet block time / finality | docs mention 400/800 ms (testnet era) and 300/600 ms (mainnet since 2026-07) | docs.monad.xyz at build time |
