@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-/// @title IGhostLoanLedger
-/// @notice On-chain loan record keeper for GHOST Protocol.
+/// @title INoctrumLoanLedger
+/// @notice On-chain loan record keeper for NOCTRUM Protocol.
 ///         Stores MINIMAL loan data — enough for:
 ///         1. Collateral health verification (anyone can check)
 ///         2. CRE-triggered liquidation with on-chain proof
@@ -15,7 +15,7 @@ pragma solidity ^0.8.26;
 ///         Lender distribution after repayment/liquidation is handled entirely
 ///         off-chain via the private transfer layer, using discriminatory rates
 ///         that only CRE knows.
-interface IGhostLoanLedger {
+interface INoctrumLoanLedger {
     // ── Enums ───────────────────────────────────────────────────────────
 
     enum LoanStatus {
@@ -77,7 +77,7 @@ interface IGhostLoanLedger {
     // ── Loan creation ───────────────────────────────────────────────────
 
     /// @notice Record a new loan on-chain after match acceptance.
-    ///         Called by GhostRouter with CRE attestation.
+    ///         Called by NoctrumRouter with CRE attestation.
     ///
     ///         The borrowerHash is keccak256(abi.encodePacked(borrower))
     ///         to preserve privacy — external observers cannot determine
@@ -159,10 +159,10 @@ interface IGhostLoanLedger {
     // ── Default marking ─────────────────────────────────────────────────
 
     /// @notice Mark a loan as defaulted due to undercollateralization or maturity.
-    ///         Called by GhostRouter (CRE_OPERATOR_ROLE).
+    ///         Called by NoctrumRouter (CRE_OPERATOR_ROLE).
     ///         Emits LoanDefaulted event. Does NOT seize collateral directly —
     ///         that is handled by CollateralManager.liquidate() which the
-    ///         GhostRouter calls in the same transaction.
+    ///         NoctrumRouter calls in the same transaction.
     ///
     /// @param loanId The loan to mark as defaulted
     function markDefaulted(bytes32 loanId) external;
@@ -186,8 +186,8 @@ interface IGhostLoanLedger {
     ///
     /// @param loanId The loan ID
     /// @param collateralPrice Price of 1 collateral token in loan token units (18 decimals).
-    ///                        For same-token collateral (gUSD/gUSD), pass 1e18.
-    ///                        For cross-token (gETH collateral, gUSD loan), pass ETH price in USD.
+    ///                        For same-token collateral (nUSD/nUSD), pass 1e18.
+    ///                        For cross-token (nETH collateral, nUSD loan), pass ETH price in USD.
     /// @return healthRatio Scaled to 18 decimals
     function getLoanHealth(
         bytes32 loanId,

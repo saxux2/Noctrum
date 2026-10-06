@@ -5,15 +5,15 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title GhostSwapPool
+/// @title NoctrumSwapPool
 /// @notice Multi-token swap pool with owner-managed prices.
 ///         Holds N tokens, owner sets USD price per token,
 ///         users swap at the current rate.
-contract GhostSwapPool is Ownable {
+contract NoctrumSwapPool is Ownable {
     using SafeERC20 for IERC20;
 
     /// @notice USD price per token, scaled to 18 decimals.
-    ///         e.g. gUSD = 1e18 ($1), gETH = 2200e18 ($2200)
+    ///         e.g. nUSD = 1e18 ($1), nETH = 2200e18 ($2200)
     mapping(address => uint256) public tokenPriceUsd;
     mapping(address => bool) public supportedTokens;
 

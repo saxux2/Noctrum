@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-/// @title IGhostVault
-/// @notice Core vault for GHOST Protocol. Holds ERC20 tokens, enforces PolicyEngine
+/// @title INoctrumVault
+/// @notice Core vault for NOCTRUM Protocol. Holds ERC20 tokens, enforces PolicyEngine
 ///         compliance, issues withdrawal tickets, and supports collateral earmarking
 ///         so locked funds cannot be withdrawn.
 ///
 ///         Privacy model: the vault stores aggregate totals per token, NOT per-user
 ///         balances. Individual balances are tracked off-chain in the private transfer
 ///         layer. The vault only knows: totalDeposited[token] and totalLocked[token].
-interface IGhostVault {
+interface INoctrumVault {
     // ── Events ──────────────────────────────────────────────────────────
 
     event Deposited(
@@ -72,7 +72,7 @@ interface IGhostVault {
     ///         the depositor's shielded balance. The vault only increments
     ///         totalDeposited[token].
     ///
-    /// @param token The ERC20 token address (gUSD or gETH)
+    /// @param token The ERC20 token address (nUSD or nETH)
     /// @param amount The amount to deposit (18 decimals)
     function deposit(address token, uint256 amount) external;
 
@@ -80,7 +80,7 @@ interface IGhostVault {
 
     /// @notice Withdraw tokens using a signed ticket from the off-chain API.
     ///         The ticket system prevents unauthorized withdrawals:
-    ///         1. User requests ticket from GHOST server (EIP-712 signed)
+    ///         1. User requests ticket from NOCTRUM server (EIP-712 signed)
     ///         2. Server verifies user has sufficient private balance
     ///         3. Server issues ticket signed by TICKET_SIGNER_ROLE
     ///         4. User redeems ticket on-chain

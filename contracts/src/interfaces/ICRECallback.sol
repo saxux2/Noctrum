@@ -2,8 +2,8 @@
 pragma solidity ^0.8.26;
 
 /// @title ICRECallback
-/// @notice Orchestrator interface for Chainlink CRE to interact with GHOST contracts.
-///         Implemented by GhostRouter, which coordinates multi-contract actions
+/// @notice Orchestrator interface for Chainlink CRE to interact with NOCTRUM contracts.
+///         Implemented by NoctrumRouter, which coordinates multi-contract actions
 ///         atomically to prevent partial state from failed transactions.
 ///
 ///         CRE interacts with this contract via the EVMClient capability:
@@ -11,7 +11,7 @@ pragma solidity ^0.8.26;
 ///           evmClient.writeContract(runtime, {
 ///             call: encodeCallMsg({
 ///               from: creOperatorAddress,
-///               to: ghostRouterAddress,
+///               to: noctrumRouterAddress,
 ///               data: encodeFunctionData({ abi, functionName, args })
 ///             }),
 ///           });
@@ -72,7 +72,7 @@ interface ICRECallback {
     ///
     ///         Atomically:
     ///         1. CollateralManager.lockCollateral() — earmarks vault funds
-    ///         2. GhostLoanLedger.createLoan() — records loan on-chain
+    ///         2. NoctrumLoanLedger.createLoan() — records loan on-chain
     ///
     ///         After this transaction succeeds, CRE executes the principal
     ///         disbursement via off-chain private transfer (unchanged from
@@ -80,10 +80,10 @@ interface ICRECallback {
     ///
     /// @param loanId Deterministic loan ID from CRE matching
     /// @param borrower The borrower's address (stored as hash in ledger)
-    /// @param loanToken The borrowed token address (gUSD)
+    /// @param loanToken The borrowed token address (nUSD)
     /// @param principal The principal amount (18 decimals)
     /// @param aggregateRateBps Blended rate in basis points (for health checks)
-    /// @param collateralToken The collateral token address (gUSD or gETH)
+    /// @param collateralToken The collateral token address (nUSD or nETH)
     /// @param collateralAmount The amount to lock as collateral
     /// @param maturity Unix timestamp when loan matures
     /// @param attestation CRE-signed attestation proving authorization
@@ -131,13 +131,13 @@ interface ICRECallback {
     /// @notice Called by CRE when it detects an undercollateralized or matured loan.
     ///
     ///         Atomically:
-    ///         1. GhostLoanLedger.markDefaulted() — updates loan status
+    ///         1. NoctrumLoanLedger.markDefaulted() — updates loan status
     ///         2. CollateralManager.liquidate() — seizes collateral
     ///             - 5% protocol fee (stays in vault)
     ///             - 95% released for lender distribution (off-chain)
     ///
     ///         After this transaction, CRE:
-    ///         - Updates GHOST server state (POST /internal/liquidate-loans)
+    ///         - Updates NOCTRUM server state (POST /internal/liquidate-loans)
     ///         - Queues private transfers for lender distribution
     ///
     /// @param loanId The loan to liquidate
@@ -154,7 +154,7 @@ interface ICRECallback {
     /// @notice Called by CRE after verifying a repayment was received.
     ///
     ///         Effects:
-    ///         1. GhostLoanLedger.recordRepayment() — updates repaid amount
+    ///         1. NoctrumLoanLedger.recordRepayment() — updates repaid amount
     ///         2. If full repayment:
     ///            - CollateralManager.releaseCollateral() — unlocks funds
     ///            - Loan status changes to Repaid

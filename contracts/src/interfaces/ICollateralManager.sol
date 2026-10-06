@@ -2,8 +2,8 @@
 pragma solidity ^0.8.26;
 
 /// @title ICollateralManager
-/// @notice Manages collateral lifecycle for GHOST Protocol loans.
-///         Collateral is held inside the GhostVault but earmarked (locked)
+/// @notice Manages collateral lifecycle for NOCTRUM Protocol loans.
+///         Collateral is held inside the NoctrumVault but earmarked (locked)
 ///         so the borrower cannot withdraw it during the loan.
 ///
 ///         State transitions:
@@ -76,7 +76,7 @@ interface ICollateralManager {
     // ── Lock collateral ─────────────────────────────────────────────────
 
     /// @notice Lock collateral for a new loan.
-    ///         Called by GhostRouter after CRE confirms a match acceptance.
+    ///         Called by NoctrumRouter after CRE confirms a match acceptance.
     ///
     ///         Attestation proves CRE authorized this lock:
     ///           actionHash = keccak256(abi.encodePacked(loanId, borrower, token, amount))
@@ -84,12 +84,12 @@ interface ICollateralManager {
     ///
     ///         Effects:
     ///         1. Creates CollateralLock record
-    ///         2. Calls GhostVault.lockBalance(token, amount)
+    ///         2. Calls NoctrumVault.lockBalance(token, amount)
     ///         3. Emits CollateralLocked event
     ///
     /// @param loanId Unique loan identifier (deterministic from CRE matching)
     /// @param borrower The borrower's address
-    /// @param token The collateral token (gUSD or gETH)
+    /// @param token The collateral token (nUSD or nETH)
     /// @param amount The amount to lock
     /// @param attestation CRE-signed attestation
     function lockCollateral(
@@ -103,11 +103,11 @@ interface ICollateralManager {
     // ── Release collateral ──────────────────────────────────────────────
 
     /// @notice Release collateral back to borrower after full repayment.
-    ///         Called by GhostRouter when CRE confirms full repayment.
+    ///         Called by NoctrumRouter when CRE confirms full repayment.
     ///
     ///         Effects:
     ///         1. Updates CollateralLock status to Released
-    ///         2. Calls GhostVault.releaseBalance(token, amount)
+    ///         2. Calls NoctrumVault.releaseBalance(token, amount)
     ///         3. Emits CollateralReleased event
     ///
     ///         After release, the off-chain private transfer layer
@@ -138,7 +138,7 @@ interface ICollateralManager {
     // ── Liquidation ─────────────────────────────────────────────────────
 
     /// @notice Seize collateral for an undercollateralized or matured loan.
-    ///         Called by GhostRouter when CRE detects an unhealthy loan.
+    ///         Called by NoctrumRouter when CRE detects an unhealthy loan.
     ///
     ///         Distribution:
     ///         - 5% protocol fee (remains in vault, pool wallet controls)

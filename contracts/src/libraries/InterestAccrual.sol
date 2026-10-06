@@ -2,8 +2,8 @@
 pragma solidity ^0.8.26;
 
 /// @title InterestAccrual
-/// @notice Pure math library for interest computation in GHOST Protocol.
-///         Used on-chain by GhostLoanLedger for health ratio calculations,
+/// @notice Pure math library for interest computation in NOCTRUM Protocol.
+///         Used on-chain by NoctrumLoanLedger for health ratio calculations,
 ///         and referenced by CRE for exact interest amounts.
 ///
 ///         All functions are `internal pure` — no state, no external calls.
@@ -20,7 +20,7 @@ library InterestAccrual {
     uint256 internal constant PRECISION = 1e18;
 
     /// @notice Compute simple interest: principal * rate * time / year.
-    ///         Simple interest (not compound) matches GHOST's loan model
+    ///         Simple interest (not compound) matches NOCTRUM's loan model
     ///         where interest is computed once at repayment, not continuously.
     ///
     /// @param principal The loan principal (18 decimals)
@@ -74,13 +74,13 @@ library InterestAccrual {
     ///           2.0e18 = 200% collateralized
     ///           type(uint256).max = fully repaid (infinite health)
     ///
-    ///         Used by GhostLoanLedger.getLoanHealth() and by CRE's
+    ///         Used by NoctrumLoanLedger.getLoanHealth() and by CRE's
     ///         check-loans workflow to determine liquidation eligibility.
     ///
     /// @param collateralAmount Amount of collateral tokens (18 decimals)
     /// @param collateralPrice Price of 1 collateral token in loan token units (18 decimals).
     ///                        For same-token: 1e18.
-    ///                        For gETH collateral / gUSD loan: ETH price * 1e18.
+    ///                        For nETH collateral / nUSD loan: ETH price * 1e18.
     /// @param principal Loan principal (18 decimals)
     /// @param rateBps Annual rate in bps
     /// @param elapsed Seconds since creation

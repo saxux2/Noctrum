@@ -2,11 +2,11 @@
 pragma solidity 0.8.26;
 
 import {Script, console} from "forge-std/Script.sol";
-import {GhostSwapPool} from "../src/GhostSwapPool.sol";
+import {NoctrumSwapPool} from "../src/NoctrumSwapPool.sol";
 import {SimpleToken} from "../src/SimpleToken.sol";
 
 /// @title DeploySwapPool
-/// @notice Deploys the GhostSwapPool, registers gUSD + gETH,
+/// @notice Deploys the NoctrumSwapPool, registers gUSD + gETH,
 ///         mints seed liquidity and deposits it.
 ///
 ///   env PRIVATE_KEY=0x...
@@ -29,8 +29,8 @@ contract DeploySwapPool is Script {
         vm.startBroadcast(deployerPK);
 
         // 1. Deploy swap pool
-        GhostSwapPool pool = new GhostSwapPool(deployer);
-        console.log("1) GhostSwapPool deployed at:", address(pool));
+        NoctrumSwapPool pool = new NoctrumSwapPool(deployer);
+        console.log("1) NoctrumSwapPool deployed at:", address(pool));
 
         // 2. Register tokens with USD prices (18-decimal scaled)
         //    gUSD  = $1
@@ -60,7 +60,7 @@ contract DeploySwapPool is Script {
         console.log("========================================");
         console.log("  SWAP POOL DEPLOYED");
         console.log("========================================");
-        console.log("GhostSwapPool: ", address(pool));
+        console.log("NoctrumSwapPool: ", address(pool));
         console.log("gUSD liquidity: 10,000");
         console.log("gETH liquidity: 10");
         console.log("gUSD price:     $1");
