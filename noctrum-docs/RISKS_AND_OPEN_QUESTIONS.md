@@ -77,7 +77,7 @@
 
 ## E. Later (improvement ideas; NOT part of the plan)
 - Strip `0x` in decryptRate (if D-2 = a).
-- Verify vault deposits and private transfers server-side before creating intents and repaying; actually collect repayment funds in the web client.
+- Verify vault deposits and private transfers server-side before creating intents and repaying; actually collect repayment funds in the web client. Implemented and parked on branch `later/deposit-verification` (2026-10-07); before merging, e2e steps 6–8 must send real collateral/repay transfers.
 - Idempotent transfers (mark `executing` before sending, unique transfer IDs passed to the vault-api).
 - A public `/pool-stats` endpoint for Explore instead of the internal route.
 - Health factor using the collateral token type, accrued interest and staleness checks; annualised interest per the docs.
