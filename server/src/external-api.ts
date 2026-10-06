@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { config } from "./config";
 
 const EXTERNAL_DOMAIN = {
-  name: "CompliantPrivateTokenDemo",
+  name: "NoctrumPrivateToken",
   version: "0.0.1",
   chainId: config.CHAIN_ID,
   verifyingContract: config.EXTERNAL_VAULT_ADDRESS as `0x${string}`,

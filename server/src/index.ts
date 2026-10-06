@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import ghostRoute from "./routes/ghost.routes";
+import noctrumRoute from "./routes/noctrum.routes";
 import { getPoolAddress } from "./external-api";
 import { config } from "./config";
 import { cors } from "hono/cors";
@@ -27,9 +27,9 @@ app.get("/cre-public-key", (c) => {
   return c.json({ publicKey: config.CRE_PUBLIC_KEY });
 });
 
-app.route("/api/v1", ghostRoute);
+app.route("/api/v1", noctrumRoute);
 
-console.log(`GHOST server running on port ${config.PORT}`);
+console.log(`NOCTRUM server running on port ${config.PORT}`);
 
 export default {
   port: config.PORT,

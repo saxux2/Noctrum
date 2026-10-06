@@ -1,22 +1,22 @@
 /**
- * Seeds the Ghost server with a lend + borrow + loan via the real API flow.
+ * Seeds the Noctrum server with a lend + borrow + loan via the real API flow.
  * Uses the POOL_PRIVATE_KEY wallet for both lender and borrower (test only).
  */
 import { ethers } from "ethers";
 
 const BASE = "http://localhost:3000/api/v1";
 const PRIVATE_KEY = process.env.POOL_PRIVATE_KEY!;
-const gUSD = "0xD318551FbC638C4C607713A92A19FAd73eb8f743";
-const gETH = "0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6";
+const nUSD = "0x339a948f3667d222FAD43d313b3b8c3BE1415ad5";
+const nETH = "0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A";
 
 const wallet = new ethers.Wallet(PRIVATE_KEY);
 const account = wallet.address;
 
 const EIP712_DOMAIN = {
-  name: "GhostProtocol",
+  name: "NoctrumProtocol",
   version: "0.0.1",
-  chainId: 11155111,
-  verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13",
+  chainId: 10143,
+  verifyingContract: "0x65877F6BFd3f2D293454658BCb290b112397Eeb5",
 };
 
 function ts(): number {
@@ -41,11 +41,11 @@ async function sign(primaryType: string, types: any, message: any) {
 async function main() {
   console.log("Account:", account);
 
-  // 1. Init deposit-lend (1000 gUSD)
+  // 1. Init deposit-lend (1000 nUSD)
   console.log("\n1. Init deposit-lend...");
   const initRes = await post("/deposit-lend/init", {
     account,
-    token: gUSD,
+    token: nUSD,
     amount: "1000000000000000000000",
   });
   console.log("  slotId:", initRes.slotId);
@@ -63,14 +63,14 @@ async function main() {
   const confirmRes = await post("/deposit-lend/confirm", { ...confirmMsg, auth: confirmAuth });
   console.log("  intentId:", confirmRes.intentId);
 
-  // 3. Submit borrow intent (borrow 1000 gUSD, collateral 0.5 gETH)
+  // 3. Submit borrow intent (borrow 1000 nUSD, collateral 0.5 nETH)
   console.log("3. Submit borrow intent...");
   const t2 = ts();
   const borrowMsg = {
-    account, token: gUSD,
+    account, token: nUSD,
     amount: "1000000000000000000000",
-    collateralToken: gETH,
-    collateralAmount: "500000000000000000", // 0.5 gETH
+    collateralToken: nETH,
+    collateralAmount: "500000000000000000", // 0.5 nETH
     encryptedMaxRate: "encrypted_10pct",
     timestamp: t2,
   };
@@ -94,7 +94,7 @@ async function main() {
       proposalId,
       borrowIntentId: borrowRes.intentId,
       borrower: account,
-      token: gUSD,
+      token: nUSD,
       principal: "1000000000000000000000",
       matchedTicks: [{
         lender: account,
@@ -103,7 +103,7 @@ async function main() {
         rate: 0.05,
       }],
       effectiveBorrowerRate: 0.05,
-      collateralToken: gETH,
+      collateralToken: nETH,
       collateralAmount: "500000000000000000",
     }],
   });

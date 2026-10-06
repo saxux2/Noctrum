@@ -1,171 +1,146 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { Hono } from "hono";
+// D-17: rewrite of Ghost's stale lend.test.ts against Mongo, same 9 cases plus 404/403 paths.
+import { describe, it, expect } from "bun:test";
 import { ethers } from "ethers";
-import { state } from "../state";
-import { EIP712_DOMAIN, MESSAGE_TYPES } from "../auth";
-import {
-  initDepositLend,
-  confirmDepositLend,
-  cancelLend,
-} from "../controllers/lend.controllers";
-import { config } from "../config";
-
-const app = new Hono();
-app.post("/deposit-lend/init", initDepositLend);
-app.post("/deposit-lend/confirm", confirmDepositLend);
-app.post("/cancel-lend", cancelLend);
+import { post, sign, NUSD, wei } from "./helpers";
+import { getBalance } from "../state";
+import DepositSlotModel from "../models/deposit-slot.model";
+import LendIntentModel from "../models/lend-intent.model";
+import PendingTransferModel from "../models/pending-transfer.model";
 
 const wallet = ethers.Wallet.createRandom();
 const account = wallet.address;
-const token = config.TOKEN_ADDRESS;
-const amount = "10000000000000000000"; // 10 tokens
+const amount = wei(10);
 
-function ts() {
-  return Math.floor(Date.now() / 1000);
+async function initSlot(): Promise<string> {
+  const res = await post("/deposit-lend/init", { account, token: NUSD, amount });
+  return ((await res.json()) as any).slotId;
 }
 
-async function signConfirm(slotId: string, encryptedRate: string) {
-  const timestamp = ts();
-  const message = { account, slotId, encryptedRate, timestamp };
-  const types = { "Confirm Deposit": [...MESSAGE_TYPES["Confirm Deposit"]] };
-  const auth = await wallet.signTypedData(EIP712_DOMAIN, types, message);
-  return { account, slotId, encryptedRate, timestamp, auth };
+async function confirm(slotId: string, w = wallet) {
+  return post("/deposit-lend/confirm", await sign(w, "Confirm Deposit", { slotId, encryptedRate: "0xenc" }));
 }
 
-async function signCancel(slotId: string) {
-  const timestamp = ts();
-  const message = { account, slotId, timestamp };
-  const types = { "Cancel Lend": [...MESSAGE_TYPES["Cancel Lend"]] };
-  const auth = await wallet.signTypedData(EIP712_DOMAIN, types, message);
-  return { account, slotId, timestamp, auth };
-}
-
-function post(path: string, body: any) {
-  return app.request(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-}
-
-async function initAndGetSlotId(): Promise<string> {
-  const res = await post("/deposit-lend/init", { account, token, amount });
-  const data: any = await res.json();
-  return data.slotId;
-}
-
-beforeEach(() => {
-  state.depositSlots.clear();
-  state.activeBuffer.clear();
-  state.balances.clear();
-  state.currentEpoch = 1;
-});
-
-describe("initDepositLend", () => {
-  it("valid → 200 + slot created", async () => {
-    const res = await post("/deposit-lend/init", { account, token, amount });
+describe("POST /deposit-lend/init", () => {
+  it("valid → 200 + pending slot", async () => {
+    const res = await post("/deposit-lend/init", { account, token: NUSD, amount });
     expect(res.status).toBe(200);
     const data: any = await res.json();
     expect(data.slotId).toBeDefined();
-    expect(state.depositSlots.size).toBe(1);
+    expect(data.epochId).toBe(1);
+    const slot = await DepositSlotModel.findOne({ slotId: data.slotId });
+    expect(slot?.status).toBe("pending");
+    expect(slot?.userId).toBe(account.toLowerCase());
+    expect(slot?.amount).toBe(amount);
   });
 
   it("missing fields → 400", async () => {
     const res = await post("/deposit-lend/init", { account });
     expect(res.status).toBe(400);
   });
+
+  it("expires pending slots older than 10 min first", async () => {
+    const old = await initSlot();
+    await DepositSlotModel.updateOne({ slotId: old }, { createdAt: Date.now() - 11 * 60 * 1000 });
+    await initSlot();
+    expect((await DepositSlotModel.findOne({ slotId: old }))?.status).toBe("cancelled");
+  });
 });
 
-describe("confirmDepositLend", () => {
-  it("valid → balance credited + intent stored", async () => {
-    const slotId = await initAndGetSlotId();
-
-    const encryptedRate = "0xencrypted_blob_here";
-    const confirmBody = await signConfirm(slotId, encryptedRate);
-    const res = await post("/deposit-lend/confirm", confirmBody);
+describe("POST /deposit-lend/confirm", () => {
+  it("valid → 200, balance credited, intent stored", async () => {
+    const slotId = await initSlot();
+    const res = await confirm(slotId);
     expect(res.status).toBe(200);
     const data: any = await res.json();
     expect(data.status).toBe("sealed_bid_accepted");
+    expect(data.epochId).toBe(1);
 
-    const bal = state.getBalance(account, token);
-    expect(bal).toBe(BigInt(amount));
-    expect(state.activeBuffer.size).toBe(1);
+    expect(await getBalance(account, NUSD)).toBe(BigInt(amount));
+    const intent = await LendIntentModel.findOne({ intentId: data.intentId });
+    expect(intent?.amount).toBe(amount);
+    expect(intent?.encryptedRate).toBe("0xenc");
+    const slot = await DepositSlotModel.findOne({ slotId });
+    expect(slot?.status).toBe("confirmed");
+    expect(slot?.intentId).toBe(data.intentId);
   });
 
   it("bad sig → 401", async () => {
-    const slotId = await initAndGetSlotId();
-    const body = await signConfirm(slotId, "0xenc");
+    const slotId = await initSlot();
+    const body = await sign(wallet, "Confirm Deposit", { slotId, encryptedRate: "0xenc" });
     body.auth = "0x" + "00".repeat(65);
     const res = await post("/deposit-lend/confirm", body);
     expect(res.status).toBe(401);
   });
 
-  it("expired slot → 410", async () => {
-    const slotId = await initAndGetSlotId();
+  it("missing fields → 400", async () => {
+    const res = await post("/deposit-lend/confirm", { account, slotId: "x" });
+    expect(res.status).toBe(400);
+  });
 
-    const slot = state.depositSlots.get(slotId)!;
-    slot.createdAt = Date.now() - 11 * 60 * 1000;
+  it("unknown slot → 404", async () => {
+    const res = await confirm("does-not-exist");
+    expect(res.status).toBe(404);
+  });
 
-    const encryptedRate = "0xencrypted";
-    const body = await signConfirm(slotId, encryptedRate);
-    const res = await post("/deposit-lend/confirm", body);
+  it("expired slot (TTL) → 410 and slot cancelled", async () => {
+    const slotId = await initSlot();
+    await DepositSlotModel.updateOne({ slotId }, { createdAt: Date.now() - 11 * 60 * 1000 });
+    const res = await confirm(slotId);
     expect(res.status).toBe(410);
+    expect((await DepositSlotModel.findOne({ slotId }))?.status).toBe("cancelled");
   });
 
   it("double confirm → 409", async () => {
-    const slotId = await initAndGetSlotId();
-
-    const encryptedRate = "0xencrypted";
-    const body1 = await signConfirm(slotId, encryptedRate);
-    await post("/deposit-lend/confirm", body1);
-
-    const body2 = await signConfirm(slotId, encryptedRate);
-    const res = await post("/deposit-lend/confirm", body2);
+    const slotId = await initSlot();
+    await confirm(slotId);
+    const res = await confirm(slotId);
     expect(res.status).toBe(409);
+  });
+
+  it("not slot owner → 403", async () => {
+    const slotId = await initSlot();
+    const res = await confirm(slotId, ethers.Wallet.createRandom());
+    expect(res.status).toBe(403);
   });
 });
 
-describe("cancelLend", () => {
-  it("valid → queues transfer", async () => {
-    const slotId = await initAndGetSlotId();
-    const confirmBody = await signConfirm(slotId, "0xenc");
-    await post("/deposit-lend/confirm", confirmBody);
+describe("POST /cancel-lend", () => {
+  it("valid → 200, queues cancel-lend transfer, removes intent, debits balance", async () => {
+    const slotId = await initSlot();
+    const { intentId }: any = await (await confirm(slotId)).json();
 
-    expect(state.activeBuffer.size).toBe(1);
-
-    const cancelBody = await signCancel(slotId);
-    const res = await post("/cancel-lend", cancelBody);
+    const res = await post("/cancel-lend", await sign(wallet, "Cancel Lend", { slotId }));
     expect(res.status).toBe(200);
     const data: any = await res.json();
     expect(data.status).toBe("cancelled");
-    expect(data.transferId).toBeDefined();
-    expect(state.activeBuffer.size).toBe(0);
+
+    const t = await PendingTransferModel.findOne({ transferId: data.transferId });
+    expect(t?.reason).toBe("cancel-lend");
+    expect(t?.recipient).toBe(account.toLowerCase());
+    expect(t?.token).toBe(NUSD);
+    expect(t?.amount).toBe(amount);
+    expect(t?.status).toBe("pending");
+    expect(await LendIntentModel.findOne({ intentId })).toBeNull();
+    expect(await getBalance(account, NUSD)).toBe(0n);
+    expect((await DepositSlotModel.findOne({ slotId }))?.status).toBe("cancelled");
   });
 
   it("not owner → 403", async () => {
-    const slotId = await initAndGetSlotId();
-    const confirmBody = await signConfirm(slotId, "0xenc");
-    await post("/deposit-lend/confirm", confirmBody);
-
-    const other = ethers.Wallet.createRandom();
-    const timestamp = ts();
-    const message = { account: other.address, slotId, timestamp };
-    const types = { "Cancel Lend": [...MESSAGE_TYPES["Cancel Lend"]] };
-    const auth = await other.signTypedData(EIP712_DOMAIN, types, message);
-    const res = await post("/cancel-lend", {
-      account: other.address,
-      slotId,
-      timestamp,
-      auth,
-    });
+    const slotId = await initSlot();
+    await confirm(slotId);
+    const res = await post("/cancel-lend", await sign(ethers.Wallet.createRandom(), "Cancel Lend", { slotId }));
     expect(res.status).toBe(403);
   });
 
-  it("not in activeBuffer → 409", async () => {
-    const slotId = await initAndGetSlotId();
-
-    const cancelBody = await signCancel(slotId);
-    const res = await post("/cancel-lend", cancelBody);
+  it("no active intent → 409", async () => {
+    const slotId = await initSlot();
+    const res = await post("/cancel-lend", await sign(wallet, "Cancel Lend", { slotId }));
     expect(res.status).toBe(409);
+    expect(((await res.json()) as any).error).toBe("No active intent for this slot");
+  });
+
+  it("unknown slot → 404", async () => {
+    const res = await post("/cancel-lend", await sign(wallet, "Cancel Lend", { slotId: "nope" }));
+    expect(res.status).toBe(404);
   });
 });

@@ -50,9 +50,9 @@ export const submitBorrowIntent = async (c: Context) => {
 
     const ct = collateralToken.toLowerCase();
     const isUsdCollateral = ct === config.TOKEN_ADDRESS.toLowerCase();
-    const isEthCollateral = ct === config.GETH_ADDRESS.toLowerCase();
+    const isEthCollateral = ct === config.NETH_ADDRESS.toLowerCase();
     if (!isUsdCollateral && !isEthCollateral)
-      return c.json({ error: "Collateral token must be gUSD or gETH" }, 400);
+      return c.json({ error: "Collateral token must be nUSD or nETH" }, 400);
 
     const score = await getCreditScore(account);
     const multiplier = getCollateralMultiplier(score.tier);
@@ -168,7 +168,7 @@ export const acceptProposal = async (c: Context) => {
     const principalBig = BigInt(proposal.principal as string);
     const collateralAmountBig = BigInt(proposal.collateralAmount as string);
     const borrowToken = (proposal.token as string).toLowerCase();
-    const isEthBorrow = borrowToken === config.GETH_ADDRESS.toLowerCase();
+    const isEthBorrow = borrowToken === config.NETH_ADDRESS.toLowerCase();
     const principalNum = Number(principalBig) / 1e18;
     let principalUsd: number;
     if (isEthBorrow) {

@@ -115,7 +115,7 @@ export const expireProposals = async (c: Context) => {
       const multiplier = getCollateralMultiplier(score.tier);
       const principalBig = BigInt(proposal.principal as string);
       const borrowToken = (proposal.token as string).toLowerCase();
-      const isEthBorrow = borrowToken === config.GETH_ADDRESS.toLowerCase();
+      const isEthBorrow = borrowToken === config.NETH_ADDRESS.toLowerCase();
       const principalNum = Number(principalBig) / 1e18;
       let principalUsd: number;
       if (isEthBorrow) {

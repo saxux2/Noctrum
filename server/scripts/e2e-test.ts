@@ -1,10 +1,10 @@
 /**
- * E2E test: 2 lenders + 1 borrower → on-chain deposit → Ghost intents
+ * E2E test: 2 lenders + 1 borrower → on-chain deposit → Noctrum intents
  * Then: settle-loans (CRE) → expire → execute-transfers → check-loans
  *
  * Prereqs:
  *   - Server running: cd server && bun run src/index.ts
- *   - Wallets funded (gUSD to lenders, gETH to borrower, gas ETH to all)
+ *   - Wallets funded (nUSD to lenders, nETH to borrower, gas ETH to all)
  *
  * Usage: cd server && bun run scripts/e2e-test.ts
  */
@@ -12,15 +12,15 @@ import { ethers } from "ethers";
 import { encrypt } from "eciesjs";
 
 const SERVER = "http://localhost:3000";
-const EXTERNAL_API = "https://convergence2026-token-api.cldev.cloud";
-const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
-const VAULT_ADDRESS = "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13";
-const CHAIN_ID = 11155111;
+const EXTERNAL_API = process.env.EXTERNAL_API_URL ?? "http://localhost:8081";
+const RPC_URL = process.env.RPC_URL ?? "https://testnet-rpc.monad.xyz";
+const VAULT_ADDRESS = "0x65877F6BFd3f2D293454658BCb290b112397Eeb5";
+const CHAIN_ID = 10143;
 
-const CRE_PUBKEY = "020c8353f6e6d21f3aaa5f990bac838d5eaacfaac9d255c274163b73a26afd4aa3";
+const CRE_PUBKEY = process.env.CRE_PUBLIC_KEY!;
 
-const gUSD = "0xD318551FbC638C4C607713A92A19FAd73eb8f743";
-const gETH = "0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6";
+const nUSD = "0x339a948f3667d222FAD43d313b3b8c3BE1415ad5";
+const nETH = "0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A";
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const poolWallet = new ethers.Wallet(
@@ -43,15 +43,15 @@ const borrower = new ethers.Wallet(
 );
 
 // ── Domains ─────────────────────────────────────────
-const GHOST_DOMAIN = {
-  name: "GhostProtocol",
+const NOCTRUM_DOMAIN = {
+  name: "NoctrumProtocol",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
 };
 
 const EXTERNAL_DOMAIN = {
-  name: "CompliantPrivateTokenDemo",
+  name: "NoctrumPrivateToken",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
@@ -116,7 +116,7 @@ async function getVaultBalances(wallet: ethers.Wallet) {
   const balances = data.balances ?? [];
   const find = (tok: string) =>
     balances.find((b: any) => b.token.toLowerCase() === tok.toLowerCase())?.amount ?? "0";
-  return { gUSD: find(gUSD), gETH: find(gETH) };
+  return { nUSD: find(nUSD), nETH: find(nETH) };
 }
 
 async function post(path: string, body: any) {
@@ -140,13 +140,13 @@ async function lendFlow(wallet: ethers.Wallet, token: string, amount: string, ra
   const init = await post("/api/v1/deposit-lend/init", { account: wallet.address, token, amount });
   console.log(`  [${label}] SlotId: ${init.slotId}`);
 
-  console.log(`  [${label}] Private transfer ${ethers.formatEther(amount)} gUSD -> pool...`);
+  console.log(`  [${label}] Private transfer ${ethers.formatEther(amount)} nUSD -> pool...`);
   await privateTransfer(wallet, poolWallet.address, token, amount);
 
   const encryptedRate = encryptRate(rate);
   const timestamp = ts();
   const confirmMsg = { account: wallet.address, slotId: init.slotId, encryptedRate, timestamp };
-  const auth = await wallet.signTypedData(GHOST_DOMAIN, {
+  const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, {
     "Confirm Deposit": [
       { name: "account", type: "address" },
       { name: "slotId", type: "string" },
@@ -161,7 +161,7 @@ async function lendFlow(wallet: ethers.Wallet, token: string, amount: string, ra
 
 // ── Main ────────────────────────────────────────────
 async function main() {
-  console.log("=== GHOST E2E: 2 Lenders + 1 Borrower ===");
+  console.log("=== NOCTRUM E2E: 2 Lenders + 1 Borrower ===");
   console.log(`  Pool:      ${poolWallet.address}`);
   console.log(`  Lender A:  ${lenderA.address}`);
   console.log(`  Lender B:  ${lenderB.address}`);
@@ -170,53 +170,53 @@ async function main() {
   // ── STEP 1: On-chain approve + deposit into vault ──
   console.log("\n--- STEP 1: Vault deposits ---");
 
-  console.log("  Lender A: approve + deposit 500 gUSD...");
-  const laToken = new ethers.Contract(gUSD, ERC20_ABI, lenderA);
+  console.log("  Lender A: approve + deposit 500 nUSD...");
+  const laToken = new ethers.Contract(nUSD, ERC20_ABI, lenderA);
   const laVault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, lenderA);
   await (await laToken.approve(VAULT_ADDRESS, toWei(500))).wait();
-  await (await laVault.deposit(gUSD, toWei(500))).wait();
+  await (await laVault.deposit(nUSD, toWei(500))).wait();
 
-  console.log("  Lender B: approve + deposit 500 gUSD...");
-  const lbToken = new ethers.Contract(gUSD, ERC20_ABI, lenderB);
+  console.log("  Lender B: approve + deposit 500 nUSD...");
+  const lbToken = new ethers.Contract(nUSD, ERC20_ABI, lenderB);
   const lbVault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, lenderB);
   await (await lbToken.approve(VAULT_ADDRESS, toWei(500))).wait();
-  await (await lbVault.deposit(gUSD, toWei(500))).wait();
+  await (await lbVault.deposit(nUSD, toWei(500))).wait();
 
-  console.log("  Borrower: approve + deposit 5 gETH...");
-  const bToken = new ethers.Contract(gETH, ERC20_ABI, borrower);
+  console.log("  Borrower: approve + deposit 5 nETH...");
+  const bToken = new ethers.Contract(nETH, ERC20_ABI, borrower);
   const bVault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, borrower);
   await (await bToken.approve(VAULT_ADDRESS, toWei(5))).wait();
-  await (await bVault.deposit(gETH, toWei(5))).wait();
+  await (await bVault.deposit(nETH, toWei(5))).wait();
 
   console.log("  All vault deposits done!");
 
-  // ── STEP 2: Lender A lend (500 gUSD @ 5%) ──
-  console.log("\n--- STEP 2: Lender A - 500 gUSD @ 5% ---");
-  await lendFlow(lenderA, gUSD, toWei(500), "0.05", "A");
+  // ── STEP 2: Lender A lend (500 nUSD @ 5%) ──
+  console.log("\n--- STEP 2: Lender A - 500 nUSD @ 5% ---");
+  await lendFlow(lenderA, nUSD, toWei(500), "0.05", "A");
 
-  // ── STEP 3: Lender B lend (500 gUSD @ 8%) ──
-  console.log("\n--- STEP 3: Lender B - 500 gUSD @ 8% ---");
-  await lendFlow(lenderB, gUSD, toWei(500), "0.08", "B");
+  // ── STEP 3: Lender B lend (500 nUSD @ 8%) ──
+  console.log("\n--- STEP 3: Lender B - 500 nUSD @ 8% ---");
+  await lendFlow(lenderB, nUSD, toWei(500), "0.08", "B");
 
-  // ── STEP 4: Borrower — borrow 800 gUSD w/ 5 gETH collateral, max 10% ──
-  console.log("\n--- STEP 4: Borrower - 800 gUSD, 5 gETH collateral, max 10% ---");
+  // ── STEP 4: Borrower — borrow 800 nUSD w/ 5 nETH collateral, max 10% ──
+  console.log("\n--- STEP 4: Borrower - 800 nUSD, 5 nETH collateral, max 10% ---");
 
   // Transfer collateral to pool privately
-  console.log("  Borrower private-transfers 5 gETH -> pool...");
-  await privateTransfer(borrower, poolWallet.address, gETH, toWei(5));
+  console.log("  Borrower private-transfers 5 nETH -> pool...");
+  await privateTransfer(borrower, poolWallet.address, nETH, toWei(5));
 
   const encryptedMaxRate = encryptRate("0.10");
   const borrowTs = ts();
   const borrowMsg = {
     account: borrower.address,
-    token: gUSD,
+    token: nUSD,
     amount: toWei(800),
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: toWei(5),
     encryptedMaxRate,
     timestamp: borrowTs,
   };
-  const borrowAuth = await borrower.signTypedData(GHOST_DOMAIN, {
+  const borrowAuth = await borrower.signTypedData(NOCTRUM_DOMAIN, {
     "Submit Borrow": [
       { name: "account", type: "address" },
       { name: "token", type: "address" },
@@ -239,22 +239,22 @@ async function main() {
     { label: "Pool", w: poolWallet },
   ]) {
     const bal = await getVaultBalances(w);
-    console.log(`  ${label.padEnd(10)} gUSD: ${ethers.formatEther(bal.gUSD).padStart(10)}  gETH: ${ethers.formatEther(bal.gETH).padStart(10)}`);
+    console.log(`  ${label.padEnd(10)} nUSD: ${ethers.formatEther(bal.nUSD).padStart(10)}  nETH: ${ethers.formatEther(bal.nETH).padStart(10)}`);
   }
 
   console.log("\n--- STEP 6: Pending intents ---");
   const intents = await get("/api/v1/internal/pending-intents");
   console.log(`  Lend intents: ${intents.lendIntents.length}`);
   for (const li of intents.lendIntents) {
-    console.log(`    ${li.intentId.slice(0, 8)}... | ${ethers.formatEther(li.amount)} gUSD`);
+    console.log(`    ${li.intentId.slice(0, 8)}... | ${ethers.formatEther(li.amount)} nUSD`);
   }
   console.log(`  Borrow intents: ${intents.borrowIntents.length}`);
   for (const bi of intents.borrowIntents) {
-    console.log(`    ${bi.intentId.slice(0, 8)}... | ${ethers.formatEther(bi.amount)} gUSD | collateral: ${ethers.formatEther(bi.collateralAmount)} gETH`);
+    console.log(`    ${bi.intentId.slice(0, 8)}... | ${ethers.formatEther(bi.amount)} nUSD | collateral: ${ethers.formatEther(bi.collateralAmount)} nETH`);
   }
 
   console.log("\n=== READY FOR CRE WORKFLOWS ===");
-  console.log("  1. cd ghost-settler && cre workflow simulate ./settle-loans --target=staging-settings");
+  console.log("  1. cd noctrum-settler && cre workflow simulate ./settle-loans --target=staging-settings");
   console.log("  2. Wait 5s for proposal to expire");
   console.log("  3. cre workflow simulate ./settle-loans --target=staging-settings  (expires + auto-accepts)");
   console.log("  4. cre workflow simulate ./execute-transfers --target=staging-settings  (private transfer)");

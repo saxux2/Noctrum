@@ -1,36 +1,36 @@
 /**
- * Full end-to-end test: deposit ERC20 → vault → private transfer → GHOST confirm → cancel → redeem on-chain
+ * Full end-to-end test: deposit ERC20 → vault → private transfer → NOCTRUM confirm → cancel → redeem on-chain
  *
- * Prereqs: server running (bun run dev), user wallet has 10+ gUSD ERC20 + Sepolia ETH, pool has Sepolia ETH
+ * Prereqs: server running (bun run dev), user wallet has 10+ nUSD ERC20 + MON, pool has MON
  * Usage:   bun run scripts/real-flow-test.ts
  */
 import { ethers } from "ethers";
 import { execSync } from "child_process";
 
 const SERVER = "http://localhost:3000";
-const EXTERNAL_API = "https://convergence2026-token-api.cldev.cloud";
-const RPC_URL = "https://1rpc.io/sepolia";
-const VAULT_ADDRESS = "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13";
-const CHAIN_ID = 11155111;
+const EXTERNAL_API = process.env.EXTERNAL_API_URL ?? "http://localhost:8081";
+const RPC_URL = process.env.RPC_URL ?? "https://testnet-rpc.monad.xyz";
+const VAULT_ADDRESS = "0x65877F6BFd3f2D293454658BCb290b112397Eeb5";
+const CHAIN_ID = 10143;
 
 const USER_KEY = process.env.PRIVATE_KEY!;
 const POOL_KEY = process.env.POOL_PRIVATE_KEY!;
-const TOKEN = "0xD318551FbC638C4C607713A92A19FAd73eb8f743";
-const AMOUNT = "10000000000000000000"; // 10 gUSD
+const TOKEN = "0x339a948f3667d222FAD43d313b3b8c3BE1415ad5";
+const AMOUNT = "10000000000000000000"; // 10 nUSD
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const userWallet = new ethers.Wallet(USER_KEY, provider);
 const poolWallet = new ethers.Wallet(POOL_KEY, provider);
 
-const GHOST_DOMAIN = {
-  name: "GhostProtocol",
+const NOCTRUM_DOMAIN = {
+  name: "NoctrumProtocol",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
 };
 
 const EXTERNAL_DOMAIN = {
-  name: "CompliantPrivateTokenDemo",
+  name: "NoctrumPrivateToken",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
@@ -133,7 +133,7 @@ async function main() {
   console.log(`\n  User wallet:  ${userWallet.address}`);
   console.log(`  Pool wallet:  ${poolWallet.address}`);
   console.log(`  Token:        ${TOKEN}`);
-  console.log(`  Amount:       10 gUSD\n`);
+  console.log(`  Amount:       10 nUSD\n`);
 
   // ──────────────────────────────────────────────
   // STEP 1: Check initial balances
@@ -142,19 +142,19 @@ async function main() {
   const erc20Bal = await token.balanceOf(userWallet.address);
   const userVault0 = await getVaultBalance(userWallet);
   const poolVault0 = await getVaultBalance(poolWallet);
-  console.log(`  User ERC20:        ${ethers.formatEther(erc20Bal)} gUSD`);
-  console.log(`  User vault (priv): ${ethers.formatEther(userVault0)} gUSD`);
-  console.log(`  Pool vault (priv): ${ethers.formatEther(poolVault0)} gUSD`);
+  console.log(`  User ERC20:        ${ethers.formatEther(erc20Bal)} nUSD`);
+  console.log(`  User vault (priv): ${ethers.formatEther(userVault0)} nUSD`);
+  console.log(`  Pool vault (priv): ${ethers.formatEther(poolVault0)} nUSD`);
 
   if (erc20Bal < BigInt(AMOUNT)) {
-    console.error("\n  ERROR: User needs at least 10 gUSD ERC20 balance");
+    console.error("\n  ERROR: User needs at least 10 nUSD ERC20 balance");
     process.exit(1);
   }
 
   // ──────────────────────────────────────────────
-  // STEP 2: Approve + Deposit 10 gUSD into vault
+  // STEP 2: Approve + Deposit 10 nUSD into vault
   // ──────────────────────────────────────────────
-  console.log("\n=== STEP 2: Approve + Deposit 10 gUSD to vault ===");
+  console.log("\n=== STEP 2: Approve + Deposit 10 nUSD to vault ===");
   const approveTx = await token.approve(VAULT_ADDRESS, AMOUNT);
   console.log(`  Approve tx: ${approveTx.hash}`);
   await approveTx.wait();
@@ -166,14 +166,14 @@ async function main() {
   const erc20After = await token.balanceOf(userWallet.address);
   const userVault1 = await getVaultBalance(userWallet);
   console.log(
-    `  User ERC20:        ${ethers.formatEther(erc20After)} gUSD (was ${ethers.formatEther(erc20Bal)})`
+    `  User ERC20:        ${ethers.formatEther(erc20After)} nUSD (was ${ethers.formatEther(erc20Bal)})`
   );
   console.log(
-    `  User vault (priv): ${ethers.formatEther(userVault1)} gUSD (was ${ethers.formatEther(userVault0)})`
+    `  User vault (priv): ${ethers.formatEther(userVault1)} nUSD (was ${ethers.formatEther(userVault0)})`
   );
 
   // ──────────────────────────────────────────────
-  // STEP 3: Init deposit-lend on GHOST server
+  // STEP 3: Init deposit-lend on NOCTRUM server
   // ──────────────────────────────────────────────
   console.log("\n=== STEP 3: Init deposit-lend ===");
   const initTs = ts();
@@ -192,7 +192,7 @@ async function main() {
     ],
   };
   const initAuth = await userWallet.signTypedData(
-    GHOST_DOMAIN,
+    NOCTRUM_DOMAIN,
     initTypes,
     initMsg
   );
@@ -210,16 +210,16 @@ async function main() {
   // ──────────────────────────────────────────────
   // STEP 4: Private transfer to shielded address
   // ──────────────────────────────────────────────
-  console.log("\n=== STEP 4: Private transfer 10 gUSD → pool wallet ===");
+  console.log("\n=== STEP 4: Private transfer 10 nUSD → pool wallet ===");
   const txResult = await privateTransfer(userWallet, poolWallet.address, AMOUNT);
   console.log(`  Transfer ID: ${txResult.transaction_id}`);
   const userVault2 = await getVaultBalance(userWallet);
   const poolVault2 = await getVaultBalance(poolWallet);
   console.log(
-    `  User vault (priv): ${ethers.formatEther(userVault2)} gUSD (was ${ethers.formatEther(userVault1)})`
+    `  User vault (priv): ${ethers.formatEther(userVault2)} nUSD (was ${ethers.formatEther(userVault1)})`
   );
   console.log(
-    `  Pool vault (priv): ${ethers.formatEther(poolVault2)} gUSD (was ${ethers.formatEther(poolVault0)})`
+    `  Pool vault (priv): ${ethers.formatEther(poolVault2)} nUSD (was ${ethers.formatEther(poolVault0)})`
   );
 
   // ──────────────────────────────────────────────
@@ -243,7 +243,7 @@ async function main() {
     ],
   };
   const confirmAuth = await userWallet.signTypedData(
-    GHOST_DOMAIN,
+    NOCTRUM_DOMAIN,
     confirmTypes,
     confirmMsg
   );
@@ -272,7 +272,7 @@ async function main() {
     ],
   };
   const cancelAuth = await userWallet.signTypedData(
-    GHOST_DOMAIN,
+    NOCTRUM_DOMAIN,
     cancelTypes,
     cancelMsg
   );
@@ -306,7 +306,7 @@ async function main() {
   // ──────────────────────────────────────────────
   // STEP 8: Transfer ERC20 back to user
   // ──────────────────────────────────────────────
-  console.log("\n=== STEP 8: Transfer 10 gUSD ERC20 back to user ===");
+  console.log("\n=== STEP 8: Transfer 10 nUSD ERC20 back to user ===");
   const tokenPool = new ethers.Contract(TOKEN, ERC20_ABI, poolWallet);
   const returnTx = await tokenPool.approve(userWallet.address, AMOUNT); // not needed for transfer, but just in case
   await returnTx.wait();
@@ -325,17 +325,17 @@ async function main() {
   const erc20Final = await token.balanceOf(userWallet.address);
   const userVaultFinal = await getVaultBalance(userWallet);
   const poolVaultFinal = await getVaultBalance(poolWallet);
-  console.log(`  User ERC20:        ${ethers.formatEther(erc20Final)} gUSD`);
+  console.log(`  User ERC20:        ${ethers.formatEther(erc20Final)} nUSD`);
   console.log(
-    `  User vault (priv): ${ethers.formatEther(userVaultFinal)} gUSD`
+    `  User vault (priv): ${ethers.formatEther(userVaultFinal)} nUSD`
   );
   console.log(
-    `  Pool vault (priv): ${ethers.formatEther(poolVaultFinal)} gUSD`
+    `  Pool vault (priv): ${ethers.formatEther(poolVaultFinal)} nUSD`
   );
 
   console.log("\n=== FULL FLOW COMPLETE ===");
   console.log(
-    `  Started with ${ethers.formatEther(erc20Bal)} gUSD ERC20, ended with ${ethers.formatEther(erc20Final)} gUSD ERC20`
+    `  Started with ${ethers.formatEther(erc20Bal)} nUSD ERC20, ended with ${ethers.formatEther(erc20Final)} nUSD ERC20`
   );
 }
 

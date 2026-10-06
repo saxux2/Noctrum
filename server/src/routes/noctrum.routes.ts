@@ -32,7 +32,7 @@ import { getEthPrice } from "../price";
 import { config } from "../config";
 import type { Context, Next } from "hono";
 
-const ghostRoute = new Hono();
+const noctrumRoute = new Hono();
 
 // Internal auth middleware
 const internalAuth = async (c: Context, next: Next) => {
@@ -44,29 +44,29 @@ const internalAuth = async (c: Context, next: Next) => {
 };
 
 // Lend (user-facing)
-ghostRoute.post("/deposit-lend/init", initDepositLend);
-ghostRoute.post("/deposit-lend/confirm", confirmDepositLend);
-ghostRoute.post("/cancel-lend", cancelLend);
+noctrumRoute.post("/deposit-lend/init", initDepositLend);
+noctrumRoute.post("/deposit-lend/confirm", confirmDepositLend);
+noctrumRoute.post("/cancel-lend", cancelLend);
 
 // Borrow (user-facing)
-ghostRoute.post("/borrow-intent", submitBorrowIntent);
-ghostRoute.post("/cancel-borrow", cancelBorrow);
-ghostRoute.post("/accept-proposal", acceptProposal);
-ghostRoute.post("/reject-proposal", rejectProposal);
-ghostRoute.post("/repay", repayLoan);
-ghostRoute.post("/claim-excess-collateral", claimExcessCollateral);
+noctrumRoute.post("/borrow-intent", submitBorrowIntent);
+noctrumRoute.post("/cancel-borrow", cancelBorrow);
+noctrumRoute.post("/accept-proposal", acceptProposal);
+noctrumRoute.post("/reject-proposal", rejectProposal);
+noctrumRoute.post("/repay", repayLoan);
+noctrumRoute.post("/claim-excess-collateral", claimExcessCollateral);
 
 // Internal (CRE) — x-api-key guarded
-ghostRoute.get("/internal/pending-intents", internalAuth, getPendingIntents);
-ghostRoute.post("/internal/record-match-proposals", internalAuth, recordMatchProposals);
-ghostRoute.post("/internal/expire-proposals", internalAuth, expireProposals);
-ghostRoute.post("/internal/check-loans", internalAuth, checkLoans);
-ghostRoute.get("/internal/pending-transfers", internalAuth, getPendingTransfers);
-ghostRoute.post("/internal/confirm-transfers", internalAuth, confirmTransfers);
-ghostRoute.post("/internal/liquidate-loans", internalAuth, liquidateLoans);
+noctrumRoute.get("/internal/pending-intents", internalAuth, getPendingIntents);
+noctrumRoute.post("/internal/record-match-proposals", internalAuth, recordMatchProposals);
+noctrumRoute.post("/internal/expire-proposals", internalAuth, expireProposals);
+noctrumRoute.post("/internal/check-loans", internalAuth, checkLoans);
+noctrumRoute.get("/internal/pending-transfers", internalAuth, getPendingTransfers);
+noctrumRoute.post("/internal/confirm-transfers", internalAuth, confirmTransfers);
+noctrumRoute.post("/internal/liquidate-loans", internalAuth, liquidateLoans);
 
 // Public
-ghostRoute.get("/collateral-quote", async (c: Context) => {
+noctrumRoute.get("/collateral-quote", async (c: Context) => {
   const account = c.req.query("account");
   const token = c.req.query("token");
   const amount = c.req.query("amount");
@@ -77,15 +77,15 @@ ghostRoute.get("/collateral-quote", async (c: Context) => {
 
   const ct = collateralToken.toLowerCase();
   const isUsdCollateral = ct === config.TOKEN_ADDRESS.toLowerCase();
-  const isEthCollateral = ct === config.GETH_ADDRESS.toLowerCase();
+  const isEthCollateral = ct === config.NETH_ADDRESS.toLowerCase();
   if (!isUsdCollateral && !isEthCollateral)
-    return c.json({ error: "collateralToken must be gUSD or gETH" }, 400);
+    return c.json({ error: "collateralToken must be nUSD or nETH" }, 400);
 
   const score = await getCreditScore(account);
   const multiplier = getCollateralMultiplier(score.tier);
   const borrowAmt = BigInt(amount);
   const bt = token.toLowerCase();
-  const isBorrowEth = bt === config.GETH_ADDRESS.toLowerCase();
+  const isBorrowEth = bt === config.NETH_ADDRESS.toLowerCase();
   const needsEthPrice = isBorrowEth || isEthCollateral;
   const ethPrice = needsEthPrice ? await getEthPrice() : null;
   const borrowValueUsd = isBorrowEth
@@ -106,7 +106,7 @@ ghostRoute.get("/collateral-quote", async (c: Context) => {
   });
 });
 
-ghostRoute.get("/lender-status/:address", async (c: Context) => {
+noctrumRoute.get("/lender-status/:address", async (c: Context) => {
   const addr = c.req.param("address").toLowerCase();
 
   // Build intentId -> slotId lookup
@@ -175,7 +175,7 @@ ghostRoute.get("/lender-status/:address", async (c: Context) => {
   return c.json({ address: addr, activeLends, activeLoans, completedLoans, pendingPayouts, completedPayouts });
 });
 
-ghostRoute.get("/borrower-status/:address", async (c: Context) => {
+noctrumRoute.get("/borrower-status/:address", async (c: Context) => {
   const addr = c.req.param("address").toLowerCase();
 
   // Pending borrow intents (not yet matched)
@@ -265,7 +265,7 @@ ghostRoute.get("/borrower-status/:address", async (c: Context) => {
   return c.json({ address: addr, pendingIntents, pendingProposals, activeLoans, completedLoans, pendingTransfers, completedTransfers });
 });
 
-ghostRoute.get("/credit-score/:address", async (c: Context) => {
+noctrumRoute.get("/credit-score/:address", async (c: Context) => {
   const address = c.req.param("address");
   const score = await getCreditScore(address);
   const ethPrice = await getEthPrice();
@@ -279,7 +279,7 @@ ghostRoute.get("/credit-score/:address", async (c: Context) => {
 });
 
 // Swap quote — returns amountOut based on live ETH price
-ghostRoute.get("/swap-quote", async (c: Context) => {
+noctrumRoute.get("/swap-quote", async (c: Context) => {
   const tokenIn = c.req.query("tokenIn");
   const tokenOut = c.req.query("tokenOut");
   const amountIn = c.req.query("amountIn");
@@ -290,24 +290,24 @@ ghostRoute.get("/swap-quote", async (c: Context) => {
   if (tokenIn.toLowerCase() === tokenOut.toLowerCase())
     return c.json({ error: "tokenIn and tokenOut must be different" }, 400);
 
-  const gusd = config.TOKEN_ADDRESS.toLowerCase();
-  const geth = config.GETH_ADDRESS.toLowerCase();
+  const nusd = config.TOKEN_ADDRESS.toLowerCase();
+  const neth = config.NETH_ADDRESS.toLowerCase();
 
   const inLower = tokenIn.toLowerCase();
   const outLower = tokenOut.toLowerCase();
 
-  if (![gusd, geth].includes(inLower) || ![gusd, geth].includes(outLower))
-    return c.json({ error: "Only gUSD and gETH supported" }, 400);
+  if (![nusd, neth].includes(inLower) || ![nusd, neth].includes(outLower))
+    return c.json({ error: "Only nUSD and nETH supported" }, 400);
 
   const ethPrice = await getEthPrice();
   const amtIn = BigInt(amountIn);
 
   let amountOut: bigint;
-  if (inLower === gusd && outLower === geth) {
-    // gUSD -> gETH: amountOut = amountIn / ethPrice
+  if (inLower === nusd && outLower === neth) {
+    // nUSD -> nETH: amountOut = amountIn / ethPrice
     amountOut = (amtIn * BigInt(1e18)) / BigInt(Math.round(ethPrice * 1e18));
   } else {
-    // gETH -> gUSD: amountOut = amountIn * ethPrice
+    // nETH -> nUSD: amountOut = amountIn * ethPrice
     amountOut = (amtIn * BigInt(Math.round(ethPrice * 1e18))) / BigInt(1e18);
   }
 
@@ -317,8 +317,8 @@ ghostRoute.get("/swap-quote", async (c: Context) => {
     amountIn: amtIn.toString(),
     amountOut: amountOut.toString(),
     ethPrice,
-    rate: inLower === gusd ? `1 gUSD = ${(1 / ethPrice).toFixed(8)} gETH` : `1 gETH = ${ethPrice.toFixed(2)} gUSD`,
+    rate: inLower === nusd ? `1 nUSD = ${(1 / ethPrice).toFixed(8)} nETH` : `1 nETH = ${ethPrice.toFixed(2)} nUSD`,
   });
 });
 
-export default ghostRoute;
+export default noctrumRoute;
