@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { encrypt } from "eciesjs";
-import { SERVER, EXTERNAL_API, VAULT_ADDRESS, CHAIN_ID, CRE_PUBKEY, nUSD, nETH } from "./config";
+import { SERVER, EXTERNAL_API, VAULT_ADDRESS, CHAIN_ID, CRE_PUBKEY, INTERNAL_API_KEY, nUSD, nETH } from "./config";
 
 // ── Domains ─────────────────────────────────────────
 
@@ -11,8 +11,9 @@ export const NOCTRUM_DOMAIN = {
   verifyingContract: VAULT_ADDRESS,
 };
 
+// noctrum-vault-api (D-5)
 export const EXTERNAL_DOMAIN = {
-  name: "CompliantPrivateTokenDemo",
+  name: "NoctrumPrivateToken",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
@@ -43,10 +44,15 @@ export function encryptRate(rate: string): string {
   return "0x" + Buffer.from(buf).toString("hex");
 }
 
+const serverHeaders = (): Record<string, string> =>
+  INTERNAL_API_KEY
+    ? { "Content-Type": "application/json", "x-api-key": INTERNAL_API_KEY }
+    : { "Content-Type": "application/json" };
+
 export async function post(path: string, body: any) {
   const res = await fetch(`${SERVER}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: serverHeaders(),
     body: JSON.stringify(body),
   });
   const data: any = await res.json();
@@ -55,7 +61,7 @@ export async function post(path: string, body: any) {
 }
 
 export async function get(path: string) {
-  return fetch(`${SERVER}${path}`, { headers: { "Content-Type": "application/json" } }).then(r => r.json()) as any;
+  return fetch(`${SERVER}${path}`, { headers: serverHeaders() }).then(r => r.json()) as any;
 }
 
 export async function privateTransfer(from: ethers.Wallet, to: string, token: string, amount: string) {
@@ -100,6 +106,18 @@ export async function getVaultBalances(wallet: ethers.Wallet) {
   const find = (tok: string) =>
     balances.find((b: any) => b.token.toLowerCase() === tok.toLowerCase())?.amount ?? "0";
   return { nUSD: find(nUSD), nETH: find(nETH) };
+}
+
+// noctrum-vault-api credits a deposit once its block is finalized, so wait before spending it.
+export async function waitForVaultBalance(wallet: ethers.Wallet, token: string, atLeast: bigint, timeoutMs = 60_000) {
+  const key = token.toLowerCase() === nETH.toLowerCase() ? "nETH" : "nUSD";
+  const deadline = Date.now() + timeoutMs;
+  while (true) {
+    const bal = BigInt((await getVaultBalances(wallet))[key]);
+    if (bal >= atLeast) return bal;
+    if (Date.now() > deadline) throw new Error(`deposit not indexed after ${timeoutMs / 1000}s (private ${key} = ${bal})`);
+    await new Promise(r => setTimeout(r, 2000));
+  }
 }
 
 export async function requestWithdrawTicket(wallet: ethers.Wallet, token: string, amount: string) {

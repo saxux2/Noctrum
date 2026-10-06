@@ -7,13 +7,13 @@
  * - Calls /repay on server
  * - Verifies credit score upgraded
  *
- * Requires: Sepolia RPC + funded deployer wallet
+ * Requires: Monad Testnet RPC + funded deployer wallet
  */
 import { ethers } from "ethers";
 import { borrower, lenderA, lenderB, deployer, pool } from "./utils";
 import {
   nUSD, nETH, VAULT_ADDRESS, ERC20_ABI, VAULT_ABI, MINT_ABI,
-  post, get, ts, toWei, encryptRate, privateTransfer, getVaultBalances,
+  post, get, ts, toWei, encryptRate, privateTransfer, getVaultBalances, waitForVaultBalance,
   NOCTRUM_DOMAIN,
 } from "./utils";
 
@@ -75,10 +75,11 @@ async function main() {
   const expireRes = await post("/api/v1/internal/expire-proposals", {});
   console.log(`  Auto-accepted: ${expireRes.autoAccepted}`);
 
-  // Get active loan
+  // Get active loan (by tick id: the step-3 loan for this borrower is still active)
   const loansRes = await post("/api/v1/internal/check-loans", {});
   const loan = (loansRes.loans ?? []).find(
-    (l: any) => l.status === "active" && l.borrower === borrower.address.toLowerCase()
+    (l: any) => l.status === "active" && l.borrower === borrower.address.toLowerCase() &&
+      l.matchedTicks.some((t: any) => t.lendIntentId === "repay-test-a")
   );
   if (!loan) {
     console.error("FAIL: no active loan found");
@@ -110,7 +111,9 @@ async function main() {
   console.log("  Approving vault...");
   await (await tokenAsBorrower.approve(VAULT_ADDRESS, totalOwedStr)).wait();
   console.log("  Depositing into vault...");
+  const before = BigInt((await getVaultBalances(borrower)).nUSD);
   await (await vault.deposit(nUSD, totalOwedStr)).wait();
+  await waitForVaultBalance(borrower, nUSD, before + totalOwed);
 
   // Private transfer to pool (actual repayment)
   console.log(`  Private transfer ${ethers.formatEther(totalOwed)} nUSD -> pool...`);

@@ -8,7 +8,7 @@ import { lenderA, lenderB, pool } from "./utils";
 import {
   nUSD, VAULT_ADDRESS, ERC20_ABI, VAULT_ABI,
   toWei, ts, encryptRate, privateTransfer,
-  post, get, NOCTRUM_DOMAIN, getVaultBalances,
+  post, get, NOCTRUM_DOMAIN, getVaultBalances, waitForVaultBalance,
 } from "./utils";
 
 async function lendFlow(wallet: ethers.Wallet, amount: string, rate: string, label: string) {
@@ -16,8 +16,10 @@ async function lendFlow(wallet: ethers.Wallet, amount: string, rate: string, lab
   console.log(`  [${label}] Approve + deposit ${ethers.formatEther(amount)} nUSD into vault...`);
   const token = new ethers.Contract(nUSD, ERC20_ABI, wallet);
   const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
+  const before = BigInt((await getVaultBalances(wallet)).nUSD);
   await (await token.approve(VAULT_ADDRESS, amount)).wait();
   await (await vault.deposit(nUSD, amount)).wait();
+  await waitForVaultBalance(wallet, nUSD, before + BigInt(amount));
 
   // Init deposit-lend on Noctrum server
   console.log(`  [${label}] Init deposit-lend...`);

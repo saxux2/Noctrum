@@ -100,6 +100,22 @@ Expected outputs:
 
 Note: Ghost's step 5 expects bronze. It must run on a fresh borrower (Ghost ran it before 6/7).
 
+✅ **Run 2026-10-07 (T7.1)** against the local stack (server :8080, vault-api :8081, fresh MongoDB `rs0`) with manual CRE simulation (`--target=local-settings`; CRE deploy access still pending). All 8 steps pass:
+- 1: mint 500/500 nUSD + 5 nETH, 0.1 MON gas each (D-16).
+- 2: 2 lend intents (500 @ 5 %, 500 @ 8 %); pool private nUSD 1000.
+- 3: borrow intent 800 nUSD / 5 nETH / max 10 %; pool private nETH 5.
+- CRE: settle-loans `matched:1 recorded:1` → `no-match`; execute-transfers `executed=1 failed=0`; check-loans `checked=1 unhealthy=0 liquidated=0 ethPrice=2696.39`. Loan 800 = 500 @ 5 % + 300 @ 8 %; borrower private nUSD 800.
+- 4: ticket redeemed (tx `0x2133a576…a713`); borrower on-chain nUSD 0 → 800.
+- 5: bronze, 2×. 6: repay-lender 63 / 43.2, 200 nETH collateral return queued, bronze → silver (1.8×). 7: liquidated 1, 3 transfers (5 % pool), silver → bronze, loansDefaulted 1. 8: 0.01 nETH rejected ("Insufficient collateral for credit tier", $26.96 vs $200), 0.0816 nETH accepted.
+
+Monad port changes in `e2e-test/` (test code only):
+- Config: Monad RPC, chain 10143, Monad addresses, Noctrum CRE key; `SERVER_URL` / `VAULT_API_URL` / `RPC_URL` env overrides (defaults `localhost:8080` / `localhost:8081`); optional `INTERNAL_API_KEY` sent as `x-api-key` (needed against a server that sets it, e.g. Railway). Vault-api domain `NoctrumPrivateToken` (D-5).
+- Step 1 sends gas one tx at a time: Monad rejects Ghost's parallel same-nonce sends ("An existing transaction had higher priority").
+- Steps 2, 3, 6 wait for the deposit to appear in the private balance before the private transfer: the vault-api credits deposits only at finality, unlike the Sepolia CPT API.
+- Steps 6 and 7 select their loan by tick id (`repay-test-a` / `test-lend-a`): the step-3 loan for the same borrower is still active, and Ghost's "first active loan of the borrower" picks it.
+- `withdraw-now.ts` uses the shared utils (was hard-coded Sepolia).
+- Run note: vault-api was started with `START_BLOCK` near the head on the fresh DB (catching up ~106 k blocks in 100-block pages takes ~90 min). Lenders hold an extra 500 nUSD from a first step-1 attempt.
+
 ## 5. Manual UI checklist (web, TG, Raycast)
 
 Web:

@@ -9,7 +9,7 @@ import { borrower, pool } from "./utils";
 import {
   nUSD, nETH, VAULT_ADDRESS, ERC20_ABI, VAULT_ABI,
   toWei, ts, encryptRate, privateTransfer,
-  post, get, NOCTRUM_DOMAIN, getVaultBalances,
+  post, get, NOCTRUM_DOMAIN, getVaultBalances, waitForVaultBalance,
 } from "./utils";
 
 async function main() {
@@ -19,8 +19,10 @@ async function main() {
   console.log("Borrower: approve + deposit 5 nETH into vault...");
   const token = new ethers.Contract(nETH, ERC20_ABI, borrower);
   const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, borrower);
+  const before = BigInt((await getVaultBalances(borrower)).nETH);
   await (await token.approve(VAULT_ADDRESS, toWei(5))).wait();
   await (await vault.deposit(nETH, toWei(5))).wait();
+  await waitForVaultBalance(borrower, nETH, before + BigInt(toWei(5)));
 
   // Private transfer collateral to pool
   console.log("Borrower: private transfer 5 nETH -> pool...");
@@ -70,7 +72,7 @@ async function main() {
   }
 
   console.log("\nDone! Now run CRE workflows:");
-  console.log("  cd noctrum-settler");
+  console.log("  cd noctrum-settler   # local stack: use --target=local-settings");
   console.log("  cre workflow simulate ./settle-loans --target=staging-settings --non-interactive --trigger-index=0");
   console.log("  sleep 6");
   console.log("  cre workflow simulate ./settle-loans --target=staging-settings --non-interactive --trigger-index=0");

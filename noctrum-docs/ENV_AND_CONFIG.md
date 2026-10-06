@@ -169,8 +169,13 @@ POOL_PRIVATE_KEY=<pool wallet>     # 0x optional
 LENDER_A_KEY=0x<…>
 LENDER_B_KEY=0x<…>
 BORROWER_KEY=0x<…>
+# optional
+INTERNAL_API_KEY=<server INTERNAL_API_KEY, if the server sets one>
+SERVER_URL=http://localhost:8080
+VAULT_API_URL=http://localhost:8081
+RPC_URL=https://testnet-rpc.monad.xyz
 ```
-`src/utils/config.ts` constants: `RPC_URL`, `SERVER` (`http://localhost:3000`), `EXTERNAL_API`, `VAULT_ADDRESS`, `CHAIN_ID`, `nUSD`, `nETH`, `CRE_PUBKEY`.
+`src/utils/config.ts` constants: `RPC_URL`, `SERVER` (`SERVER_URL`, default `http://localhost:8080`), `EXTERNAL_API` (`VAULT_API_URL`, default `http://localhost:8081`), `VAULT_ADDRESS`, `CHAIN_ID` (10143), `nUSD`, `nETH`, `CRE_PUBKEY`, `INTERNAL_API_KEY`, `GAS_FUNDING` (0.1 MON, D-16).
 
 ## 11. Secrets inventory (where each lives)
 | Secret | Holders |

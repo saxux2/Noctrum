@@ -87,10 +87,11 @@ async function main() {
     process.exit(1);
   }
 
-  // Step D: Get the new active loan
+  // Step D: Get the new active loan (by tick id: the step-3 loan for this borrower is still active)
   const loansRes = await post("/api/v1/internal/check-loans", {});
   const activeLoan = (loansRes.loans ?? []).find(
-    (l: any) => l.status === "active" && l.borrower === borrower.address.toLowerCase()
+    (l: any) => l.status === "active" && l.borrower === borrower.address.toLowerCase() &&
+      l.matchedTicks.some((t: any) => t.lendIntentId === "test-lend-a")
   );
 
   if (!activeLoan) {

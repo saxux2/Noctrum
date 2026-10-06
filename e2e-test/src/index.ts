@@ -19,7 +19,7 @@ if (!step) {
   console.log("Usage: bun run src/index.ts <step>");
   console.log("");
   console.log("Steps:");
-  console.log("  1  Fund wallets (mint nUSD/nETH, send gas ETH)");
+  console.log("  1  Fund wallets (mint nUSD/nETH, send gas MON)");
   console.log("  2  Lenders: vault deposit + lend intents");
   console.log("  3  Borrower: vault deposit + borrow intent");
   console.log("  -- run CRE workflows (settle, execute, check) --");

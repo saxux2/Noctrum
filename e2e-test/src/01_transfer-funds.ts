@@ -1,11 +1,11 @@
 /**
  * Step 1: Fund test wallets
  * - Mint nUSD to lenders, nETH to borrower
- * - Send gas ETH to all 3
+ * - Send gas MON to all 3 (GAS_FUNDING, D-16)
  */
 import { ethers } from "ethers";
 import { deployer, lenderA, lenderB, borrower, provider } from "./utils";
-import { nUSD, nETH, ERC20_ABI, MINT_ABI, toWei } from "./utils";
+import { nUSD, nETH, ERC20_ABI, MINT_ABI, toWei, GAS_FUNDING } from "./utils";
 
 async function main() {
   console.log("=== Step 1: Transfer Funds ===\n");
@@ -27,15 +27,13 @@ async function main() {
   console.log("Minting 5 nETH to Borrower...");
   await (await nETHContract.mint(borrower.address, toWei(5))).wait();
 
-  // Send gas ETH
-  console.log("\nSending 0.005 ETH gas to each wallet...");
-  const sends = [
-    deployer.sendTransaction({ to: lenderA.address, value: ethers.parseEther("0.005") }),
-    deployer.sendTransaction({ to: lenderB.address, value: ethers.parseEther("0.005") }),
-    deployer.sendTransaction({ to: borrower.address, value: ethers.parseEther("0.005") }),
-  ];
-  const txs = await Promise.all(sends);
-  await Promise.all(txs.map(tx => tx.wait()));
+  // Send gas MON
+  console.log(`\nSending ${GAS_FUNDING} MON gas to each wallet...`);
+  // One at a time: Monad rejects a second pending tx with the same nonce
+  // ("An existing transaction had higher priority").
+  for (const to of [lenderA.address, lenderB.address, borrower.address]) {
+    await (await deployer.sendTransaction({ to, value: ethers.parseEther(GAS_FUNDING) })).wait();
+  }
 
   // Print balances
   console.log("\n--- Balances ---");
@@ -47,7 +45,7 @@ async function main() {
     const usd = await nUSDContract.balanceOf(addr);
     const eth = await nETHContract.balanceOf(addr);
     const gas = await provider.getBalance(addr);
-    console.log(`  ${label.padEnd(10)} nUSD: ${ethers.formatEther(usd).padStart(10)}  nETH: ${ethers.formatEther(eth).padStart(10)}  ETH: ${ethers.formatEther(gas).padStart(10)}`);
+    console.log(`  ${label.padEnd(10)} nUSD: ${ethers.formatEther(usd).padStart(10)}  nETH: ${ethers.formatEther(eth).padStart(10)}  MON: ${ethers.formatEther(gas).padStart(10)}`);
   }
 
   console.log("\nDone! Run step 02 next.");
