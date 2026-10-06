@@ -42,7 +42,7 @@ ETH_USD_FEED=0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612
 ## 2. `noctrum-vault-api/.env` (new)
 ```dotenv
 PORT=8081
-MONGODB_URI=mongodb://localhost:27017/noctrum-vault
+MONGODB_URI=mongodb://localhost:27017/noctrum-vault?replicaSet=rs0   # must be a replica set (ledger writes use transactions)
 RPC_URL=https://testnet-rpc.monad.xyz
 CHAIN_ID=10143
 VAULT_ADDRESS=<NoctrumVault>
@@ -55,7 +55,11 @@ LOG_RANGE=100
 POLL_MS=2000
 TICKET_TTL_SECONDS=3600
 AUTH_WINDOW_SECONDS=300
+INVARIANT_MS=60000                        # vault-holdings invariant check interval
+INDEXER_ENABLED=true                      # "false" serves the API without the Monad indexer
 ```
+Every ledger write (indexer page, transfer, withdraw) runs in a Mongo transaction, so MongoDB must be a replica set: Atlas, or `mongod --replSet rs0` (single node is fine). Tests use `MongoMemoryReplSet`.
+HTTP status per error code (CPT does not document them): `bad_request`/`insufficient_balance`/`invalid_recipient` → 400, `request_auth_failed`/`request_auth_expired` → 401, `operation_denied_by_policy` → 403.
 
 ## 3. `noctrum-settler/`
 `.env` (simulation only; `*.env` gitignored):

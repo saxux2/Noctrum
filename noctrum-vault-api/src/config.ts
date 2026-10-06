@@ -18,5 +18,6 @@ export const config = {
   POLL_MS: Number(process.env.POLL_MS ?? "2000"),
   TICKET_TTL_SECONDS: Number(process.env.TICKET_TTL_SECONDS ?? "3600"),
   AUTH_WINDOW_SECONDS: Number(process.env.AUTH_WINDOW_SECONDS ?? "300"),
+  INVARIANT_MS: Number(process.env.INVARIANT_MS ?? "60000"),
   INDEXER_ENABLED: (process.env.INDEXER_ENABLED ?? "true") !== "false",
 };

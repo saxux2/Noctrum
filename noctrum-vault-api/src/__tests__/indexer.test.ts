@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ethers } from "ethers";
-import { DEPOSIT_TOPIC, getLastProcessedBlock, indexOnce, VAULT_EVENTS, type LogSource } from "../indexer";
+import { DEPOSIT_TOPIC, WITHDRAW_TOPIC, getLastProcessedBlock, indexOnce, VAULT_EVENTS, type LogSource } from "../indexer";
 import { getBalance } from "../ledger";
 import IndexerStateModel from "../models/indexer-state.model";
 import TransactionModel from "../models/transaction.model";
@@ -33,14 +33,14 @@ function fakeChain(finalized: number, logs: ethers.Log[]) {
   chain.source = {
     async getBlock(tag) {
       chain.calls.blockTags.push(tag);
-      return { number: chain.finalized };
+      return { number: chain.finalized, timestamp: chain.finalized * 10 };
     },
     async getLogs(filter) {
       const from = Number(filter.fromBlock);
       const to = Number(filter.toBlock);
       chain.calls.ranges.push([from, to]);
       expect(filter.address).toBe(VAULT);
-      expect(filter.topics).toEqual([DEPOSIT_TOPIC]);
+      expect(filter.topics).toEqual([[DEPOSIT_TOPIC, WITHDRAW_TOPIC]]);
       return chain.logs.filter((l) => l.blockNumber >= from && l.blockNumber <= to);
     },
   };

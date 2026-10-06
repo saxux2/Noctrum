@@ -12,6 +12,9 @@ process.env.START_BLOCK = "1000";
 process.env.LOG_RANGE = "100";
 process.env.AUTH_WINDOW_SECONDS = "300";
 process.env.INDEXER_ENABLED = "false";
+process.env.TICKET_TTL_SECONDS = "3600";
+// Anvil's public dev key #1, test-only.
+process.env.TICKET_SIGNER_PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 
 let mongo: MongoMemoryReplSet;
 
@@ -23,8 +26,9 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   // Dynamic import: a static one would load ../config before the env above is set.
-  const { setPolicyCheck } = await import("../policy");
+  const { setPolicyCheck, setWithdrawPolicyCheck } = await import("../policy");
   setPolicyCheck(async () => {}); // allow-all; tests override per case, never hit the RPC
+  setWithdrawPolicyCheck(async () => {});
   const collections = Object.values(mongoose.connection.collections);
   await Promise.all(collections.map((c) => c.deleteMany({})));
 });

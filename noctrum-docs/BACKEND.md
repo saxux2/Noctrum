@@ -192,9 +192,17 @@ Flags: `hide-sender` / `hideSender` / `hide_sender`.
   
   Indexer on `Withdraw` → completed. A sweeper refunds unredeemed tickets after the deadline (marks them refunded and re-credits) — CPT: "If the ticket is not redeemed within 1 hour, the balance is automatically refunded".
 - **Invariant job**: for each token, `vault.balanceOf ≥ Σ balances + Σ pending tickets`. Alert if broken.
+- **Choices where CPT docs are silent (T5.3c):**
+  - The signed ticket struct is `WithdrawTicket(address withdrawer, …)` (NoctrumVault/CPT field name); `withdrawer` = the request's `account`. Ticket domain = the API's EIP-712 domain (`NoctrumPrivateToken`, same as the vault).
+  - `/withdraw` dry-runs `vault.checkWithdrawAllowed` before debiting, with the same error mapping as `/private-transfer` (`TokenNotRegistered` → `bad_request`, other reverts → `operation_denied_by_policy`). A ticket the vault would reject would otherwise lock the balance for an hour.
+  - Response: `account`/`token` checksummed (as the CPT README example), `amount` wei string, `deadline` unix seconds (number), `ticket` 0x-hex (89 bytes).
+  - Each withdrawal stores `nonce`, `deadline` and `ticketHash` (the EIP-712 digest, which the vault emits as `Withdraw.withdrawTicketHash`). The indexer completes the matching record from the `Withdraw` event; an unknown hash is logged and skipped.
+  - Refund guard: the sweeper refunds a pending ticket only once the indexer has caught up to a finalized block whose timestamp is **after** the deadline (the vault rejects `block.timestamp > deadline`), so a redemption can never be missed and double-paid. It runs in the indexer loop (no indexer → no refunds). Each refund is a conditional `pending → refunded` update plus re-credit in one transaction.
+  - The invariant reads `balanceOf(vault)` at the indexer's `lastProcessedBlock`, so unindexed deposits/redemptions cause no false alarms. Every `INVARIANT_MS` (60 s); alerts go to the log (`[invariant] ALERT …`).
+  - On startup the service compares its key with `vault.ticketSigner()` and logs an alert on mismatch.
 
 ### 2.5 Env
-`PORT`, `MONGODB_URI`, `RPC_URL`, `CHAIN_ID`, `VAULT_ADDRESS`, `POLICY_ENGINE_ADDRESS`, `TICKET_SIGNER_PRIVATE_KEY`, `START_BLOCK`, `LOG_RANGE` (100), `POLL_MS` (2000). See ENV_AND_CONFIG.md.
+`PORT`, `MONGODB_URI`, `RPC_URL`, `CHAIN_ID`, `VAULT_ADDRESS`, `POLICY_ENGINE_ADDRESS`, `TICKET_SIGNER_PRIVATE_KEY`, `START_BLOCK`, `LOG_RANGE` (100), `POLL_MS` (2000), `INVARIANT_MS` (60000). See ENV_AND_CONFIG.md.
 
 ---
 

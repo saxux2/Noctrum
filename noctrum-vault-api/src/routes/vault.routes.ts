@@ -4,6 +4,7 @@ import { ApiError, errorResponse } from "../errors";
 import { listTransactions, parseCursor, parseLimit } from "../history";
 import { listBalances } from "../ledger";
 import { generateShieldedAddress, parseAmount, parseFlags, parseRecipient, parseToken, privateTransfer } from "../transfers";
+import { requestWithdrawal } from "../withdrawals";
 
 const vaultRoute = new Hono();
 
@@ -79,6 +80,25 @@ vaultRoute.post("/transactions", async (c) => {
       account,
     );
     return c.json(await listTransactions(account, limit, cursor));
+  } catch (err) {
+    return errorResponse(c, err);
+  }
+});
+
+vaultRoute.post("/withdraw", async (c) => {
+  try {
+    const body = await readBody(c);
+    requireFields(body, ["account", "token", "amount", "timestamp", "auth"]);
+    const account = String(body.account);
+    const token = parseToken(body.token);
+    const amount = parseAmount(body.amount);
+    authenticate(
+      "Withdraw Tokens",
+      { account, token: body.token, amount, timestamp: body.timestamp },
+      body.auth,
+      account,
+    );
+    return c.json(await requestWithdrawal({ account, token, amount }));
   } catch (err) {
     return errorResponse(c, err);
   }
