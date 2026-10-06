@@ -11,6 +11,7 @@ import MatchProposalModel from "../models/match-proposal.model";
 import LoanModel from "../models/loan.model";
 import LendIntentModel from "../models/lend-intent.model";
 import PendingTransferModel from "../models/pending-transfer.model";
+import { poolReceives } from "./mock-vault";
 
 const borrower = ethers.Wallet.createRandom();
 const stranger = ethers.Wallet.createRandom();
@@ -20,18 +21,18 @@ const lenderB = ethers.Wallet.createRandom().address.toLowerCase();
 const transfer = (transferId: string) => PendingTransferModel.findOne({ transferId });
 
 describe("POST /borrow-intent", () => {
-  const submit = async (over: Record<string, unknown> = {}, w = borrower) =>
-    post(
-      "/borrow-intent",
-      await sign(w, "Submit Borrow", {
-        token: NUSD,
-        amount: wei(100),
-        collateralToken: NUSD,
-        collateralAmount: wei(200),
-        encryptedMaxRate: "0xenc",
-        ...over,
-      }),
-    );
+  const submit = async (over: Record<string, unknown> = {}, w = borrower, transfer = true) => {
+    const fields = {
+      token: NUSD,
+      amount: wei(100),
+      collateralToken: NUSD,
+      collateralAmount: wei(200),
+      encryptedMaxRate: "0xenc",
+      ...over,
+    };
+    if (transfer) poolReceives(w.address, fields.collateralToken as string, fields.collateralAmount as string);
+    return post("/borrow-intent", await sign(w, "Submit Borrow", fields));
+  };
 
   it("valid nUSD collateral → 200, pending intent, no price fetch", async () => {
     const res = await submit();

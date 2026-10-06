@@ -6,8 +6,8 @@ import { ethers } from "ethers";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatTokenAmount } from "@/lib/pool-utils";
-import { COINS, NOCTRUM_DOMAIN, REPAY_LOAN_TYPES } from "@/lib/constants";
-import { post, ts } from "@/lib/noctrum";
+import { COINS, NOCTRUM_DOMAIN, REPAY_LOAN_TYPES, fetchPoolAddress } from "@/lib/constants";
+import { post, privateTransfer, ts } from "@/lib/noctrum";
 import Image from "next/image";
 
 interface ProfilePositionsProps {
@@ -57,8 +57,9 @@ const ProfilePositions = ({
       );
       const signer = await provider.getSigner();
       const account = await signer.getAddress();
-      const timestamp = ts();
       const amount = loan.totalDue;
+      await privateTransfer(signer, await fetchPoolAddress(), loan.token, amount);
+      const timestamp = ts();
       const message = { account, loanId: loan.loanId, amount, timestamp };
       const auth = await signer.signTypedData(
         NOCTRUM_DOMAIN,

@@ -3,6 +3,7 @@ import { authenticate } from "../auth";
 import LoanModel from "../models/loan.model";
 import CreditScoreModel from "../models/credit-score.model";
 import { creditBalance, queueTransfer, getCreditScore, upgradeTier } from "../state";
+import { claimIncomingTransfer } from "../deposits";
 
 export const repayLoan = async (c: Context) => {
   try {
@@ -43,6 +44,9 @@ export const repayLoan = async (c: Context) => {
         },
         400
       );
+
+    if (!(await claimIncomingTransfer(account, loan.token as string, repayAmount, "repay")))
+      return c.json({ error: "No matching repayment transfer to the pool found" }, 402);
 
     // Queue repayment transfers: principal + interest to each lender
     const lenderTransferIds: string[] = [];

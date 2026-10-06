@@ -9,6 +9,7 @@ import {
 } from "../state";
 import DepositSlotModel from "../models/deposit-slot.model";
 import LendIntentModel from "../models/lend-intent.model";
+import { claimIncomingTransfer } from "../deposits";
 
 export const initDepositLend = async (c: Context) => {
   try {
@@ -67,6 +68,9 @@ export const confirmDepositLend = async (c: Context) => {
       await slot.save();
       return c.json({ error: "Slot expired" }, 410);
     }
+
+    if (!(await claimIncomingTransfer(account, slot.token, BigInt(slot.amount), "lend")))
+      return c.json({ error: "No matching transfer to the pool found for this deposit" }, 402);
 
     slot.encryptedRate = encryptedRate;
     slot.status = "confirmed";
