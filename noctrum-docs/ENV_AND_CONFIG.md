@@ -77,7 +77,7 @@ CRE_ETH_PRIVATE_KEY=000000000000000000000000000000000000000000000000000000000000
 ```json
 { "schedule": "*/30 * * * * *", "noctrumApiUrl": "https://api.example.noctrum/api/v1" }
 ```
-`settle-loans/config.production.json`: Ghost has `{ "schedule": "*/30 * * * * *" }` only (D-13: add `noctrumApiUrl`).
+`settle-loans/config.production.json`: same as staging (D-13: Ghost lacked `noctrumApiUrl`; completed in T4.1).
 
 `execute-transfers/config.staging.json`:
 ```json
@@ -89,7 +89,7 @@ CRE_ETH_PRIVATE_KEY=000000000000000000000000000000000000000000000000000000000000
   "chainId": 10143
 }
 ```
-`execute-transfers/config.production.json`: Ghost `{ "schedule": "*/30 * * * * *" }` (D-13).
+`execute-transfers/config.production.json`: same as staging but `"schedule": "*/30 * * * * *"` (D-13: Ghost lacked the other fields; completed in T4.1).
 
 `check-loans/config.staging.json`:
 ```json
@@ -101,9 +101,11 @@ CRE_ETH_PRIVATE_KEY=000000000000000000000000000000000000000000000000000000000000
   "liquidationThreshold": 1.5
 }
 ```
-`check-loans/config.production.json`: the same but `"schedule": "*/30 * * * * *"` and `"noctrumApiUrl": "http://localhost:3000/api/v1"` (Ghost parity, D-13).
+`check-loans/config.production.json`: the same but `"schedule": "*/30 * * * * *"` (D-13: Ghost pointed to `localhost:3000`; completed in T4.1).
 
-`workflow.yaml` (each): `staging-settings.user-workflow.workflow-name: "<name>-staging"`, `workflow-artifacts: {workflow-path: "./main.ts", config-path: "./config.staging.json", secrets-path: "../secrets.yaml"}`. Production is the same with `-production`.
+`config.local.json` (each workflow, T5.4): same as staging but `noctrumApiUrl: "http://localhost:8080/api/v1"` and (execute-transfers) `externalApiUrl: "http://localhost:8081"`. Used by the `local-settings` target.
+
+`workflow.yaml` (each): `staging-settings.user-workflow.workflow-name: "<name>-staging"`, `workflow-artifacts: {workflow-path: "./main.ts", config-path: "./config.staging.json", secrets-path: "../secrets.yaml"}`. Production is the same with `-production`; `local-settings` uses `<name>-local` and `./config.local.json`.
 
 ## 4. `contracts/.env` (Foundry)
 ```dotenv

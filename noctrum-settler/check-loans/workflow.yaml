@@ -32,3 +32,13 @@ production-settings:
     workflow-path: "./main.ts"
     config-path: "./config.production.json"
     secrets-path: "../secrets.yaml"
+
+# ==========================================================================
+# Local simulation against server :8080 + vault-api :8081 (T5.4)
+local-settings:
+  user-workflow:
+    workflow-name: "check-loans-local"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.local.json"
+    secrets-path: "../secrets.yaml"

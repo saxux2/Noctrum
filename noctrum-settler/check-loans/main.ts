@@ -21,13 +21,13 @@ import { PriceFeedAggregator } from "../contracts/abi";
 
 export type Config = {
   schedule: string;
-  ghostApiUrl: string;
+  noctrumApiUrl: string;
   feedChainName: string;
   ethUsdFeed: string;
   liquidationThreshold: number;
 };
 
-interface Loan {
+export interface Loan {
   loanId: string;
   borrower: string;
   token: string;
@@ -38,7 +38,7 @@ interface Loan {
   status: string;
 }
 
-const API_KEY_SECRET = [{ key: "INTERNAL_API_KEY", namespace: "ghost-protocol" }];
+const API_KEY_SECRET = [{ key: "INTERNAL_API_KEY", namespace: "noctrum-protocol" }];
 
 // ── Price feed reader ───────────────────────────────
 
@@ -94,12 +94,12 @@ function readEthPrice(runtime: Runtime<Config>): number {
 
 // ── CRE handler ─────────────────────────────────────
 
-const onCronTrigger = (runtime: Runtime<Config>, _payload: CronPayload): string => {
+export const onCronTrigger = (runtime: Runtime<Config>, _payload: CronPayload): string => {
   runtime.log("check-loans triggered");
 
-  // Fetch active loans from Ghost API
+  // Fetch active loans from Noctrum API
   const confClient = new cre.capabilities.ConfidentialHTTPClient();
-  const base = runtime.config.ghostApiUrl;
+  const base = runtime.config.noctrumApiUrl;
 
   const resp = confClient.sendRequest(runtime, {
     vaultDonSecrets: API_KEY_SECRET,
@@ -180,7 +180,7 @@ const onCronTrigger = (runtime: Runtime<Config>, _payload: CronPayload): string 
   return result;
 };
 
-const initWorkflow = (config: Config) => {
+export const initWorkflow = (config: Config) => {
   const cron = new cre.capabilities.CronCapability();
   return [cre.handler(cron.trigger({ schedule: config.schedule }), onCronTrigger)];
 };

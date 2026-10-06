@@ -1,3 +1,7 @@
 {
-  "schedule": "*/30 * * * * *"
+  "schedule": "*/30 * * * * *",
+  "noctrumApiUrl": "https://api.example.noctrum/api/v1",
+  "externalApiUrl": "https://vault-api.example.noctrum",
+  "vaultAddress": "0x65877F6BFd3f2D293454658BCb290b112397Eeb5",
+  "chainId": 10143
 }

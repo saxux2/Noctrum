@@ -26,15 +26,24 @@
 # ==========================================================================
 staging-settings:
   rpcs:
-    - chain-name: ethereum-testnet-sepolia
-      url: https://ethereum-sepolia-rpc.publicnode.com
+    - chain-name: monad-testnet
+      url: https://testnet-rpc.monad.xyz
     - chain-name: ethereum-mainnet-arbitrum-1
-      url: https://arbitrum-one-rpc.publicnode.com
+      url: https://arb1.arbitrum.io/rpc   # publicnode prunes finalized-block state (T5.4)
 
 # ==========================================================================
 production-settings:
   rpcs:
-    - chain-name: ethereum-testnet-sepolia
-      url: https://ethereum-sepolia-rpc.publicnode.com
+    - chain-name: monad-testnet
+      url: https://testnet-rpc.monad.xyz
     - chain-name: ethereum-mainnet-arbitrum-1
-      url: https://arbitrum-one-rpc.publicnode.com
+      url: https://arb1.arbitrum.io/rpc   # publicnode prunes finalized-block state (T5.4)
+
+# ==========================================================================
+# Local simulation (T5.4): same RPCs as staging; workflow configs point at localhost
+local-settings:
+  rpcs:
+    - chain-name: monad-testnet
+      url: https://testnet-rpc.monad.xyz
+    - chain-name: ethereum-mainnet-arbitrum-1
+      url: https://arb1.arbitrum.io/rpc   # publicnode prunes finalized-block state (T5.4)

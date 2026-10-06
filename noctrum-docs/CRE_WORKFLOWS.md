@@ -47,8 +47,10 @@ staging-settings:
     - chain-name: monad-testnet            # selector 2183018362218727504 (chain-selectors repo)
       url: https://testnet-rpc.monad.xyz
     - chain-name: ethereum-mainnet-arbitrum-1
-      url: https://arbitrum-one-rpc.publicnode.com
+      url: https://arb1.arbitrum.io/rpc     # T5.4: publicnode prunes the finalized-block state check-loans reads
 ```
+`production-settings` is identical. A `local-settings` target (same RPCs) was added in T5.4 for simulation against local services; each workflow's `local-settings` uses `config.local.json` (localhost URLs).
+
 Chain-name/selector source: [smartcontractkit/chain-selectors selectors.yml](https://github.com/smartcontractkit/chain-selectors/blob/main/selectors.yml) shows `10143: selector 2183018362218727504, name monad-testnet`. Confirm with:
 ```bash
 cre workflow supported-chains --output json   # ⚠️ run this and confirm "monad-testnet" + forwarder (forwarder unused by Noctrum)
@@ -174,7 +176,7 @@ Specified fully in [BACKEND.md](BACKEND.md):
 | `*/config.*.json` | `ghostApiUrl` → `noctrumApiUrl` + new host. execute-transfers: externalApiUrl, vaultAddress, chainId 10143 |
 | `*/main.ts` | Rename Config key, log strings ("settle-loans triggered" stays), namespace. Optional D-2 fix |
 | `contracts/abi/*` | Unchanged |
-| `test-ecies.ts`, `main.test.ts` | Copy. Note that `main.test.ts` files are stale "Hello world" templates that **do not compile** against the current main.ts (they import a non-exported `onCronTrigger`) |
+| `test-ecies.ts`, `main.test.ts` | `test-ecies.ts` copied. Ghost's stale "Hello world" `main.test.ts` files were **replaced in T4.2** with real tests (`bun test` in each workflow; 19 + 11 + 8) |
 
 ## 7. Commands
 
@@ -188,10 +190,14 @@ cd ../check-loans && bun install
 #   INTERNAL_API_KEY=...  POOL_PRIVATE_KEY=...  CRE_PRIVATE_KEY=...
 #   CRE_ETH_PRIVATE_KEY=<any 32-byte hex; only needed for chain writes (none)>
 
-# simulate (from noctrum-settler/)
+# simulate (from noctrum-settler/). staging-settings needs deployed hosts (D-9);
+# use --target=local-settings against server :8080 + vault-api :8081 (✅ T5.4, TESTING §3)
 cre workflow simulate ./settle-loans      --target=staging-settings --non-interactive --trigger-index=0
 cre workflow simulate ./execute-transfers --target=staging-settings --non-interactive --trigger-index=0
 cre workflow simulate ./check-loans       --target=staging-settings --non-interactive --trigger-index=0
+
+# compile only (✅ verified CLI v1.37.0, T4.1): writes <wf>/binary.wasm (gitignored)
+cre workflow build ./settle-loans --target=staging-settings --non-interactive
 
 # deploy (requires CRE account + early-access deploy rights)  ⚠️ VERIFY current CLI syntax: `cre workflow deploy --help`
 cre login

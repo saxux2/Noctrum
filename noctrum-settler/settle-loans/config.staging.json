@@ -1,4 +1,4 @@
 {
   "schedule": "*/30 * * * * *",
-  "ghostApiUrl": "https://do.roydevelops.tech/ghost-server/api/v1"
+  "noctrumApiUrl": "https://api.example.noctrum/api/v1"
 }

@@ -8,12 +8,13 @@ import {
 } from "@chainlink/cre-sdk";
 
 import { privateKeyToAccount } from "viem/accounts";
+import { getDomain, TRANSFER_TYPES } from "./eip712";
 
 // ── Config ──────────────────────────────────────────
 
 export type Config = {
   schedule: string;
-  ghostApiUrl: string;
+  noctrumApiUrl: string;
   externalApiUrl: string;
   vaultAddress: string;
   chainId: number;
@@ -21,7 +22,7 @@ export type Config = {
 
 // ── Types ───────────────────────────────────────────
 
-interface PendingTransfer {
+export interface PendingTransfer {
   id: string;
   recipient: string;
   token: string;
@@ -29,39 +30,17 @@ interface PendingTransfer {
   reason: string;
 }
 
-// ── EIP-712 domain & types for external API ─────────
-
-function getDomain(config: Config) {
-  return {
-    name: "CompliantPrivateTokenDemo" as const,
-    version: "0.0.1" as const,
-    chainId: config.chainId,
-    verifyingContract: config.vaultAddress as `0x${string}`,
-  };
-}
-
-const TRANSFER_TYPES = {
-  "Private Token Transfer": [
-    { name: "sender", type: "address" },
-    { name: "recipient", type: "address" },
-    { name: "token", type: "address" },
-    { name: "amount", type: "uint256" },
-    { name: "flags", type: "string[]" },
-    { name: "timestamp", type: "uint256" },
-  ],
-} as const;
-
 // ── Vault DON secret config ─────────────────────────
 
-const API_KEY_SECRET = [{ key: "INTERNAL_API_KEY", namespace: "ghost-protocol" }];
+const API_KEY_SECRET = [{ key: "INTERNAL_API_KEY", namespace: "noctrum-protocol" }];
 
 // ── CRE handler ─────────────────────────────────────
 
-const onCronTrigger = async (runtime: Runtime<Config>, _payload: CronPayload): Promise<string> => {
+export const onCronTrigger = async (runtime: Runtime<Config>, _payload: CronPayload): Promise<string> => {
   runtime.log("execute-transfers triggered");
 
   const confClient = new cre.capabilities.ConfidentialHTTPClient();
-  const base = runtime.config.ghostApiUrl;
+  const base = runtime.config.noctrumApiUrl;
 
   // 1. Poll for pending transfers
   const pendingResp = confClient.sendRequest(runtime, {
@@ -152,7 +131,7 @@ const onCronTrigger = async (runtime: Runtime<Config>, _payload: CronPayload): P
 
   if (executedIds.length === 0) return "error:all-failed";
 
-  // 4. Confirm completed transfers on ghost server
+  // 4. Confirm completed transfers on noctrum server
   const confirmResp = confClient.sendRequest(runtime, {
     vaultDonSecrets: API_KEY_SECRET,
     request: {
@@ -175,7 +154,7 @@ const onCronTrigger = async (runtime: Runtime<Config>, _payload: CronPayload): P
 
 // ── Workflow init ───────────────────────────────────
 
-const initWorkflow = (config: Config) => {
+export const initWorkflow = (config: Config) => {
   const cron = new cre.capabilities.CronCapability();
   return [cre.handler(cron.trigger({ schedule: config.schedule }), onCronTrigger)];
 };
