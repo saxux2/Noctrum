@@ -4,6 +4,7 @@ import { WalletData } from "../lib/wallet";
 import { fetchTransactions } from "../lib/external-api";
 import { tokenName } from "../lib/constants";
 import { ethers } from "ethers";
+import { Transaction, errorMessage } from "../lib/types";
 
 // UUID v7 encodes timestamp in first 48 bits
 function dateFromUUIDv7(id: string): Date {
@@ -11,14 +12,14 @@ function dateFromUUIDv7(id: string): Date {
   return new Date(parseInt(hex, 16));
 }
 
-function txIcon(tx: any): Icon {
+function txIcon(tx: Transaction): Icon {
   if (tx.type === "deposit") return Icon.ArrowDown;
   if (tx.type === "withdrawal") return Icon.ArrowUp;
   if (tx.type === "transfer" && tx.is_incoming) return Icon.ArrowDown;
   return Icon.ArrowUp;
 }
 
-function txTitle(tx: any): string {
+function txTitle(tx: Transaction): string {
   const token = tokenName(tx.token ?? "");
   if (tx.type === "deposit") return `Deposit ${token}`;
   if (tx.type === "withdrawal") return `Withdraw ${token}`;
@@ -27,7 +28,7 @@ function txTitle(tx: any): string {
 }
 
 export function TransactionsView({ wallet }: { wallet: WalletData }) {
-  const [txns, setTxns] = useState<any[]>([]);
+  const [txns, setTxns] = useState<Transaction[]>([]);
   const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,22 +45,28 @@ export function TransactionsView({ wallet }: { wallet: WalletData }) {
       }
       setCursor(data.next_cursor ?? "");
       setHasMore(!!data.has_more);
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Error", e.message);
+      showToast(Toast.Style.Failure, "Error", errorMessage(e));
     }
     setIsLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const fmt = (wei: string) => {
-    try { return ethers.formatEther(wei); } catch { return wei; }
+    try {
+      return ethers.formatEther(wei);
+    } catch {
+      return wei;
+    }
   };
 
   return (
     <List isLoading={isLoading}>
-      {txns.map((tx: any) => (
+      {txns.map((tx) => (
         <List.Item
           key={tx.id}
           title={txTitle(tx)}
@@ -88,9 +95,7 @@ export function TransactionsView({ wallet }: { wallet: WalletData }) {
           }
         />
       )}
-      {txns.length === 0 && !isLoading && (
-        <List.Item title="No transactions found" icon={Icon.XMarkCircle} />
-      )}
+      {txns.length === 0 && !isLoading && <List.Item title="No transactions found" icon={Icon.XMarkCircle} />}
     </List>
   );
 }

@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { showToast, Toast } from "@raycast/api";
-import { fetchLenderStatus } from "../lib/ghost-api";
+import { fetchLenderStatus } from "../lib/noctrum-api";
 import { WalletData } from "../lib/wallet";
+import { LenderStatus, errorMessage } from "../lib/types";
 
 export function useLenderStatus(wallet: WalletData | null) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<LenderStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -13,9 +14,9 @@ export function useLenderStatus(wallet: WalletData | null) {
     try {
       const d = await fetchLenderStatus(wallet.address);
       setData(d);
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Failed to load lender status", e.message);
+      showToast(Toast.Style.Failure, "Failed to load lender status", errorMessage(e));
     } finally {
       setIsLoading(false);
     }

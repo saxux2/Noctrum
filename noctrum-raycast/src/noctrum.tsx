@@ -1,4 +1,5 @@
 import { List, Action, ActionPanel } from "@raycast/api";
+import type { JSX } from "react";
 import { useWallet } from "./hooks/useWallet";
 import { WalletView } from "./views/WalletView";
 import { BalancesView } from "./views/BalancesView";
@@ -14,7 +15,7 @@ import { ShieldedAddressView } from "./views/ShieldedAddressView";
 import { ProfileView } from "./views/ProfileView";
 import { showToast, Toast, Icon } from "@raycast/api";
 
-export default function GhostCommand() {
+export default function NoctrumCommand() {
   const { wallet, isLoading, refresh } = useWallet();
 
   function guardedAction(title: string, renderTarget: () => JSX.Element) {
@@ -51,7 +52,13 @@ export default function GhostCommand() {
           subtitle="Private vault + on-chain"
           icon={{ source: "list-icons/balance.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
-          actions={<ActionPanel>{guardedAction("View Balances", () => <BalancesView wallet={wallet!} />)}</ActionPanel>}
+          actions={
+            <ActionPanel>
+              {guardedAction("View Balances", () => (
+                <BalancesView wallet={wallet!} />
+              ))}
+            </ActionPanel>
+          }
         />
       </List.Section>
 
@@ -61,7 +68,13 @@ export default function GhostCommand() {
           subtitle="Deposit & lend with rate"
           icon={{ source: "list-icons/lend.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
-          actions={<ActionPanel>{guardedAction("Create Lend Intent", () => <LendFormView wallet={wallet!} />)}</ActionPanel>}
+          actions={
+            <ActionPanel>
+              {guardedAction("Create Lend Intent", () => (
+                <LendFormView wallet={wallet!} />
+              ))}
+            </ActionPanel>
+          }
         />
         <List.Item
           title="My Lend Positions"
@@ -69,7 +82,11 @@ export default function GhostCommand() {
           icon={{ source: "list-icons/money.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
-            <ActionPanel>{guardedAction("My Lend Positions", () => <LendPositionsView wallet={wallet!} />)}</ActionPanel>
+            <ActionPanel>
+              {guardedAction("My Lend Positions", () => (
+                <LendPositionsView wallet={wallet!} />
+              ))}
+            </ActionPanel>
           }
         />
       </List.Section>
@@ -81,7 +98,11 @@ export default function GhostCommand() {
           icon={{ source: "list-icons/money-bundle.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
-            <ActionPanel>{guardedAction("Create Borrow Intent", () => <BorrowFormView wallet={wallet!} />)}</ActionPanel>
+            <ActionPanel>
+              {guardedAction("Create Borrow Intent", () => (
+                <BorrowFormView wallet={wallet!} />
+              ))}
+            </ActionPanel>
           }
         />
         <List.Item
@@ -90,7 +111,11 @@ export default function GhostCommand() {
           icon={{ source: "list-icons/box.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
-            <ActionPanel>{guardedAction("My Borrow Positions", () => <BorrowPositionsView wallet={wallet!} />)}</ActionPanel>
+            <ActionPanel>
+              {guardedAction("My Borrow Positions", () => (
+                <BorrowPositionsView wallet={wallet!} />
+              ))}
+            </ActionPanel>
           }
         />
       </List.Section>
@@ -101,7 +126,13 @@ export default function GhostCommand() {
           subtitle="All active & completed loans"
           icon={{ source: "list-icons/bank.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
-          actions={<ActionPanel>{guardedAction("My Loans", () => <MyLoansView wallet={wallet!} />)}</ActionPanel>}
+          actions={
+            <ActionPanel>
+              {guardedAction("My Loans", () => (
+                <MyLoansView wallet={wallet!} />
+              ))}
+            </ActionPanel>
+          }
         />
       </List.Section>
 
@@ -111,7 +142,13 @@ export default function GhostCommand() {
           subtitle="Send tokens privately"
           icon={{ source: "list-icons/among-us.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
-          actions={<ActionPanel>{guardedAction("Private Transfer", () => <TransferView wallet={wallet!} />)}</ActionPanel>}
+          actions={
+            <ActionPanel>
+              {guardedAction("Private Transfer", () => (
+                <TransferView wallet={wallet!} />
+              ))}
+            </ActionPanel>
+          }
         />
         <List.Item
           title="Generate Shielded Address"
@@ -120,7 +157,9 @@ export default function GhostCommand() {
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
             <ActionPanel>
-              {guardedAction("Generate Shielded Address", () => <ShieldedAddressView wallet={wallet!} />)}
+              {guardedAction("Generate Shielded Address", () => (
+                <ShieldedAddressView wallet={wallet!} />
+              ))}
             </ActionPanel>
           }
         />
@@ -132,7 +171,13 @@ export default function GhostCommand() {
           subtitle="Withdraw to on-chain"
           icon={{ source: "list-icons/rocket.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
-          actions={<ActionPanel>{guardedAction("Withdraw", () => <WithdrawView wallet={wallet!} />)}</ActionPanel>}
+          actions={
+            <ActionPanel>
+              {guardedAction("Withdraw", () => (
+                <WithdrawView wallet={wallet!} />
+              ))}
+            </ActionPanel>
+          }
         />
       </List.Section>
 
@@ -142,7 +187,13 @@ export default function GhostCommand() {
           subtitle="View transaction history"
           icon={{ source: "list-icons/profile.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
-          actions={<ActionPanel>{guardedAction("Transactions", () => <TransactionsView wallet={wallet!} />)}</ActionPanel>}
+          actions={
+            <ActionPanel>
+              {guardedAction("Transactions", () => (
+                <TransactionsView wallet={wallet!} />
+              ))}
+            </ActionPanel>
+          }
         />
       </List.Section>
 
@@ -153,7 +204,11 @@ export default function GhostCommand() {
           icon={{ source: "pfp.jpg" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
-            <ActionPanel>{guardedAction("Credit Score & Profile", () => <ProfileView wallet={wallet!} />)}</ActionPanel>
+            <ActionPanel>
+              {guardedAction("Credit Score & Profile", () => (
+                <ProfileView wallet={wallet!} />
+              ))}
+            </ActionPanel>
           }
         />
       </List.Section>

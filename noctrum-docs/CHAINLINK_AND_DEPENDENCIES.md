@@ -51,7 +51,7 @@ Options for the CPT gap (decision **D-1**):
 | eciesjs 0.4.x | Rate encryption | Same | ✅ |
 | ethers 6.16 | Everywhere | Works with any EVM chain | ✅ |
 | Telegram Bot API / grammY | Bot `@ghostfinancetg_bot` | New bot via @BotFather | ⚠️ needs a new token |
-| Raycast | Extension `ghost` (author `snehendu_roy`) | New name `noctrum`, author ⚠️ TBD | ⚠️ |
+| Raycast | Extension `ghost` (author `snehendu_roy`) | New name `noctrum`, author `saxux2` (D-9) | ✅ |
 | Hosting | API `do.roydevelops.tech/ghost-server`; sites `ghost-finance.xyz`, `app.ghost-finance.xyz`, `docs.ghost-finance.xyz`, `ghost-protocol.finance` (docs config) | ⚠️ TBD domains | ⚠️ D-9 |
 | Fonts | Google Poppins (client), Geist | Same | ✅ |
 

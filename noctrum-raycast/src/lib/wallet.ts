@@ -1,7 +1,7 @@
 import { LocalStorage } from "@raycast/api";
 import { ethers } from "ethers";
 
-const WALLET_KEY = "ghost-wallet-pk";
+const WALLET_KEY = "noctrum-wallet-pk";
 
 export interface WalletData {
   address: string;

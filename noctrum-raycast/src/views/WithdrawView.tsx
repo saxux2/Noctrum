@@ -5,21 +5,24 @@ import { COINS } from "../lib/constants";
 import { requestWithdraw, fetchBalances } from "../lib/external-api";
 import { withdrawWithTicket } from "../lib/chain";
 import { ethers } from "ethers";
+import { errorMessage } from "../lib/types";
 
 export function WithdrawView({ wallet }: { wallet: WalletData }) {
-  const [token, setToken] = useState(COINS[0].address);
+  const [token, setToken] = useState<string>(COINS[0].address);
   const [amount, setAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [balances, setBalances] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetchBalances(wallet).then((data) => {
-      const map: Record<string, string> = {};
-      for (const b of data.balances ?? []) {
-        map[b.token.toLowerCase()] = b.amount;
-      }
-      setBalances(map);
-    }).catch((e) => console.log(e));
+    fetchBalances(wallet)
+      .then((data) => {
+        const map: Record<string, string> = {};
+        for (const b of data.balances ?? []) {
+          map[b.token.toLowerCase()] = b.amount;
+        }
+        setBalances(map);
+      })
+      .catch((e) => console.log(e));
   }, []);
 
   async function handleSubmit() {
@@ -43,11 +46,11 @@ export function WithdrawView({ wallet }: { wallet: WalletData }) {
 
       toast.style = Toast.Style.Success;
       toast.title = "Withdrawal complete!";
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = "Withdraw failed";
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
     setIsSubmitting(false);
   }
@@ -63,12 +66,20 @@ export function WithdrawView({ wallet }: { wallet: WalletData }) {
     >
       <Form.Dropdown id="token" title="Token" value={token} onChange={setToken}>
         {COINS.map((c) => (
-          <Form.Dropdown.Item key={c.address} value={c.address} title={c.symbol} icon={{ source: c.symbol === "gUSD" ? "gusd.png" : "geth.png" }} />
+          <Form.Dropdown.Item
+            key={c.address}
+            value={c.address}
+            title={c.symbol}
+            icon={{ source: c.symbol === "nUSD" ? "nusd.png" : "neth.png" }}
+          />
         ))}
       </Form.Dropdown>
       <Form.TextField id="amount" title="Amount" placeholder="e.g. 100" value={amount} onChange={setAmount} />
       {balances[token.toLowerCase()] && (
-        <Form.Description title="Available Balance" text={`${ethers.formatEther(balances[token.toLowerCase()])} ${COINS.find(c => c.address === token)?.symbol ?? ""}`} />
+        <Form.Description
+          title="Available Balance"
+          text={`${ethers.formatEther(balances[token.toLowerCase()])} ${COINS.find((c) => c.address === token)?.symbol ?? ""}`}
+        />
       )}
     </Form>
   );

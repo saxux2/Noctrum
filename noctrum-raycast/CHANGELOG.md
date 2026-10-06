@@ -1,3 +1,3 @@
-# Ghost Changelog
+# Noctrum Changelog
 
 ## [Initial Version] - {PR_MERGE_DATE}

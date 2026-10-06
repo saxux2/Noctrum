@@ -2,15 +2,16 @@ import { Detail, ActionPanel, Action, showToast, Toast } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { WalletData } from "../lib/wallet";
 import { generateShieldedAddress } from "../lib/external-api";
+import { ShieldedAddressResponse, errorMessage } from "../lib/types";
 
 export function ShieldedAddressView({ wallet }: { wallet: WalletData }) {
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ShieldedAddressResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     generateShieldedAddress(wallet)
       .then(setResult)
-      .catch((e) => showToast(Toast.Style.Failure, "Error", e.message))
+      .catch((e) => showToast(Toast.Style.Failure, "Error", errorMessage(e)))
       .finally(() => setIsLoading(false));
   }, []);
 

@@ -5,9 +5,10 @@ import { fetchBalances } from "../lib/external-api";
 import { getOnChainBalance, getEthBalance } from "../lib/chain";
 import { COINS, tokenName } from "../lib/constants";
 import { ethers } from "ethers";
+import { PrivateBalance, errorMessage } from "../lib/types";
 
 export function BalancesView({ wallet }: { wallet: WalletData }) {
-  const [privateBalances, setPrivateBalances] = useState<any[]>([]);
+  const [privateBalances, setPrivateBalances] = useState<PrivateBalance[]>([]);
   const [onChainBalances, setOnChainBalances] = useState<{ symbol: string; balance: string }[]>([]);
   const [ethBal, setEthBal] = useState("0");
   const [isLoading, setIsLoading] = useState(true);
@@ -27,9 +28,9 @@ export function BalancesView({ wallet }: { wallet: WalletData }) {
       setPrivateBalances(priv.balances ?? []);
       setOnChainBalances(onChain);
       setEthBal(eth);
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Error", e.message);
+      showToast(Toast.Style.Failure, "Error", errorMessage(e));
     }
     setIsLoading(false);
   }
@@ -52,21 +53,21 @@ export function BalancesView({ wallet }: { wallet: WalletData }) {
         {privateBalances.length === 0 && !isLoading && (
           <List.Item title="No private balances" icon={Icon.XMarkCircle} />
         )}
-        {privateBalances.map((b: any, i: number) => (
+        {privateBalances.map((b, i) => (
           <List.Item
             key={i}
             title={tokenName(b.token)}
             subtitle={fmt(b.amount ?? b.balance)}
-            icon={{ source: tokenName(b.token) === "gUSD" ? "gusd.png" : "geth.png" }}
+            icon={{ source: tokenName(b.token) === "nUSD" ? "nusd.png" : "neth.png" }}
             accessories={[{ text: "Private" }]}
           />
         ))}
       </List.Section>
       <List.Section title="On-Chain Balances">
         <List.Item
-          title="ETH"
+          title="MON"
           subtitle={fmt(ethBal)}
-          icon={{ source: "ethereum.png" }}
+          icon={{ source: "monad.png" }}
           accessories={[{ text: "Native" }]}
         />
         {onChainBalances.map((b, i) => (
@@ -74,7 +75,7 @@ export function BalancesView({ wallet }: { wallet: WalletData }) {
             key={i}
             title={b.symbol}
             subtitle={fmt(b.balance)}
-            icon={{ source: b.symbol === "gUSD" ? "gusd.png" : "geth.png" }}
+            icon={{ source: b.symbol === "nUSD" ? "nusd.png" : "neth.png" }}
             accessories={[{ text: "On-Chain" }]}
           />
         ))}

@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { showToast, Toast } from "@raycast/api";
-import { fetchCreditScore } from "../lib/ghost-api";
+import { fetchCreditScore } from "../lib/noctrum-api";
 import { WalletData } from "../lib/wallet";
+import { errorMessage } from "../lib/types";
 
 export interface CreditScoreData {
   tier: string;
@@ -21,9 +22,9 @@ export function useCreditScore(wallet: WalletData | null) {
     try {
       const data = await fetchCreditScore(wallet.address);
       setScore(data);
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Failed to load credit score", e.message);
+      showToast(Toast.Style.Failure, "Failed to load credit score", errorMessage(e));
     } finally {
       setIsLoading(false);
     }

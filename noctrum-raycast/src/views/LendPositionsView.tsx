@@ -1,12 +1,13 @@
 import { List, Icon, ActionPanel, Action, showToast, Toast } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { WalletData } from "../lib/wallet";
-import { fetchLenderStatus, cancelLend as apiCancelLend } from "../lib/ghost-api";
-import { tokenName, tokenIcon, CANCEL_LEND_TYPES, GHOST_DOMAIN } from "../lib/constants";
+import { fetchLenderStatus, cancelLend as apiCancelLend } from "../lib/noctrum-api";
+import { tokenName, tokenIcon, CANCEL_LEND_TYPES, NOCTRUM_DOMAIN } from "../lib/constants";
 import { ethers } from "ethers";
+import { LenderStatus, errorMessage } from "../lib/types";
 
 export function LendPositionsView({ wallet }: { wallet: WalletData }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<LenderStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   async function load() {
@@ -15,21 +16,23 @@ export function LendPositionsView({ wallet }: { wallet: WalletData }) {
     try {
       const d = await fetchLenderStatus(wallet.address);
       setData(d);
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Error", e.message);
+      showToast(Toast.Style.Failure, "Error", errorMessage(e));
     }
     setIsLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function handleCancel(slotId: string) {
     const toast = await showToast(Toast.Style.Animated, "Cancelling lend...");
     try {
       const timestamp = Math.floor(Date.now() / 1000);
       const signer = new ethers.Wallet(wallet.privateKey);
-      const auth = await signer.signTypedData(GHOST_DOMAIN, CANCEL_LEND_TYPES, {
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CANCEL_LEND_TYPES, {
         account: wallet.address,
         slotId,
         timestamp,
@@ -38,22 +41,26 @@ export function LendPositionsView({ wallet }: { wallet: WalletData }) {
       toast.style = Toast.Style.Success;
       toast.title = "Lend cancelled";
       load();
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = "Cancel failed";
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
   }
 
   const fmt = (wei: string) => {
-    try { return ethers.formatEther(wei); } catch { return wei; }
+    try {
+      return ethers.formatEther(wei);
+    } catch {
+      return wei;
+    }
   };
 
   return (
     <List isLoading={isLoading}>
       <List.Section title="Active Lend Intents">
-        {data?.activeLends?.map((l: any) => (
+        {data?.activeLends?.map((l) => (
           <List.Item
             key={l.intentId}
             title={`${fmt(l.amount)} ${tokenName(l.token)}`}
@@ -73,7 +80,7 @@ export function LendPositionsView({ wallet }: { wallet: WalletData }) {
       </List.Section>
 
       <List.Section title="Active Loans (as Lender)">
-        {data?.activeLoans?.map((l: any) => (
+        {data?.activeLoans?.map((l) => (
           <List.Item
             key={l.loanId}
             title={`${fmt(l.principal)} ${tokenName(l.token)}`}
@@ -96,7 +103,7 @@ export function LendPositionsView({ wallet }: { wallet: WalletData }) {
       </List.Section>
 
       <List.Section title="Completed Loans">
-        {data?.completedLoans?.map((l: any) => (
+        {data?.completedLoans?.map((l) => (
           <List.Item
             key={l.loanId}
             title={`${fmt(l.principal)} ${tokenName(l.token)}`}
@@ -110,7 +117,11 @@ export function LendPositionsView({ wallet }: { wallet: WalletData }) {
         <List.Item
           title="Refresh"
           icon={Icon.ArrowClockwise}
-          actions={<ActionPanel><Action title="Refresh" onAction={load} /></ActionPanel>}
+          actions={
+            <ActionPanel>
+              <Action title="Refresh" onAction={load} />
+            </ActionPanel>
+          }
         />
       </List.Section>
     </List>

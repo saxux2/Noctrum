@@ -36,12 +36,7 @@ export async function depositToVault(pk: string, token: string, amount: string):
   return tx.hash;
 }
 
-export async function withdrawWithTicket(
-  pk: string,
-  token: string,
-  amount: string,
-  ticket: string
-): Promise<string> {
+export async function withdrawWithTicket(pk: string, token: string, amount: string, ticket: string): Promise<string> {
   const signer = getSignerFromPk(pk);
   const contract = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
   const tx = await contract.withdrawWithTicket(token, amount, ticket);

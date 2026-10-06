@@ -5,21 +5,24 @@ import {
   fetchLenderStatus,
   fetchBorrowerStatus,
   repayLoan as apiRepayLoan,
+  fetchPoolAddress,
   claimExcessCollateral as apiClaimExcess,
-} from "../lib/ghost-api";
+} from "../lib/noctrum-api";
 import {
   tokenName,
   tokenIcon,
   REPAY_LOAN_TYPES,
   CLAIM_EXCESS_COLLATERAL_TYPES,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
 } from "../lib/constants";
 import { ethers } from "ethers";
+import { privateTransfer } from "../lib/external-api";
+import { Loan, errorMessage } from "../lib/types";
 
 export function MyLoansView({ wallet }: { wallet: WalletData }) {
-  const [lenderLoans, setLenderLoans] = useState<any[]>([]);
-  const [borrowerLoans, setBorrowerLoans] = useState<any[]>([]);
-  const [completedLoans, setCompletedLoans] = useState<any[]>([]);
+  const [lenderLoans, setLenderLoans] = useState<Loan[]>([]);
+  const [borrowerLoans, setBorrowerLoans] = useState<Loan[]>([]);
+  const [completedLoans, setCompletedLoans] = useState<Loan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   async function load() {
@@ -33,60 +36,71 @@ export function MyLoansView({ wallet }: { wallet: WalletData }) {
       setLenderLoans(lender?.activeLoans ?? []);
       setBorrowerLoans(borrower?.activeLoans ?? []);
       setCompletedLoans(lender?.completedLoans ?? []);
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Error", e.message);
+      showToast(Toast.Style.Failure, "Error", errorMessage(e));
     }
     setIsLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const ts = () => Math.floor(Date.now() / 1000);
   const signer = wallet?.privateKey ? new ethers.Wallet(wallet.privateKey) : null;
 
   const fmt = (wei: string) => {
-    try { return ethers.formatEther(wei); } catch { return wei; }
+    try {
+      return ethers.formatEther(wei);
+    } catch {
+      return wei;
+    }
   };
 
-  async function handleRepay(loanId: string, totalDue: string) {
+  async function handleRepay(loanId: string, token: string, totalDue: string) {
     const toast = await showToast(Toast.Style.Animated, "Repaying loan");
     try {
+      if (!signer) throw new Error("No wallet");
+      toast.title = "Transferring repayment to pool";
+      await privateTransfer(wallet, await fetchPoolAddress(), token, totalDue);
+      toast.title = "Repaying loan";
       const message = { account: wallet.address, loanId, amount: totalDue, timestamp: ts() };
-      const auth = await signer.signTypedData(GHOST_DOMAIN, REPAY_LOAN_TYPES, message);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, REPAY_LOAN_TYPES, message);
       await apiRepayLoan({ ...message, auth });
       toast.style = Toast.Style.Success;
       toast.title = "Repaid";
       load();
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = "Repay failed";
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
   }
 
   async function handleClaimExcess(loanId: string) {
     const toast = await showToast(Toast.Style.Animated, "Claiming excess collateral");
     try {
+      if (!signer) throw new Error("No wallet");
       const message = { account: wallet.address, loanId, timestamp: ts() };
-      const auth = await signer.signTypedData(GHOST_DOMAIN, CLAIM_EXCESS_COLLATERAL_TYPES, message);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CLAIM_EXCESS_COLLATERAL_TYPES, message);
       await apiClaimExcess({ ...message, auth });
       toast.style = Toast.Style.Success;
       toast.title = "Claimed";
       load();
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = "Claim failed";
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
   }
 
   return (
     <List isLoading={isLoading}>
       <List.Section title={`Borrowing (${borrowerLoans.length})`}>
-        {borrowerLoans.map((l: any) => (
+        {borrowerLoans.map((l) => (
           <List.Item
             key={l.loanId}
             title={`${fmt(l.principal)} ${tokenName(l.token)}`}
@@ -95,13 +109,17 @@ export function MyLoansView({ wallet }: { wallet: WalletData }) {
             accessories={[
               { tag: `Due: ${fmt(l.totalDue)} ${tokenName(l.token)}` },
               { tag: `Repaid: ${fmt(l.repaidAmount)}` },
-              ...(l.collateralAmount ? [{ tag: `Collateral: ${fmt(l.collateralAmount)} ${tokenName(l.collateralToken)}` }] : []),
-              ...(l.excessCollateral && BigInt(l.excessCollateral) > 0n ? [{ tag: `Excess: ${fmt(l.excessCollateral)}` }] : []),
+              ...(l.collateralAmount
+                ? [{ tag: `Collateral: ${fmt(l.collateralAmount)} ${tokenName(l.collateralToken)}` }]
+                : []),
+              ...(l.excessCollateral && BigInt(l.excessCollateral) > 0n
+                ? [{ tag: `Excess: ${fmt(l.excessCollateral)}` }]
+                : []),
               { text: `Maturity: ${new Date(l.maturity).toLocaleDateString()}` },
             ]}
             actions={
               <ActionPanel>
-                <Action title="Repay Full" onAction={() => handleRepay(l.loanId, l.totalDue)} />
+                <Action title="Repay Full" onAction={() => handleRepay(l.loanId, l.token, l.totalDue)} />
                 {l.excessCollateral && BigInt(l.excessCollateral) > 0n && (
                   <Action title="Claim Excess Collateral" onAction={() => handleClaimExcess(l.loanId)} />
                 )}
@@ -110,13 +128,11 @@ export function MyLoansView({ wallet }: { wallet: WalletData }) {
             }
           />
         ))}
-        {borrowerLoans.length === 0 && !isLoading && (
-          <List.Item title="No active borrows" icon={Icon.XMarkCircle} />
-        )}
+        {borrowerLoans.length === 0 && !isLoading && <List.Item title="No active borrows" icon={Icon.XMarkCircle} />}
       </List.Section>
 
       <List.Section title={`Lending (${lenderLoans.length})`}>
-        {lenderLoans.map((l: any) => (
+        {lenderLoans.map((l) => (
           <List.Item
             key={l.loanId}
             title={`${fmt(l.principal)} ${tokenName(l.token)}`}
@@ -133,13 +149,11 @@ export function MyLoansView({ wallet }: { wallet: WalletData }) {
             }
           />
         ))}
-        {lenderLoans.length === 0 && !isLoading && (
-          <List.Item title="No active lends" icon={Icon.XMarkCircle} />
-        )}
+        {lenderLoans.length === 0 && !isLoading && <List.Item title="No active lends" icon={Icon.XMarkCircle} />}
       </List.Section>
 
       <List.Section title={`Completed (${completedLoans.length})`}>
-        {completedLoans.map((l: any) => (
+        {completedLoans.map((l) => (
           <List.Item
             key={l.loanId}
             title={`${fmt(l.principal)} ${tokenName(l.token)}`}
@@ -153,7 +167,11 @@ export function MyLoansView({ wallet }: { wallet: WalletData }) {
         <List.Item
           title="Refresh"
           icon={Icon.ArrowClockwise}
-          actions={<ActionPanel><Action title="Refresh" onAction={load} /></ActionPanel>}
+          actions={
+            <ActionPanel>
+              <Action title="Refresh" onAction={load} />
+            </ActionPanel>
+          }
         />
       </List.Section>
     </List>

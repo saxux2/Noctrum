@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { showToast, Toast } from "@raycast/api";
 import { fetchBalances } from "../lib/external-api";
 import { WalletData } from "../lib/wallet";
+import { errorMessage } from "../lib/types";
 
 export interface BalanceData {
   token: string;
@@ -17,10 +18,10 @@ export function useBalances(wallet: WalletData | null) {
     setIsLoading(true);
     try {
       const data = await fetchBalances(wallet);
-      setBalances(data.balances ?? []);
-    } catch (e: any) {
+      setBalances((data.balances ?? []) as BalanceData[]);
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Failed to load balances", e.message);
+      showToast(Toast.Style.Failure, "Failed to load balances", errorMessage(e));
     } finally {
       setIsLoading(false);
     }

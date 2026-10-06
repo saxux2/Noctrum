@@ -4,10 +4,11 @@ import { WalletData } from "../lib/wallet";
 import { COINS } from "../lib/constants";
 import { privateTransfer } from "../lib/external-api";
 import { ethers } from "ethers";
+import { errorMessage } from "../lib/types";
 
 export function TransferView({ wallet }: { wallet: WalletData }) {
   const [recipient, setRecipient] = useState("");
-  const [token, setToken] = useState(COINS[0].address);
+  const [token, setToken] = useState<string>(COINS[0].address);
   const [amount, setAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,11 +28,11 @@ export function TransferView({ wallet }: { wallet: WalletData }) {
       await privateTransfer(wallet, recipient, token, amountWei);
       toast.style = Toast.Style.Success;
       toast.title = "Transfer sent!";
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = "Transfer failed";
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
     setIsSubmitting(false);
   }
@@ -48,7 +49,12 @@ export function TransferView({ wallet }: { wallet: WalletData }) {
       <Form.TextField id="recipient" title="Recipient" placeholder="0x..." value={recipient} onChange={setRecipient} />
       <Form.Dropdown id="token" title="Token" value={token} onChange={setToken}>
         {COINS.map((c) => (
-          <Form.Dropdown.Item key={c.address} value={c.address} title={c.symbol} icon={{ source: c.symbol === "gUSD" ? "gusd.png" : "geth.png" }} />
+          <Form.Dropdown.Item
+            key={c.address}
+            value={c.address}
+            title={c.symbol}
+            icon={{ source: c.symbol === "nUSD" ? "nusd.png" : "neth.png" }}
+          />
         ))}
       </Form.Dropdown>
       <Form.TextField id="amount" title="Amount" placeholder="e.g. 100" value={amount} onChange={setAmount} />

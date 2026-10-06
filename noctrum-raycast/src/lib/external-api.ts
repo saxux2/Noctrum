@@ -9,15 +9,16 @@ import {
   TRANSACTION_TYPES,
 } from "./constants";
 import { WalletData } from "./wallet";
+import type { BalancesResponse, ShieldedAddressResponse, TransactionsResponse, WithdrawResponse } from "./types";
 
 const ts = () => Math.floor(Date.now() / 1000);
 
-async function signAndPost(
+async function signAndPost<T = Record<string, unknown>>(
   wallet: WalletData,
   endpoint: string,
   types: Record<string, ethers.TypedDataField[]>,
   message: Record<string, unknown>,
-  extraBody?: Record<string, unknown>
+  extraBody?: Record<string, unknown>,
 ) {
   const signer = new ethers.Wallet(wallet.privateKey);
   const auth = await signer.signTypedData(EXTERNAL_DOMAIN, types, message);
@@ -28,23 +29,22 @@ async function signAndPost(
     body: JSON.stringify(body),
   });
   const text = await res.text();
-  let data: any;
-  try { data = JSON.parse(text); } catch { data = text; }
-  if (!res.ok) throw new Error(data?.error || `${endpoint} failed`);
-  return data;
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = text;
+  }
+  if (!res.ok) throw new Error((data as { error?: string })?.error || `${endpoint} failed`);
+  return data as T;
 }
 
 export async function fetchBalances(wallet: WalletData) {
   const message = { account: wallet.address, timestamp: ts() };
-  return signAndPost(wallet, "/balances", BALANCE_TYPES, message);
+  return signAndPost<BalancesResponse>(wallet, "/balances", BALANCE_TYPES, message);
 }
 
-export async function privateTransfer(
-  wallet: WalletData,
-  recipient: string,
-  token: string,
-  amount: string
-) {
+export async function privateTransfer(wallet: WalletData, recipient: string, token: string, amount: string) {
   const message = {
     sender: wallet.address,
     recipient,
@@ -60,15 +60,15 @@ export async function privateTransfer(
 
 export async function requestWithdraw(wallet: WalletData, token: string, amount: string) {
   const message = { account: wallet.address, token, amount, timestamp: ts() };
-  return signAndPost(wallet, "/withdraw", WITHDRAW_TYPES, message);
+  return signAndPost<WithdrawResponse>(wallet, "/withdraw", WITHDRAW_TYPES, message);
 }
 
 export async function generateShieldedAddress(wallet: WalletData) {
   const message = { account: wallet.address, timestamp: ts() };
-  return signAndPost(wallet, "/shielded-address", SHIELDED_ADDRESS_TYPES, message);
+  return signAndPost<ShieldedAddressResponse>(wallet, "/shielded-address", SHIELDED_ADDRESS_TYPES, message);
 }
 
 export async function fetchTransactions(wallet: WalletData, limit = 20, cursor = "") {
   const message = { account: wallet.address, timestamp: ts(), cursor, limit };
-  return signAndPost(wallet, "/transactions", TRANSACTION_TYPES, message);
+  return signAndPost<TransactionsResponse>(wallet, "/transactions", TRANSACTION_TYPES, message);
 }

@@ -1,19 +1,20 @@
 import { Form, ActionPanel, Action, showToast, Toast } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { WalletData } from "../lib/wallet";
-import { COINS, BORROW_TYPES, GHOST_DOMAIN, gUSD, gETH } from "../lib/constants";
+import { COINS, BORROW_TYPES, NOCTRUM_DOMAIN } from "../lib/constants";
 import { approveToken, depositToVault } from "../lib/chain";
-import { fetchCollateralQuote, submitBorrowIntent, fetchPoolAddress } from "../lib/ghost-api";
+import { fetchCollateralQuote, submitBorrowIntent, fetchPoolAddress } from "../lib/noctrum-api";
 import { privateTransfer } from "../lib/external-api";
 import { encryptRate } from "../lib/encryption";
 import { ethers } from "ethers";
+import { CollateralQuote, errorMessage } from "../lib/types";
 
 export function BorrowFormView({ wallet }: { wallet: WalletData }) {
-  const [token, setToken] = useState(COINS[0].address);
+  const [token, setToken] = useState<string>(COINS[0].address);
   const [amount, setAmount] = useState("");
   const [maxRate, setMaxRate] = useState("");
-  const [collateralToken, setCollateralToken] = useState(COINS[1].address);
-  const [collateralQuote, setCollateralQuote] = useState<any>(null);
+  const [collateralToken, setCollateralToken] = useState<string>(COINS[1].address);
+  const [collateralQuote, setCollateralQuote] = useState<CollateralQuote | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export function BorrowFormView({ wallet }: { wallet: WalletData }) {
       const encMaxRate = encryptRate(maxRate);
       const timestamp = Math.floor(Date.now() / 1000);
       const signer = new ethers.Wallet(wallet.privateKey);
-      const auth = await signer.signTypedData(GHOST_DOMAIN, BORROW_TYPES, {
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, BORROW_TYPES, {
         account: wallet.address,
         token,
         amount: amountWei,
@@ -79,11 +80,11 @@ export function BorrowFormView({ wallet }: { wallet: WalletData }) {
 
       toast.style = Toast.Style.Success;
       toast.title = "Borrow intent created!";
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = "Borrow failed";
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
     setIsSubmitting(false);
   }
@@ -107,7 +108,7 @@ export function BorrowFormView({ wallet }: { wallet: WalletData }) {
             key={c.address}
             value={c.address}
             title={c.symbol}
-            icon={{ source: c.symbol === "gUSD" ? "gusd.png" : "geth.png" }}
+            icon={{ source: c.symbol === "nUSD" ? "nusd.png" : "neth.png" }}
           />
         ))}
       </Form.Dropdown>
@@ -131,7 +132,7 @@ export function BorrowFormView({ wallet }: { wallet: WalletData }) {
             key={c.address}
             value={c.address}
             title={c.symbol}
-            icon={{ source: c.symbol === "gUSD" ? "gusd.png" : "geth.png" }}
+            icon={{ source: c.symbol === "nUSD" ? "nusd.png" : "neth.png" }}
           />
         ))}
       </Form.Dropdown>

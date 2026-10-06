@@ -1,17 +1,17 @@
-export const GHOST_SERVER_URL = "http://localhost:8080";
-export const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+export const NOCTRUM_SERVER_URL = "https://server-production-291b.up.railway.app";
+export const RPC_URL = "https://testnet-rpc.monad.xyz";
 
-export const CHAIN_ID = 11155111;
-export const VAULT_ADDRESS = "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13";
-export const EXTERNAL_API = "https://convergence2026-token-api.cldev.cloud";
+export const CHAIN_ID = 10143;
+export const VAULT_ADDRESS = "0x65877F6BFd3f2D293454658BCb290b112397Eeb5";
+export const EXTERNAL_API = "https://vault-api-production-30bb.up.railway.app";
 
-export const gUSD = "0xD318551FbC638C4C607713A92A19FAd73eb8f743";
-export const gETH = "0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6";
-export const CRE_PUBKEY = "020c8353f6e6d21f3aaa5f990bac838d5eaacfaac9d255c274163b73a26afd4aa3";
+export const nUSD = "0x339a948f3667d222FAD43d313b3b8c3BE1415ad5";
+export const nETH = "0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A";
+export const CRE_PUBKEY = "03a62ca0efd28497d24e1cc2dc587f8e7e20ebc3de0c2315778997ead8bedda649";
 
 export const COINS = [
-  { symbol: "gUSD", name: "Ghost USD", address: gUSD },
-  { symbol: "gETH", name: "Ghost ETH", address: gETH },
+  { symbol: "nUSD", name: "Noctrum USD", address: nUSD },
+  { symbol: "nETH", name: "Noctrum ETH", address: nETH },
 ] as const;
 
 export const tokenName = (addr: string | undefined) => {
@@ -19,8 +19,7 @@ export const tokenName = (addr: string | undefined) => {
   return COINS.find((c) => c.address.toLowerCase() === addr.toLowerCase())?.symbol ?? addr.slice(0, 10);
 };
 
-export const tokenIcon = (addr: string | undefined) =>
-  tokenName(addr) === "gUSD" ? "gusd.png" : "geth.png";
+export const tokenIcon = (addr: string | undefined) => (tokenName(addr) === "nUSD" ? "nusd.png" : "neth.png");
 
 export const ERC20_ABI = [
   "function approve(address spender, uint256 amount) returns (bool)",
@@ -32,21 +31,21 @@ export const VAULT_ABI = [
   "function withdrawWithTicket(address token, uint256 amount, bytes ticket)",
 ];
 
-export const GHOST_DOMAIN = {
-  name: "GhostProtocol",
+export const NOCTRUM_DOMAIN = {
+  name: "NoctrumProtocol",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
 };
 
 export const EXTERNAL_DOMAIN = {
-  name: "CompliantPrivateTokenDemo",
+  name: "NoctrumPrivateToken",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
 };
 
-// EIP-712 types for GHOST server endpoints
+// EIP-712 types for NOCTRUM server endpoints
 export const CONFIRM_DEPOSIT_TYPES = {
   "Confirm Deposit": [
     { name: "account", type: "address" },

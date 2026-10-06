@@ -1,15 +1,15 @@
-# GHOST Protocol — Raycast Extension
+# NOCTRUM Protocol — Raycast Extension
 
-Raycast extension for interacting with the GHOST Protocol private P2P lending platform.
+Raycast extension for interacting with the NOCTRUM Protocol private P2P lending platform.
 
 ## Features
 
-- **Wallet Management** — Create, import, or view your Sepolia wallet
-- **Balances** — View private vault + on-chain token balances (gUSD, gETH)
+- **Wallet Management** — Create, import, or view your Monad Testnet wallet
+- **Balances** — View private vault + on-chain token balances (nUSD, nETH)
 - **Lending** — Create lend intents with encrypted sealed-bid rates
 - **Borrowing** — Submit borrow intents with collateral, accept/reject proposals
 - **My Loans** — Unified view of all active loans (as lender & borrower), repay, claim excess collateral
-- **Private Transfers** — Send tokens privately via the Compliant Private Transfer API
+- **Private Transfers** — Send tokens privately via the Noctrum vault API (`noctrum-vault-api`)
 - **Shielded Addresses** — Generate shielded deposit addresses
 - **Withdrawals** — Withdraw from private vault to on-chain
 - **Transaction History** — Browse deposits, withdrawals, and transfers
@@ -18,18 +18,18 @@ Raycast extension for interacting with the GHOST Protocol private P2P lending pl
 ## Setup
 
 ```bash
-cd ghost-raycast
-bun install
-bun run dev
+cd noctrum-raycast
+npm install
+npm run dev
 ```
 
-On first launch, use **Manage Wallet** to create or import a wallet (Sepolia private key).
+On first launch, use **Manage Wallet** to create or import a wallet (Monad Testnet private key).
 
 ## Architecture
 
 ```
 src/
-├── ghost.tsx              # Entry point — main navigation menu
+├── noctrum.tsx            # Entry point — main navigation menu
 ├── views/
 │   ├── WalletView.tsx     # Wallet create/import
 │   ├── BalancesView.tsx   # Private + on-chain balances
@@ -51,8 +51,8 @@ src/
 │   └── useCreditScore.ts  # Credit tier & multiplier
 └── lib/
     ├── constants.ts       # URLs, addresses, EIP-712 types, token metadata
-    ├── ghost-api.ts       # GHOST server API (lend, borrow, repay, etc.)
-    ├── external-api.ts    # Compliant Private Transfer API (balances, transfers, withdraw)
+    ├── noctrum-api.ts     # NOCTRUM server API (lend, borrow, repay, etc.)
+    ├── external-api.ts    # Noctrum vault API (balances, transfers, withdraw)
     ├── chain.ts           # On-chain interactions (approve, deposit, withdraw via vault)
     ├── encryption.ts      # eciesjs rate encryption with CRE public key
     └── wallet.ts          # Local wallet storage (Raycast LocalStorage)
@@ -70,6 +70,7 @@ src/
 Server URL and RPC are set in `src/lib/constants.ts`:
 
 ```ts
-GHOST_SERVER_URL = "https://do.roydevelops.tech/ghost-server"
-RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com"
+NOCTRUM_SERVER_URL = "https://server-production-291b.up.railway.app"   // local: http://localhost:8080
+RPC_URL = "https://testnet-rpc.monad.xyz"
+EXTERNAL_API = "https://vault-api-production-30bb.up.railway.app"
 ```

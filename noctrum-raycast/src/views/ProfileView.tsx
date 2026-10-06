@@ -1,10 +1,11 @@
 import { Detail, ActionPanel, Action, Icon } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { WalletData } from "../lib/wallet";
-import { fetchCreditScore } from "../lib/ghost-api";
+import { fetchCreditScore } from "../lib/noctrum-api";
+import type { CreditScoreData } from "../hooks/useCreditScore";
 
 export function ProfileView({ wallet }: { wallet: WalletData }) {
-  const [score, setScore] = useState<any>(null);
+  const [score, setScore] = useState<CreditScoreData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

@@ -8,7 +8,7 @@ import {
   rejectProposal as apiRejectProposal,
   repayLoan as apiRepayLoan,
   claimExcessCollateral as apiClaimExcess,
-} from "../lib/ghost-api";
+} from "../lib/noctrum-api";
 import {
   tokenName,
   tokenIcon,
@@ -17,12 +17,13 @@ import {
   REJECT_PROPOSAL_TYPES,
   REPAY_LOAN_TYPES,
   CLAIM_EXCESS_COLLATERAL_TYPES,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
 } from "../lib/constants";
 import { ethers } from "ethers";
+import { BorrowerStatus, errorMessage } from "../lib/types";
 
 export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<BorrowerStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   async function load() {
@@ -30,9 +31,9 @@ export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
     setIsLoading(true);
     try {
       setData(await fetchBorrowerStatus(wallet.address));
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
-      showToast(Toast.Style.Failure, "Error", e.message);
+      showToast(Toast.Style.Failure, "Error", errorMessage(e));
     }
     setIsLoading(false);
   }
@@ -44,25 +45,25 @@ export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
   const ts = () => Math.floor(Date.now() / 1000);
   const signer = wallet?.privateKey ? new ethers.Wallet(wallet.privateKey) : null;
 
-  async function signAndCall(
+  async function signAndCall<M extends Record<string, unknown>>(
     types: Record<string, ethers.TypedDataField[]>,
-    message: Record<string, unknown>,
-    apiCall: (body: any) => Promise<any>,
+    message: M,
+    apiCall: (body: M & { auth: string }) => Promise<unknown>,
     label: string,
   ) {
     const toast = await showToast(Toast.Style.Animated, label);
     try {
       if (!signer) throw new Error("Wallet not loaded");
-      const auth = await signer.signTypedData(GHOST_DOMAIN, types, message);
+      const auth = await signer.signTypedData(NOCTRUM_DOMAIN, types, message);
       await apiCall({ ...message, auth });
       toast.style = Toast.Style.Success;
       toast.title = `${label} - Done`;
       load();
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
       toast.style = Toast.Style.Failure;
       toast.title = label;
-      toast.message = e.message;
+      toast.message = errorMessage(e);
     }
   }
 
@@ -117,7 +118,7 @@ export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
   return (
     <List isLoading={isLoading}>
       <List.Section title="Pending Borrow Intents">
-        {data?.pendingIntents?.map((i: any) => (
+        {data?.pendingIntents?.map((i) => (
           <List.Item
             key={i.intentId}
             title={`${fmt(i.amount)} ${tokenName(i.token)}`}
@@ -141,7 +142,7 @@ export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
       </List.Section>
 
       <List.Section title="Pending Proposals">
-        {data?.pendingProposals?.map((p: any) => (
+        {data?.pendingProposals?.map((p) => (
           <List.Item
             key={p.proposalId}
             title={`${fmt(p.principal)} ${tokenName(p.token)}`}
@@ -166,7 +167,7 @@ export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
       </List.Section>
 
       <List.Section title="Active Loans">
-        {data?.activeLoans?.map((l: any) => (
+        {data?.activeLoans?.map((l) => (
           <List.Item
             key={l.loanId}
             title={`${fmt(l.principal)} ${tokenName(l.token)}`}
@@ -175,8 +176,12 @@ export function BorrowPositionsView({ wallet }: { wallet: WalletData }) {
             accessories={[
               { tag: `Due: ${fmt(l.totalDue)} ${tokenName(l.token)}` },
               { tag: `Repaid: ${fmt(l.repaidAmount)}` },
-              ...(l.collateralAmount ? [{ tag: `Collateral: ${fmt(l.collateralAmount)} ${tokenName(l.collateralToken)}` }] : []),
-              ...(l.excessCollateral && BigInt(l.excessCollateral) > 0n ? [{ tag: `Excess: ${fmt(l.excessCollateral)}` }] : []),
+              ...(l.collateralAmount
+                ? [{ tag: `Collateral: ${fmt(l.collateralAmount)} ${tokenName(l.collateralToken)}` }]
+                : []),
+              ...(l.excessCollateral && BigInt(l.excessCollateral) > 0n
+                ? [{ tag: `Excess: ${fmt(l.excessCollateral)}` }]
+                : []),
               { text: `Maturity: ${new Date(l.maturity).toLocaleDateString()}` },
             ]}
             actions={

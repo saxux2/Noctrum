@@ -57,7 +57,7 @@ export function WalletView({ onDone }: { onDone?: () => void }) {
         <List.Section title="No Wallet Found">
           <List.Item
             title="Create New Wallet"
-            subtitle="Generate a random Sepolia wallet"
+            subtitle="Generate a random Monad Testnet wallet"
             icon={Icon.PlusCircle}
             actions={
               <ActionPanel>
