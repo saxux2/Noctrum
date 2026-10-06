@@ -1,12 +1,13 @@
 import { ethers } from "ethers";
 
-const API_BASE_URL = "https://convergence2026-token-api.cldev.cloud";
+// noctrum-vault-api on Monad Testnet (D-1, D-5). Addresses from deployments/monad-testnet.json.
+const API_BASE_URL = process.env.VAULT_API_URL ?? "http://localhost:8081";
 
 const EIP712_DOMAIN = {
-  name: "CompliantPrivateTokenDemo",
+  name: "NoctrumPrivateToken",
   version: "0.0.1",
-  chainId: 11155111,
-  verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13" as `0x${string}`,
+  chainId: 10143,
+  verifyingContract: "0x65877F6BFd3f2D293454658BCb290b112397Eeb5" as `0x${string}`,
 };
 
 /**
