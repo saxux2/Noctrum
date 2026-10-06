@@ -1,7 +1,7 @@
 {
   "schedule": "*/15 * * * * *",
-  "noctrumApiUrl": "https://api.example.noctrum/api/v1",
-  "externalApiUrl": "https://vault-api.example.noctrum",
+  "noctrumApiUrl": "https://server-production-291b.up.railway.app/api/v1",
+  "externalApiUrl": "https://vault-api-production-30bb.up.railway.app",
   "vaultAddress": "0x65877F6BFd3f2D293454658BCb290b112397Eeb5",
   "chainId": 10143
 }

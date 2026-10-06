@@ -1,6 +1,6 @@
 {
   "schedule": "*/30 * * * * *",
-  "noctrumApiUrl": "https://api.example.noctrum/api/v1",
+  "noctrumApiUrl": "https://server-production-291b.up.railway.app/api/v1",
   "feedChainName": "ethereum-mainnet-arbitrum-1",
   "ethUsdFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
   "liquidationThreshold": 1.5

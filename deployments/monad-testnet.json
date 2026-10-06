@@ -20,5 +20,12 @@
     "lenderB": "0x888bdad2A23D3235aAc9767B7bD28517a87DFFB4",
     "borrower": "0xA8C3eb37c94914dd253f19cbA26A7e07122b84b3",
     "account2": "0xAE8B6cC890B7d9CCD955E94E701f094bF31091b6"
+  },
+  "services": {
+    "host": "Railway project noctrum (7a5448bc-7dbb-4d2e-ad98-db074471901e), environment production",
+    "server": "https://server-production-291b.up.railway.app",
+    "vaultApi": "https://vault-api-production-30bb.up.railway.app",
+    "mongo": "mongo.railway.internal:27017 (replica set rs0, private network only)",
+    "tg": "not deployed (Railway free plan service limit)"
   }
 }

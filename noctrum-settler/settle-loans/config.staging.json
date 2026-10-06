@@ -1,4 +1,4 @@
 {
   "schedule": "*/30 * * * * *",
-  "noctrumApiUrl": "https://api.example.noctrum/api/v1"
+  "noctrumApiUrl": "https://server-production-291b.up.railway.app/api/v1"
 }

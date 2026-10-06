@@ -12,7 +12,7 @@
 | D-6 | Token names/symbols | `nUSD`/`nETH` ("Noctrum USD/ETH") / other | ✅ **Decided 2026-10-06: nUSD / nETH ("Noctrum USD" / "Noctrum ETH")** | T1.3 |
 | D-7 | Proposal TTL | 5 s (Ghost demo tweak, `tasks/demo-tweaks.md` §1) / 5 min (original) | 5 s for parity | — |
 | D-8 | Wormhole chain list | Home = MonadTestnet; Sepolia becomes a source (8 chains) / drop Sepolia | Keep Sepolia as a source | T6.1 |
-| D-9 | Domains, hosting, socials (API host, app/docs/marketing domains, Discord, Telegram bot handle, careers link, GitHub org, Raycast author) | — | You provide | T5.6, T6.4, T8.1 |
+| D-9 | Domains, hosting, socials (API host, app/docs/marketing domains, Discord, Telegram bot handle, careers link, GitHub org, Raycast author) | — | ✅ **API hosting decided 2026-10-06 (T5.6): Railway**, platform domains `server-production-291b.up.railway.app`, `vault-api-production-30bb.up.railway.app`. App/docs/marketing domains, socials, GitHub org, Raycast author still open | T5.6, T6.4, T8.1 |
 | D-10 | Contracts folder | `contracts/` / keep `transfer-demo/` | ✅ **Decided 2026-10-06: `contracts/`** | T0.2 |
 | D-11 | CRE SDK version | Keep 1.1.x (parity) / upgrade to ≥ 1.19.0 | Keep unless the Monad chain is used | T4.1 |
 | D-12 | Identifier renames (`ghostApiUrl`, `TOKEN_ADDRESS`, TG hard-coded addresses) | Rename per REBRAND / keep | ✅ **Applied 2026-10-06 (T4.1): REBRAND map** (`noctrumApiUrl`, namespace `noctrum-protocol`) | T4.1, T5.1 |
@@ -70,6 +70,8 @@
 | The ticket-signer key controls withdrawals | Separate key, rotatable `ticketSigner`, 1 h expiry |
 | The indexer can miss or double-credit deposits | `finalized` tag, idempotent (txHash, logIndex), 100-block paging |
 | Monad testnet resets wipe contracts | Scripted redeploy (T3.1); addresses read from `deployments/` |
+| Railway free plan: 3 services max (TG bot not hosted), Mongo volume ~434 MB. A replica-set oplog can grow to 990 MB, and the indexer writes its cursor every poll; watch `df -h /data/db` | Paid plan or Atlas before real use |
+| Railway Mongo has no auth (private network only, no TCP proxy) | Keep it private; add a keyFile + users before exposing it |
 | Public RPC limits (50/20 rps) | Private RPC for vault-api and CRE |
 | Wormhole testnet attestation for Monad may be slow or unsupported | Bridge is non-critical; feature-flag the tab |
 
