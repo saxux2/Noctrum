@@ -43,7 +43,7 @@
 | ACE PolicyEngine v1.0.0 call interface used by the vault | not in the Ghost repo | Read `lib/chainlink-ace` source |
 | CPT ticket typed-data struct and API timestamp window | not published | Irrelevant if D-1 = B (we define our own) |
 | CPT vault `depositWithPermit` and `check*Allowed` exact signatures | names only, from the API docs | Etherscan ABI of `0xE588…2d13` on Sepolia |
-| eciesjs public-key helper API | — | eciesjs 0.4 README |
+| ✅ eciesjs public-key helper API | `PublicKey.toHex(true)` = compressed; verified with 0.4.17 on 2026-10-06 | — |
 | viem version used inside Privy (Monad recommends ≥ 2.40.0) | — | `bun pm ls` |
 
 ## C. Risks (carried from Ghost: parity means they remain)

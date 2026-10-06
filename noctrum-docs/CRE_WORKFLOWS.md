@@ -161,7 +161,8 @@ Specified fully in [BACKEND.md](BACKEND.md):
   ```bash
   bun -e 'import {PrivateKey} from "eciesjs"; const k=new PrivateKey(); console.log("priv",Buffer.from(k.secret).toString("hex")); console.log("pub",k.publicKey.toHex(true))'
   ```
-  ⚠️ VERIFY eciesjs 0.4 API for `toHex(compressed)`.
+  ✅ Verified 2026-10-06 (eciesjs 0.4.17): `PrivateKey.fromHex(priv).publicKey.toHex(true)` returns the compressed key, and encrypt/decrypt round-trips.
+  The Noctrum keypair was generated with `cast wallet new` (same secp256k1 curve). Public key: see `deployments/monad-testnet.json` `crePublicKey`; private key in `.secrets/monad-testnet.env` (gitignored).
 - Store the private key in the DON as `CRE_PRIVATE_KEY`. Put the public key in the server `CRE_PUBLIC_KEY`, the client `NEXT_PUBLIC_CRE_PUBLIC_KEY`, the TG bot `CRE_PUBLIC_KEY`, and the Raycast/e2e constants.
 
 ## 6. Sepolia → Monad diff summary

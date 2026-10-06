@@ -8,15 +8,15 @@
   "nUSD": "",
   "nETH": "",
   "NoctrumSwapPool": "",
-  "ticketSigner": "",
-  "poolWallet": "",
-  "crePublicKey": "",
+  "ticketSigner": "0x1A9605B5d766FDCD7a1d4ed6a3764F965eacAcaf",
+  "poolWallet": "0xc6faD39c8F8C8abaec2943e77670AeCDfe10f6C7",
+  "crePublicKey": "03a62ca0efd28497d24e1cc2dc587f8e7e20ebc3de0c2315778997ead8bedda649",
   "deployBlock": 0,
   "accounts": {
     "deployer": "0xeD0ee48b41BfcB01dB298A2a9E09F4b34F9B15a2",
-    "lenderA": "",
-    "lenderB": "",
-    "borrower": "",
-    "account2": ""
+    "lenderA": "0x9F064C4b94a4c68d5dbE3edDE3742b3A7EA730C6",
+    "lenderB": "0x888bdad2A23D3235aAc9767B7bD28517a87DFFB4",
+    "borrower": "0xA8C3eb37c94914dd253f19cbA26A7e07122b84b3",
+    "account2": "0xAE8B6cC890B7d9CCD955E94E701f094bF31091b6"
   }
 }
