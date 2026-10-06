@@ -5,7 +5,7 @@ title: Rejection Penalty
 
 # Rejection Penalty
 
-GHOST imposes a 5% collateral penalty on borrowers who reject match proposals. This mechanism prevents option seeking behavior and ensures that the matching engine's work translates into actual loans.
+NOCTRUM imposes a 5% collateral penalty on borrowers who reject match proposals. This mechanism prevents option seeking behavior and ensures that the matching engine's work translates into actual loans.
 
 ## The Problem
 
@@ -15,7 +15,7 @@ Without a rejection penalty, a rational borrower could:
 2. Receive a match proposal
 3. Observe current market conditions externally
 4. Reject the proposal if they find a better rate elsewhere
-5. Repeat, using GHOST proposals as free options on rate discovery
+5. Repeat, using NOCTRUM proposals as free options on rate discovery
 
 This behavior wastes lender liquidity (their ticks are locked during the proposal window) and CRE compute resources (the matching engine runs for proposals that will be rejected).
 

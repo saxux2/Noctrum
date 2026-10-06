@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { site } from "@/constants/links";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
-    sitemap: "https://ghost-finance.xyz/sitemap.xml",
+    sitemap: `${site}/sitemap.xml`,
   };
 }

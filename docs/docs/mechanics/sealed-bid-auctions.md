@@ -5,11 +5,11 @@ title: Sealed Bid Auctions
 
 # Sealed Bid Auctions
 
-GHOST implements a sealed bid discriminatory price auction for interest rate discovery. This section explains the auction format, why it was chosen, and how it differs from common alternatives.
+NOCTRUM implements a sealed bid discriminatory price auction for interest rate discovery. This section explains the auction format, why it was chosen, and how it differs from common alternatives.
 
 ## Auction Format
 
-In a standard open order book lending market, rates are visible to all participants. GHOST instead operates as a periodic sealed bid auction:
+In a standard open order book lending market, rates are visible to all participants. NOCTRUM instead operates as a periodic sealed bid auction:
 
 1. **Submission phase:** Lenders submit encrypted rate bids during an epoch window. Borrowers submit borrow intents with their maximum acceptable rate.
 2. **Matching phase:** At the end of each epoch (every 30 seconds), the CRE decrypts all bids inside the TEE and runs the matching engine.
@@ -19,7 +19,7 @@ In a standard open order book lending market, rates are visible to all participa
 
 In a **uniform price auction**, all winning bidders pay the same clearing price (typically the highest accepted bid). In a **discriminatory price auction**, each winning bidder pays their own bid.
 
-GHOST uses discriminatory pricing for several reasons:
+NOCTRUM uses discriminatory pricing for several reasons:
 
 | Property | Uniform Price | Discriminatory Price |
 |----------|--------------|---------------------|
@@ -29,7 +29,7 @@ GHOST uses discriminatory pricing for several reasons:
 | Revenue to borrower | Generally higher | Generally lower (better for borrowers) |
 | Strategic complexity | Bid shading (bid below true value) is optimal | Truthful bidding is approximately optimal |
 
-The discriminatory format aligns with GHOST's privacy goals because there is no single clearing rate to publish. Each lender's rate remains private even after matching, since the borrower only sees the blended effective rate.
+The discriminatory format aligns with NOCTRUM's privacy goals because there is no single clearing rate to publish. Each lender's rate remains private even after matching, since the borrower only sees the blended effective rate.
 
 ## Sealed Bid Properties
 
@@ -66,7 +66,7 @@ The matching engine runs on a fixed epoch schedule (configurable, default 30 sec
 |----------|-------------|---------------|-------------------|
 | Open order book (Aave style) | None | Low | High (instant matching) |
 | Commit reveal auction | During commit phase only | Medium | Medium (two phase delay) |
-| GHOST sealed bid | Full (encrypted until CRE match) | High | Medium (epoch delay) |
+| NOCTRUM sealed bid | Full (encrypted until CRE match) | High | Medium (epoch delay) |
 | Frequent batch auction | None (rates visible) | High | Medium (batch delay) |
 
-GHOST's approach uniquely combines rate privacy with MEV resistance. The commit reveal pattern achieves temporary privacy but reveals rates during the reveal phase. GHOST never reveals individual rates outside the TEE.
+NOCTRUM's approach uniquely combines rate privacy with MEV resistance. The commit reveal pattern achieves temporary privacy but reveals rates during the reveal phase. NOCTRUM never reveals individual rates outside the TEE.

@@ -17,7 +17,7 @@ The hackathon version uses Chainlink's generic Compliant Private Transfer vault 
 |----------|-------|
 | Contract Address | `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13` |
 | Chain | Ethereum Sepolia (11155111) |
-| Tokens | gUSD, gETH |
+| Tokens | nUSD, nETH |
 | Balance Model | Off chain (shielded balances tracked by vault) |
 
 ### Fund Flow
@@ -30,7 +30,7 @@ The hackathon version uses Chainlink's generic Compliant Private Transfer vault 
 
 ### Pool Wallet
 
-The GHOST protocol operates a pool wallet that acts as an intermediary for all protocol fund movements:
+The NOCTRUM protocol operates a pool wallet that acts as an intermediary for all protocol fund movements:
 
 - Lenders private transfer to the pool address when depositing
 - The pool private transfers to borrowers when disbursing loans
@@ -62,13 +62,13 @@ async function privateTransfer(params: {
 
 ## Production Architecture
 
-The production version replaces the generic vault with the GhostVault contract (see the GhostVault Contract page).
+The production version replaces the generic vault with the NoctrumVault contract (see the NoctrumVault Contract page).
 
 ### Key Differences
 
 | Aspect | Hackathon | Production |
 |--------|-----------|------------|
-| Vault Contract | Generic Chainlink vault | Custom GhostVault |
+| Vault Contract | Generic Chainlink vault | Custom NoctrumVault |
 | Balance Model | Off chain shielded | On chain with Pedersen commitments (future) |
 | Collateral Locking | In memory (server state) | On chain `lockedBalances` mapping |
 | Fund Movement Auth | Pool wallet signature | DON threshold report |
@@ -79,8 +79,8 @@ The production version replaces the generic vault with the GhostVault contract (
 
 | Data | Hackathon Location | Production Location |
 |------|-------------------|-------------------|
-| User balances | Vault (off chain) + server | GhostVault contract |
-| Collateral locks | Server in memory | GhostVault `lockedBalances` |
+| User balances | Vault (off chain) + server | NoctrumVault contract |
+| Collateral locks | Server in memory | NoctrumVault `lockedBalances` |
 | Encrypted intents | Server MongoDB | Server MongoDB (unchanged) |
 | Loan records | Server MongoDB | Server MongoDB + on chain summary hash |
 | Credit scores | Server MongoDB | Server MongoDB (privacy sensitive) |
@@ -92,7 +92,7 @@ In production, the CRE does not use the `execute-transfers` workflow at all. Ins
 
 1. CRE matches loans and generates a settlement report
 2. The report is signed by DON threshold (multiple nodes)
-3. The report is submitted to `GhostVault.onReport()`
+3. The report is submitted to `NoctrumVault.onReport()`
 4. The contract verifies signatures and executes all operations atomically
 5. Fund movements, lock changes, and state updates happen in a single transaction
 

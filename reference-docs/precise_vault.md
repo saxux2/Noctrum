@@ -1,4 +1,4 @@
-# GHOST Vault: Application-Specific Confidential Vault (ASCV)
+# NOCTRUM Vault: Application-Specific Confidential Vault (ASCV)
 
 **Version 0.1 | March 2026 | Proposed to Chainlink Engineering**
 
@@ -6,7 +6,7 @@
 
 ## 1. Problem Statement
 
-GHOST Protocol uses Chainlink's `DemoCompliantPrivateTokenVault` for all fund custody. That vault is a general-purpose ERC20 escrow — it has zero awareness of lending. Every privacy guarantee depends on an off-chain API operator, not cryptography.
+NOCTRUM Protocol uses Chainlink's `DemoCompliantPrivateTokenVault` for all fund custody. That vault is a general-purpose ERC20 escrow — it has zero awareness of lending. Every privacy guarantee depends on an off-chain API operator, not cryptography.
 
 | Problem | Impact |
 |---------|--------|
@@ -23,7 +23,7 @@ GHOST Protocol uses Chainlink's `DemoCompliantPrivateTokenVault` for all fund cu
 
 ## 2. Current vs Proposed: Side-by-Side
 
-| Dimension | Current (`DemoCompliantPrivateTokenVault`) | Proposed (`GhostVault`) |
+| Dimension | Current (`DemoCompliantPrivateTokenVault`) | Proposed (`NoctrumVault`) |
 |-----------|------------------------------------------|------------------------|
 | **Balance Privacy** | Off-chain API tracks balances (trusted operator) | On-chain Pedersen commitments verified by SNARKs |
 | **Transfer Privacy** | Off-chain API hides sender/recipient/amount | On-chain: only nullifiers + commitments visible |
@@ -43,7 +43,7 @@ GHOST Protocol uses Chainlink's `DemoCompliantPrivateTokenVault` for all fund cu
 
 ```
 CLIENT (Next.js)                     ON-CHAIN                          CRE (Chainlink DON)
- - ECIES rate encryption              GhostVault.sol                    - Rate decryption
+ - ECIES rate encryption              NoctrumVault.sol                    - Rate decryption
  - SNARK proof gen (snarkjs WASM)       Commitment Merkle tree           - Matching engine
  - Stealth address derivation           Nullifier set                   - ZK proof generation
  - EIP-712 signing                      SNARK verifiers                 - DON attestations
@@ -51,7 +51,7 @@ CLIENT (Next.js)                     ON-CHAIN                          CRE (Chai
         |                               Lock / Release / Liquidate       |
         +------- proofs + sigs ------> LoanLedger.sol         <---------+
                                         Loan records + interest          |
-                                       GhostRouter.sol                   |
+                                       NoctrumRouter.sol                   |
                                         Atomic CRE entry point  <--------+
                                        ACEHook.sol
                                         PolicyEngine compliance
@@ -67,18 +67,18 @@ CLIENT (Next.js)                     ON-CHAIN                          CRE (Chai
 
 | Contract | Role | Proxy | State |
 |----------|------|-------|-------|
-| **GhostVault.sol** | Core vault: deposit, transfer, withdraw via ZK proofs | UUPS | Merkle root, nullifier set, leaf index |
+| **NoctrumVault.sol** | Core vault: deposit, transfer, withdraw via ZK proofs | UUPS | Merkle root, nullifier set, leaf index |
 | **CollateralManager.sol** | Lock/release/seize collateral for loans | UUPS | Locked notes mapping, circuit breaker |
 | **LoanLedger.sol** | On-chain loan records with privacy | UUPS | Loan records (hashed borrower, committed amounts) |
-| **GhostRouter.sol** | CRE orchestrator for atomic multi-contract ops | Immutable | None (stateless) |
+| **NoctrumRouter.sol** | CRE orchestrator for atomic multi-contract ops | Immutable | None (stateless) |
 | **ACEHook.sol** | Compliance wrapper for Chainlink PolicyEngine | Immutable | None (delegates to PolicyEngine) |
 | **Groth16Verifier.sol** (x5) | One per ZK circuit | Immutable | None |
 | **InterestAccrual.sol** | Pure math library | Library | None |
 
-### 4.2 GhostVault.sol — Core Interface
+### 4.2 NoctrumVault.sol — Core Interface
 
 ```solidity
-interface IGhostVault {
+interface INoctrumVault {
     // Deposit ERC20, create Pedersen commitment on-chain
     function deposit(
         address token,
@@ -168,7 +168,7 @@ What's on-chain vs what's hidden:
 | Number of lenders | Yes | — |
 | Lender identities | No | Only CRE knows |
 
-### 4.5 GhostRouter.sol — Atomic CRE Operations
+### 4.5 NoctrumRouter.sol — Atomic CRE Operations
 
 CRE calls one function per lifecycle event. All sub-operations succeed or all revert.
 
@@ -296,7 +296,7 @@ Replaces the external API's `/shielded-address` endpoint with cryptographic stea
 | **Scan** | CRE (viewing key) | For each `E`: `shared = v*E`, check if `addr == S + Poseidon(shared)*G` |
 | **Spend** | User (spending key) | Stealth spending key `s' = s + Poseidon(shared)`. Prove knowledge of `s'` in ZK. |
 
-**No extra keys for users:** `spending_key = Poseidon(eth_private_key, "ghost-spending-v1")`
+**No extra keys for users:** `spending_key = Poseidon(eth_private_key, "noctrum-spending-v1")`
 
 ---
 
@@ -322,7 +322,7 @@ Preserves Chainlink ACE PolicyEngine + adds ZK privacy for transfers.
 
 ### Per-Operation
 
-| Operation | Current Vault | GhostVault | Tornado Cash | Aztec |
+| Operation | Current Vault | NoctrumVault | Tornado Cash | Aztec |
 |-----------|--------------|------------|-------------|-------|
 | Deposit | ~80K | ~287K | ~900K | ~500K |
 | Transfer | 0 (off-chain) | ~284K | N/A | ~500K |
@@ -355,11 +355,11 @@ Preserves Chainlink ACE PolicyEngine + adds ZK privacy for transfers.
 
 | Location | What's Stored | Size |
 |----------|--------------|------|
-| **On-chain (GhostVault)** | Merkle root, nullifier set, leaf index | ~32B root + 32B per spent note |
+| **On-chain (NoctrumVault)** | Merkle root, nullifier set, leaf index | ~32B root + 32B per spent note |
 | **On-chain (CollateralManager)** | Locked note set, circuit breaker | 32B per active loan |
 | **On-chain (LoanLedger)** | Loan records (160B each, packed 5 slots) | 160B per loan |
 | **CRE (confidential)** | CRE private key, pool spending key, decrypted rates, pool note preimages, Merkle witnesses | Ephemeral per-epoch |
-| **GHOST Server** | Intents, proposals, credit scores, Merkle tree mirror, note index | In-memory (existing + mirror) |
+| **NOCTRUM Server** | Intents, proposals, credit scores, Merkle tree mirror, note index | In-memory (existing + mirror) |
 | **ZK circuits (ephemeral)** | Note preimages, Merkle paths, blinding factors | Only during proof generation |
 
 ---
@@ -368,9 +368,9 @@ Preserves Chainlink ACE PolicyEngine + adds ZK privacy for transfers.
 
 | Entity | Trusted For | Can It Steal Funds? | Can It Censor? | Verifiable? |
 |--------|------------|-------------------|---------------|-------------|
-| **GhostVault (on-chain)** | State transitions, custody | No (code is law) | No | Yes (open source) |
+| **NoctrumVault (on-chain)** | State transitions, custody | No (code is law) | No | Yes (open source) |
 | **CRE (DON)** | Rate decryption, matching, proof generation | No (proofs verified on-chain) | Yes (can refuse to match) | Partially (threshold encryption) |
-| **GHOST Server** | Availability, metadata | No (no spending key, can't forge proofs) | Yes (can hide intents) | No trust needed for correctness |
+| **NOCTRUM Server** | Availability, metadata | No (no spending key, can't forge proofs) | Yes (can hide intents) | No trust needed for correctness |
 | **Users** | Own note security, proof generation | N/A | N/A | Yes (proofs verified on-chain) |
 | **Chainlink Feeds** | Price accuracy | No | No | Yes (decentralized oracle) |
 
@@ -380,15 +380,15 @@ Preserves Chainlink ACE PolicyEngine + adds ZK privacy for transfers.
 
 | Phase | Timeline | Deliverable |
 |-------|----------|-------------|
-| **Phase 1: Parallel** | Weeks 1-6 | GhostVault deployed alongside current vault. Both work. Feature flag: `VAULT_BACKEND=cpt\|ghost\|both`. v1 routes unchanged, v2 routes added. |
+| **Phase 1: Parallel** | Weeks 1-6 | NoctrumVault deployed alongside current vault. Both work. Feature flag: `VAULT_BACKEND=cpt\|noctrum\|both`. v1 routes unchanged, v2 routes added. |
 | **Phase 2: Parity** | Weeks 7-10 | Collateral locking, liquidation proofs, client-side SNARK prover (snarkjs WASM in browser), stealth addresses, note backup UX. |
-| **Phase 3: Standalone** | Weeks 11-14 | Atomic migration contract (CPT withdraw + GhostVault deposit in one tx). Remove `external-api.ts`, remove v1 routes, remove feature flags. |
+| **Phase 3: Standalone** | Weeks 11-14 | Atomic migration contract (CPT withdraw + NoctrumVault deposit in one tx). Remove `external-api.ts`, remove v1 routes, remove feature flags. |
 
 ### Migration Contract (Atomic)
 
 ```
 1. CPT.withdrawWithTicket(token, amount, ticket)   // pull from old vault
-2. GhostVault.deposit(token, amount, comm, proof)   // push to new vault
+2. NoctrumVault.deposit(token, amount, comm, proof)   // push to new vault
 // Single transaction — no intermediate state
 ```
 
@@ -410,10 +410,10 @@ const proof = await prover.prove(runtime, {
 
 // Submit to on-chain verifier
 await runtime.capabilities.EVMClient()
-    .submitTransaction(ghostVaultAddr, 'transfer', [..., proof]);
+    .submitTransaction(noctrumVaultAddr, 'transfer', [..., proof]);
 ```
 
-Any CRE workflow could then generate ZK proofs — not just GHOST. This turns CRE into a general-purpose privacy engine.
+Any CRE workflow could then generate ZK proofs — not just NOCTRUM. This turns CRE into a general-purpose privacy engine.
 
 ---
 
@@ -425,7 +425,7 @@ Any CRE workflow could then generate ZK proofs — not just GHOST. This turns CR
 | **New `ZKProverCapability`** | Reusable across any CRE workflow. Enables private DEXs, private payroll, private voting — all on CRE. |
 | **Reduces operational burden** | Chainlink no longer operates the CPT vault API as a centralized service. Custody moves to smart contracts. |
 | **ACE/PolicyEngine preserved** | Every deposit checks compliance. ZK-KYC extends compliance to private transfers. |
-| **Generalizable pattern (ASCV)** | GhostVault is a template. Chainlink can productize "Application-Specific Confidential Vaults" for any use case. |
+| **Generalizable pattern (ASCV)** | NoctrumVault is a template. Chainlink can productize "Application-Specific Confidential Vaults" for any use case. |
 | **Competitive moat** | No other platform combines: ZK proofs inside confidential compute + DON attestations + compliance hooks + working lending reference. |
 
 ---
@@ -446,18 +446,18 @@ Any CRE workflow could then generate ZK proofs — not just GHOST. This turns CR
 
 | Mechanism | Contract | Detail |
 |-----------|----------|--------|
-| **Granular pause** | GhostVault | Pause deposits, transfers, withdrawals, or lending independently |
+| **Granular pause** | NoctrumVault | Pause deposits, transfers, withdrawals, or lending independently |
 | **Circuit breaker** | CollateralManager | Max 10 liquidations/hour; prevents flash-loan mass liquidation |
 | **Timelock** | All proxies | 48h delay on upgrades, 3/5 multisig |
 | **Instant pause** | All | Emergency pause without timelock (multisig only) |
 | **Interest staleness** | LoanLedger | If no checkpoint in 24h, freeze accrual at last value |
-| **Client fallback** | GhostVault | Users generate transfer/withdraw proofs in browser if CRE is down |
+| **Client fallback** | NoctrumVault | Users generate transfer/withdraw proofs in browser if CRE is down |
 
 ---
 
 ## 17. Summary Differentiation Table
 
-| Feature | Chainlink CPT Vault | GhostVault (ASCV) | Tornado Cash | Aztec Connect | Aave |
+| Feature | Chainlink CPT Vault | NoctrumVault (ASCV) | Tornado Cash | Aztec Connect | Aave |
 |---------|--------------------|--------------------|-------------|---------------|------|
 | Balance privacy | Off-chain (trust) | On-chain ZK (verify) | On-chain ZK | On-chain ZK | None |
 | Lending support | None | Native (collateral, liquidation, interest) | None | Generic DeFi | Native but public |
@@ -474,5 +474,5 @@ Any CRE workflow could then generate ZK proofs — not just GHOST. This turns CR
 
 ---
 
-*GHOST Protocol | Private P2P Lending with Tick-Based Rate Discovery*
+*NOCTRUM Protocol | Private P2P Lending with Tick-Based Rate Discovery*
 *Built on Chainlink CRE | Proposed March 2026*

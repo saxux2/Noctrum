@@ -69,11 +69,11 @@ When the engine produces a valid match, it generates a proposal with the followi
 | `proposalId` | string | Unique identifier for this proposal |
 | `borrowIntentId` | string | Reference to the original borrow intent |
 | `borrower` | address | Borrower's Ethereum address |
-| `token` | address | The lending token (e.g., gUSD) |
+| `token` | address | The lending token (e.g., nUSD) |
 | `principal` | BigInt | Total matched amount |
 | `matchedTicks` | array | List of `{ lender, lendIntentId, amount, rate }` |
 | `effectiveBorrowerRate` | number | Weighted average rate across all ticks |
-| `collateralToken` | address | The collateral token (e.g., gETH) |
+| `collateralToken` | address | The collateral token (e.g., nETH) |
 | `collateralAmount` | BigInt | Total collateral posted by borrower |
 | `status` | string | Initially `pending` |
 | `expiresAt` | timestamp | Deadline for borrower acceptance |
@@ -86,7 +86,7 @@ If a proposal is rejected or expires, the locked ticks are released back to the 
 
 ## Edge Cases
 
-**Partial fills.** A single lend intent can be partially consumed by a match. The remaining amount stays available for future matching. This means a lender's 10,000 gUSD at 4% could be split across multiple borrowers.
+**Partial fills.** A single lend intent can be partially consumed by a match. The remaining amount stays available for future matching. This means a lender's 10,000 nUSD at 4% could be split across multiple borrowers.
 
 **Insufficient liquidity.** If total available lending liquidity cannot cover a borrow intent, that borrow is skipped entirely. No partial borrowing is allowed (a borrower either gets their full amount or nothing).
 

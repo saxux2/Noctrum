@@ -5,7 +5,7 @@ title: Tick Based Rate Discovery
 
 # Tick Based Rate Discovery
 
-GHOST uses a tick based rate model inspired by the framework in Eli and Alexandre (2025). Rather than a single pool rate, each lender specifies an individual rate "tick" at which they are willing to lend. This creates a discrete supply curve of available liquidity at different price points.
+NOCTRUM uses a tick based rate model inspired by the framework in Eli and Alexandre (2025). Rather than a single pool rate, each lender specifies an individual rate "tick" at which they are willing to lend. This creates a discrete supply curve of available liquidity at different price points.
 
 ## Rate Tick Formalism
 
@@ -59,16 +59,16 @@ Consider three lenders and one borrower:
 
 | Lender | Amount | Rate |
 |--------|--------|------|
-| Alice | 5,000 gUSD | 3.5% |
-| Bob | 10,000 gUSD | 4.0% |
-| Carol | 8,000 gUSD | 5.0% |
+| Alice | 5,000 nUSD | 3.5% |
+| Bob | 10,000 nUSD | 4.0% |
+| Carol | 8,000 nUSD | 5.0% |
 
-A borrower requests 12,000 gUSD with a max rate of 4.5%.
+A borrower requests 12,000 nUSD with a max rate of 4.5%.
 
 **Matching process:**
 1. Fill Alice's tick entirely: 5,000 at 3.5%
 2. Fill 7,000 of Bob's tick: 7,000 at 4.0%
-3. Total filled: 12,000 gUSD
+3. Total filled: 12,000 nUSD
 
 **Effective borrower rate:** `(5000 * 0.035 + 7000 * 0.04) / 12000 = 3.79%`
 

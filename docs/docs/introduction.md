@@ -5,9 +5,9 @@ title: Introduction
 id: introduction
 ---
 
-# GHOST Protocol
+# NOCTRUM Protocol
 
-GHOST (Generalized Heuristic for Obfuscated Settlement and Transfer) is a privacy preserving peer to peer lending protocol built on Chainlink's Confidential Runtime Environment (CRE). It implements sealed bid discriminatory price auctions for interest rate discovery, ensuring that no party other than the Chainlink CRE can observe plaintext lending rates.
+NOCTRUM is a privacy preserving peer to peer lending protocol built on Chainlink's Confidential Runtime Environment (CRE). It implements sealed bid discriminatory price auctions for interest rate discovery, ensuring that no party other than the Chainlink CRE can observe plaintext lending rates.
 
 ## The Problem
 
@@ -21,17 +21,17 @@ Traditional DeFi lending protocols suffer from three fundamental issues:
 
 ## The Solution
 
-GHOST addresses these issues through three mechanisms:
+NOCTRUM addresses these issues through three mechanisms:
 
-**Sealed bid auctions.** Lenders encrypt their rate bids using the CRE's public key (ECIES on secp256k1). The encrypted bids are stored on the GHOST server, which cannot decrypt them. Only the CRE, running inside a trusted execution environment, can decrypt and process the rates during matching.
+**Sealed bid auctions.** Lenders encrypt their rate bids using the CRE's public key (ECIES on secp256k1). The encrypted bids are stored on the NOCTRUM server, which cannot decrypt them. Only the CRE, running inside a trusted execution environment, can decrypt and process the rates during matching.
 
-**Discriminatory pricing.** Unlike uniform price auctions where all winners pay the same price, GHOST uses discriminatory pricing where each lender earns their individual bid rate. This eliminates free riding and incentivizes truthful bidding, since underbidding reduces earnings while overbidding risks not being matched.
+**Discriminatory pricing.** Unlike uniform price auctions where all winners pay the same price, NOCTRUM uses discriminatory pricing where each lender earns their individual bid rate. This eliminates free riding and incentivizes truthful bidding, since underbidding reduces earnings while overbidding risks not being matched.
 
-**Three layer separation.** Fund custody (Chainlink vault), intent storage (GHOST server), and rate settlement (CRE) operate in independent trust domains. Compromising any single layer does not break the privacy or safety guarantees of the other two.
+**Three layer separation.** Fund custody (Chainlink vault), intent storage (NOCTRUM server), and rate settlement (CRE) operate in independent trust domains. Compromising any single layer does not break the privacy or safety guarantees of the other two.
 
 ## How It Works
 
-1. Lenders deposit funds into the Chainlink Compliant Private Transfer vault and private transfer them to the GHOST pool address
+1. Lenders deposit funds into the Chainlink Compliant Private Transfer vault and private transfer them to the NOCTRUM pool address
 2. Lenders submit encrypted rate bids specifying the interest rate they want to earn
 3. Borrowers submit borrow intents specifying the amount needed, collateral offered, and maximum acceptable rate
 4. The CRE decrypts all rates inside the TEE, runs the matching engine, and generates match proposals
@@ -57,12 +57,12 @@ GHOST addresses these issues through three mechanisms:
 
 | Directory | Purpose |
 |-----------|---------|
-| `server/` | GHOST API server (Hono + Bun) |
-| `ghost-settler/` | CRE workflow definitions (settle, execute, monitor) |
+| `server/` | NOCTRUM API server (Hono + Bun) |
+| `noctrum-settler/` | CRE workflow definitions (settle, execute, monitor) |
 | `e2e-test/` | End to end integration test scripts |
 | `frontend/` | Next.js marketing and landing site |
 | `client/` | Next.js application frontend |
-| `ghost-tg/` | Telegram bot interface |
-| `ghost-raycast/` | Raycast extension |
+| `noctrum-tg/` | Telegram bot interface |
+| `noctrum-raycast/` | Raycast extension |
 | `transfer-demo/` | Foundry smart contract demos |
 | `reference-docs/` | Architecture documents and litepaper |

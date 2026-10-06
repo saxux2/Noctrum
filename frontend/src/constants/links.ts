@@ -1,14 +1,26 @@
+// TODO(D-9): domains and socials are undecided. Domains are placeholders;
+// socials that would point at the old project's accounts are "#" until decided.
+export const site = "https://example.noctrum";
+
+const app = "https://app.example.noctrum/";
+const docs = "https://docs.example.noctrum/";
+
 export const links = {
-  app: "https://app.ghost-finance.xyz/",
-  lend: "https://app.ghost-finance.xyz/",
-  borrow: "https://app.ghost-finance.xyz/",
-  raycast: "https://github.com/snehendu098/ghost/tree/main/ghost-raycast",
-  careers:
-    "https://tattered-elm-7ca.notion.site/Careers-at-Ghost-Finance-31c9eec45dff80b8989fdf81a7373b12",
-  docs: "https://docs.ghost-finance.xyz/",
-  litepaper: "https://docs.ghost-finance.xyz/",
-  blog: "https://docs.ghost-finance.xyz/",
-  tokenomics: "https://docs.ghost-finance.xyz/protocol/tokenomics",
-  discord: "https://discord.gg/5JYesEts7j",
-  telegram: "https://t.me/ghostfinancetg_bot",
-} as const;
+  app,
+  lend: app,
+  borrow: app,
+  explore: `${app}explore`,
+  raycast: "#",
+  careers: "#",
+  docs,
+  litepaper: docs,
+  blog: docs,
+  tokenomics: `${docs}protocol/tokenomics`,
+  privacyModel: `${docs}protocol/privacy-model`,
+  trustModel: `${docs}protocol/trust-model`,
+  creWorkflows: `${docs}cre-workflows/overview`,
+  creditTiers: `${docs}incentives/credit-tiers`,
+  x: "#",
+  discord: "#",
+  telegram: "#",
+};

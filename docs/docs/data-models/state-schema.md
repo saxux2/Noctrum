@@ -5,7 +5,7 @@ title: State Schema
 
 # State Schema
 
-GHOST stores all protocol state in MongoDB via Mongoose models. This page documents each model's fields, types, and relationships.
+NOCTRUM stores all protocol state in MongoDB via Mongoose models. This page documents each model's fields, types, and relationships.
 
 ## DepositSlot
 

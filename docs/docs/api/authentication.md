@@ -5,7 +5,7 @@ title: Authentication
 
 # Authentication
 
-GHOST uses two authentication mechanisms: EIP 712 typed data signatures for user facing endpoints and API key authentication for internal CRE endpoints.
+NOCTRUM uses two authentication mechanisms: EIP 712 typed data signatures for user facing endpoints and API key authentication for internal CRE endpoints.
 
 ## EIP 712 Typed Data Signatures
 
@@ -15,7 +15,7 @@ All user facing endpoints require an EIP 712 signature that proves the request w
 
 ```typescript
 const EIP712_DOMAIN = {
-  name: "GhostProtocol",
+  name: "NoctrumProtocol",
   version: "0.0.1",
   chainId: 11155111,  // Sepolia
   verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13"  // Vault address
@@ -79,7 +79,7 @@ const wallet = new ethers.Wallet(privateKey);
 
 const signature = await wallet.signTypedData(
   {
-    name: "GhostProtocol",
+    name: "NoctrumProtocol",
     version: "0.0.1",
     chainId: 11155111,
     verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13",

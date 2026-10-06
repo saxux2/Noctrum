@@ -3,16 +3,16 @@
 @theme {
   --font-sans: var(--font-sans, "Poppins"), ui-sans-serif, system-ui, sans-serif;
 
-  --color-ghost-purple: #a855f7;
-  --color-ghost-purple-light: #e2a9f1;
-  --color-ghost-purple-dark: #7c3aed;
-  --color-ghost-dark: #101010;
-  --color-ghost-surface: #1a1a1a;
-  --color-ghost-card: #161616;
-  --color-ghost-border: rgba(255, 255, 255, 0.1);
-  --color-ghost-border-hover: rgba(255, 255, 255, 0.15);
-  --color-ghost-muted: #a1a1aa;
-  --color-ghost-accent: #e2a9f1;
+  --color-noctrum-purple: #a855f7;
+  --color-noctrum-purple-light: #e2a9f1;
+  --color-noctrum-purple-dark: #7c3aed;
+  --color-noctrum-dark: #101010;
+  --color-noctrum-surface: #1a1a1a;
+  --color-noctrum-card: #161616;
+  --color-noctrum-border: rgba(255, 255, 255, 0.1);
+  --color-noctrum-border-hover: rgba(255, 255, 255, 0.15);
+  --color-noctrum-muted: #a1a1aa;
+  --color-noctrum-accent: #e2a9f1;
 }
 
 html {

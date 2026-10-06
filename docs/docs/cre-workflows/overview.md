@@ -5,7 +5,7 @@ title: Overview
 
 # CRE Workflows
 
-Chainlink's Confidential Runtime Environment (CRE) is the computational brain of GHOST. It runs three cron triggered workflows that handle matching, fund execution, and health monitoring. Each workflow executes inside a trusted execution environment where encrypted data can be safely decrypted and processed.
+Chainlink's Confidential Runtime Environment (CRE) is the computational brain of NOCTRUM. It runs three cron triggered workflows that handle matching, fund execution, and health monitoring. Each workflow executes inside a trusted execution environment where encrypted data can be safely decrypted and processed.
 
 ## Workflow Summary
 
@@ -21,13 +21,13 @@ All workflows use the `@chainlink/cre-sdk` package. The key primitives are:
 
 ### ConfidentialHTTPClient
 
-Used for encrypted HTTP communication between the CRE and the GHOST server:
+Used for encrypted HTTP communication between the CRE and the NOCTRUM server:
 
 ```typescript
 import { ConfidentialHTTPClient } from "@chainlink/cre-sdk";
 
 const response = ConfidentialHTTPClient.sendRequest(runtime, {
-  url: `${config.ghostApiUrl}/api/v1/internal/pending-intents`,
+  url: `${config.noctrumApiUrl}/api/v1/internal/pending-intents`,
   method: "GET",
   headers: {
     "x-api-key": config.internalApiKey,
@@ -73,7 +73,7 @@ CRE workflows are **stateless**. Each execution cycle:
 
 1. Receives a trigger event (cron tick)
 2. Reads configuration from `config.staging.json` and DON secrets
-3. Fetches current state from external sources (GHOST API, chain)
+3. Fetches current state from external sources (NOCTRUM API, chain)
 4. Performs computation (matching, signing, health checks)
 5. Writes results back to external destinations
 6. Returns a string result (logged by the DON)
@@ -104,7 +104,7 @@ Each workflow has a `config.staging.json` that defines:
 ```json
 {
   "schedule": "every 30 seconds",
-  "ghostApiUrl": "https://ghost-api.example.com",
+  "noctrumApiUrl": "https://api.example.noctrum",
   "internalApiKey": "DON_SECRET:internal_api_key",
   "externalApiUrl": "DON_SECRET:external_api_url",
   "vaultAddress": "0xE588...",

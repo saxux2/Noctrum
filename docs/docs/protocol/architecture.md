@@ -5,7 +5,7 @@ title: Architecture
 
 # Three Layer Architecture
 
-GHOST separates concerns across three independent trust domains. Each layer has a distinct role, distinct data access, and distinct failure modes. This separation ensures that compromising any single layer cannot break the privacy or safety guarantees of the others.
+NOCTRUM separates concerns across three independent trust domains. Each layer has a distinct role, distinct data access, and distinct failure modes. This separation ensures that compromising any single layer cannot break the privacy or safety guarantees of the others.
 
 ## Layer 1: Custody Layer
 
@@ -17,13 +17,13 @@ The custody layer is responsible for holding user funds. In the current implemen
 - Execute private transfers between shielded addresses
 - Process withdrawals back to on chain balances
 
-**Key property:** Funds can only move via user initiated actions (deposits, withdrawals) or valid DON signed reports (private transfers). The GHOST server cannot move funds directly.
+**Key property:** Funds can only move via user initiated actions (deposits, withdrawals) or valid DON signed reports (private transfers). The NOCTRUM server cannot move funds directly.
 
-**Tokens supported:** gUSD (synthetic USD stablecoin) and gETH (synthetic ETH) on Sepolia.
+**Tokens supported:** nUSD (synthetic USD stablecoin) and nETH (synthetic ETH) on Sepolia.
 
 ## Layer 2: Blind Storage Layer
 
-The GHOST API server acts as a "dumb blob store" for encrypted intents and protocol state. It is built with Hono on Bun and stores data in MongoDB.
+The NOCTRUM API server acts as a "dumb blob store" for encrypted intents and protocol state. It is built with Hono on Bun and stores data in MongoDB.
 
 **Responsibilities:**
 - Store encrypted lend intents (cannot read the encrypted rates)
@@ -53,7 +53,7 @@ Chainlink's CRE runs the core protocol logic inside a trusted execution environm
 The typical lifecycle of a lending operation flows through all three layers:
 
 1. **User deposits** tokens into the custody layer (on chain transaction)
-2. **User private transfers** tokens to the GHOST pool shielded address (vault API)
+2. **User private transfers** tokens to the NOCTRUM pool shielded address (vault API)
 3. **Server records** the deposit slot and associates it with the user's encrypted rate bid
 4. **CRE fetches** pending intents from the server via ConfidentialHTTPClient
 5. **CRE decrypts** rates inside the TEE, runs matching, and posts proposals back to the server
@@ -66,9 +66,9 @@ The typical lifecycle of a lending operation flows through all three layers:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/ghost` |
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/noctrum` |
 | `POOL_PRIVATE_KEY` | Pool wallet private key for signing transfers | Required |
-| `TOKEN_ADDRESS` | gUSD token contract address | Required |
+| `TOKEN_ADDRESS` | nUSD token contract address | Required |
 | `CRE_PUBLIC_KEY` | secp256k1 public key for ECIES encryption | Required |
 | `EXTERNAL_API_URL` | Chainlink vault API base URL | `convergence2026-token-api.cldev.cloud` |
 | `EXTERNAL_VAULT_ADDRESS` | Vault contract address | `0xE588...` |
@@ -77,4 +77,4 @@ The typical lifecycle of a lending operation flows through all three layers:
 | `INTERNAL_API_KEY` | Authentication key for CRE internal endpoints | Required |
 | `ARBITRUM_RPC_URL` | Arbitrum RPC for price feed reads | Required |
 | `ETH_USD_FEED` | Chainlink ETH/USD feed address | Required |
-| `GETH_ADDRESS` | Synthetic gETH token address | Required |
+| `NETH_ADDRESS` | Synthetic nETH token address | Required |

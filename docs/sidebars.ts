@@ -80,7 +80,7 @@ const sidebars: SidebarsConfig = {
       label: 'Smart Contracts',
       collapsed: true,
       items: [
-        'smart-contracts/ghost-vault',
+        'smart-contracts/noctrum-vault',
         'smart-contracts/on-chain-custody',
       ],
     },

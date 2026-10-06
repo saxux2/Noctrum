@@ -5,7 +5,7 @@ title: Collateral System
 
 # Collateral System
 
-GHOST requires borrowers to post overcollateralized positions using a different token than the one being borrowed. The collateral amount is determined by the borrower's credit tier and the current market value of the collateral asset.
+NOCTRUM requires borrowers to post overcollateralized positions using a different token than the one being borrowed. The collateral amount is determined by the borrower's credit tier and the current market value of the collateral asset.
 
 ## Collateral Multiplier
 
@@ -36,15 +36,15 @@ When a borrower submits a borrow intent, the server validates that the offered c
 4. Compute `requiredCollateral = (borrowAmount * multiplier) / ethPrice`
 5. Reject if `offeredCollateral < requiredCollateral`
 
-The borrower must have already deposited the collateral into the vault and transferred it to the GHOST pool before submitting the borrow intent.
+The borrower must have already deposited the collateral into the vault and transferred it to the NOCTRUM pool before submitting the borrow intent.
 
 ## Supported Collateral Pairs
 
-Currently, GHOST supports a single collateral pair:
+Currently, NOCTRUM supports a single collateral pair:
 
 | Borrow Token | Collateral Token | Price Feed |
 |-------------|-----------------|------------|
-| gUSD | gETH | Chainlink ETH/USD on Arbitrum |
+| nUSD | nETH | Chainlink ETH/USD on Arbitrum |
 
 The price feed is read by the CRE via the EVMClient using Chainlink Data Streams, ensuring that collateral valuations are tamper resistant.
 
@@ -53,7 +53,7 @@ The price feed is read by the CRE via the EVMClient using Chainlink Data Streams
 ### At Loan Creation
 
 When a match proposal is accepted and a loan is created:
-- The collateral remains in the GHOST pool (already transferred during borrow intent submission)
+- The collateral remains in the NOCTRUM pool (already transferred during borrow intent submission)
 - The server records the `collateralAmount` and `requiredCollateral` on the loan
 - The loan's health factor is initially above the liquidation threshold
 
@@ -94,6 +94,6 @@ Where `requiredCollateral` is recalculated at the current ETH price. This allows
 
 ## Soft Locking (Production)
 
-In the production architecture, collateral is soft locked on chain via the `GhostVault` contract's `lockedBalances` mapping. This prevents borrowers from withdrawing locked collateral through the vault's normal withdrawal flow while still keeping the balance in their shielded address.
+In the production architecture, collateral is soft locked on chain via the `NoctrumVault` contract's `lockedBalances` mapping. This prevents borrowers from withdrawing locked collateral through the vault's normal withdrawal flow while still keeping the balance in their shielded address.
 
 The locking mechanism uses a DON signed report to increment/decrement `lockedBalances[user][token]`. The vault's `withdraw` function checks that `balance - lockedBalances >= withdrawAmount`, ensuring locked funds cannot be extracted.

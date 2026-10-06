@@ -8,12 +8,13 @@ import FollowAlong from "@/components/FollowAlong";
 import CtaBanner from "@/components/CtaBanner";
 import Footer from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
+import { site } from "@/constants/links";
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Ghost Finance",
-  url: "https://ghost-finance.xyz",
+  name: "Noctrum Finance",
+  url: site,
   applicationCategory: "FinanceApplication",
   description:
     "Private peer-to-peer lending with sealed-bid rate discovery. Lenders submit encrypted rates, borrowers get matched to the cheapest — all settled inside Chainlink's confidential compute runtime.",
@@ -24,8 +25,8 @@ const jsonLd = {
   },
   creator: {
     "@type": "Organization",
-    name: "Ghost Finance",
-    url: "https://ghost-finance.xyz",
+    name: "Noctrum Finance",
+    url: site,
   },
 };
 

@@ -7,7 +7,7 @@ import { NUSD, signTyped, ts, wei } from "./helpers";
 const alice = ethers.Wallet.createRandom();
 const bob = ethers.Wallet.createRandom();
 
-// One fixture per CPT request type, as Ghost clients build them.
+// One fixture per CPT request type, as the clients build them.
 function fixtures(): Record<PrimaryType, Record<string, unknown>> {
   const t = ts();
   return {
@@ -69,7 +69,7 @@ describe.each(Object.keys(fixtures()) as PrimaryType[])("%s", (type) => {
     expect(codeOf(() => authenticate(type, tampered, auth, alice.address))).toBe("request_auth_failed");
   });
 
-  test("Ghost/CPT domain name is rejected", async () => {
+  test("CPT demo domain name is rejected", async () => {
     const msg = fixtures()[type];
     const auth = await signTyped(alice, type, msg, { ...EIP712_DOMAIN, name: "CompliantPrivateTokenDemo" });
     expect(codeOf(() => authenticate(type, msg, auth, alice.address))).toBe("request_auth_failed");

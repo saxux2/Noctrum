@@ -1,9 +1,9 @@
-# GHOST Custom Vault Architecture
+# NOCTRUM Custom Vault Architecture
 
 ## Proposal for Chainlink Team
 
 > Replacing the generic Compliant Private Transfer vault (0xE588...)
-> with a lending-native vault that GHOST controls, while preserving
+> with a lending-native vault that NOCTRUM controls, while preserving
 > the privacy guarantees and CRE integration.
 
 ---
@@ -18,7 +18,7 @@ The current Chainlink Compliant Private Transfer vault provides:
 - PolicyEngine compliance checks
 - Withdrawal tickets (signed by off-chain API, redeemed on-chain)
 
-What it does NOT provide (and GHOST needs):
+What it does NOT provide (and NOCTRUM needs):
 
 - On-chain collateral locking with programmatic release conditions
 - Liquidation hooks that CRE can call atomically
@@ -40,7 +40,7 @@ where CRE can interact with it via EVMClient.
   ┌──────────────────────────────────────────────────────────────────────┐
   │                                                                      │
   │  ┌─────────────────────┐    ┌──────────────────────┐                 │
-  │  │   GhostVault.sol    │    │ CollateralManager.sol│                 │
+  │  │   NoctrumVault.sol    │    │ CollateralManager.sol│                 │
   │  │                     │    │                      │                 │
   │  │  deposit()          │    │  lockCollateral()    │                 │
   │  │  withdrawWithTicket │    │  releaseCollateral() │                 │
@@ -50,7 +50,7 @@ where CRE can interact with it via EVMClient.
   │  └────────┬────────────┘    └──────────┬───────────┘                 │
   │           │                            │                             │
   │  ┌────────┴────────────────────────────┴───────────┐                 │
-  │  │           GhostLoanLedger.sol                   │                 │
+  │  │           NoctrumLoanLedger.sol                   │                 │
   │  │                                                 │                 │
   │  │  createLoan()      — CRE-signed attestation     │                 │
   │  │  recordRepayment() — CRE confirms repay         │                 │
@@ -64,7 +64,7 @@ where CRE can interact with it via EVMClient.
   │  └─────────────────────────────────────────────────┘                 │
   │                                                                      │
   │  ┌─────────────────────┐    ┌──────────────────────┐                 │
-  │  │  GhostPolicyEngine  │    │  InterestAccrual.sol │                 │
+  │  │  NoctrumPolicyEngine  │    │  InterestAccrual.sol │                 │
   │  │  .sol               │    │                      │                 │
   │  │                     │    │  computeInterest()   │                 │
   │  │  extends Chainlink  │    │  per-second compound │                 │
@@ -77,7 +77,7 @@ where CRE can interact with it via EVMClient.
   ┌──────────────────────────────────────────────────────────────────────┐
   │                                                                      │
   │  ┌─────────────────┐   ┌──────────────────┐   ┌─────────────────┐    │
-  │  │  GHOST Server   │   │  CRE Workflows   │   │  Private Xfer   │    │
+  │  │  NOCTRUM Server   │   │  CRE Workflows   │   │  Private Xfer   │    │
   │  │  (Hono + Bun)   │   │  (Chainlink)     │   │  API Layer      │    │
   │  │                 │   │                  │   │                 │    │
   │  │  Encrypted      │   │  settle-loans    │   │  Balances       │    │
@@ -137,14 +137,14 @@ where CRE can interact with it via EVMClient.
 
 ## 4. Smart Contract Architecture
 
-### 4.1 GhostVault.sol — Core Deposit/Withdraw
+### 4.1 NoctrumVault.sol — Core Deposit/Withdraw
 
 This replaces the Chainlink vault. It holds ERC20 tokens, enforces policy,
 and issues withdrawal tickets. The key addition: it can "earmark" balances
 for the CollateralManager so they cannot be withdrawn.
 
 ```
-Contract: GhostVault
+Contract: NoctrumVault
 
 Inheritance:
   - Initializable (UUPS upgradeable)
@@ -183,7 +183,7 @@ Inheritance:
 Roles:
   - DEFAULT_ADMIN_ROLE
   - CRE_OPERATOR_ROLE   — CRE DON address that can lock/release/liquidate
-  - LEDGER_ROLE          — GhostLoanLedger can trigger releases
+  - LEDGER_ROLE          — NoctrumLoanLedger can trigger releases
 
 Storage:
   - mapping(bytes32 loanId => CollateralLock)
@@ -198,7 +198,7 @@ Storage:
   }
 ```
 
-### 4.3 GhostLoanLedger.sol — On-Chain Loan Records
+### 4.3 NoctrumLoanLedger.sol — On-Chain Loan Records
 
 Minimal on-chain loan state. Does NOT store who the lenders are
 (that stays off-chain for privacy). Stores enough for:
@@ -208,7 +208,7 @@ Minimal on-chain loan state. Does NOT store who the lenders are
 - Borrower to verify their loan terms
 
 ```
-Contract: GhostLoanLedger
+Contract: NoctrumLoanLedger
 
 Inheritance:
   - Initializable (UUPS upgradeable)
@@ -239,7 +239,7 @@ Storage:
   }
 ```
 
-### 4.4 GhostPolicyEngine.sol — Lending-Aware Compliance
+### 4.4 NoctrumPolicyEngine.sol — Lending-Aware Compliance
 
 Extends the Chainlink ACE PolicyEngine with lending-specific rules:
 
@@ -248,13 +248,13 @@ Extends the Chainlink ACE PolicyEngine with lending-specific rules:
 - KYC/AML checks delegated to base PolicyEngine
 
 ```
-Contract: GhostPolicyEngine
+Contract: NoctrumPolicyEngine
 
 Inheritance:
   - PolicyEngine (Chainlink ACE)
 
 Additional state:
-  - address ghostVault
+  - address noctrumVault
   - address collateralManager
   - mapping(address => bool) blacklisted     // post-liquidation freeze
 ```
@@ -277,13 +277,13 @@ Functions:
 
 ## 5. Key Contract Interfaces
 
-### 5.1 IGhostVault
+### 5.1 INoctrumVault
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-interface IGhostVault {
+interface INoctrumVault {
     // ── Events ──────────────────────────────────────────
     event Deposited(address indexed account, address indexed token, uint256 amount);
     event Withdrawn(address indexed account, address indexed token, uint256 amount, bytes32 ticketHash);
@@ -411,7 +411,7 @@ interface ICollateralManager {
     ///         The vault earmarks these funds — borrower cannot withdraw them.
     /// @param loanId Unique loan identifier (from CRE matching)
     /// @param borrower The borrower's address
-    /// @param token The collateral token (gUSD or gETH)
+    /// @param token The collateral token (nUSD or nETH)
     /// @param amount The amount to lock
     /// @param attestation CRE-signed attestation proving this lock is valid
     function lockCollateral(
@@ -472,13 +472,13 @@ interface ICollateralManager {
 }
 ```
 
-### 5.3 IGhostLoanLedger
+### 5.3 INoctrumLoanLedger
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-interface IGhostLoanLedger {
+interface INoctrumLoanLedger {
     // ── Enums ───────────────────────────────────────────
     enum LoanStatus { Active, Repaid, Defaulted }
 
@@ -563,7 +563,7 @@ interface IGhostLoanLedger {
 
     /// @notice Compute current health ratio for a loan.
     ///         healthRatio = (collateralValue) / (outstandingDebt)
-    ///         Requires an oracle price for cross-token loans (gETH collateral, gUSD loan).
+    ///         Requires an oracle price for cross-token loans (nETH collateral, nUSD loan).
     /// @param loanId The loan ID
     /// @param collateralPrice Price of collateral token in loan token units (18 decimals)
     /// @return healthRatio Scaled to 18 decimals (1e18 = 1.0x, 1.5e18 = 1.5x)
@@ -585,7 +585,7 @@ interface IGhostLoanLedger {
 pragma solidity ^0.8.26;
 
 /// @title ICRECallback
-/// @notice Interface for CRE to interact with GHOST contracts via EVMClient.
+/// @notice Interface for CRE to interact with NOCTRUM contracts via EVMClient.
 ///         CRE uses encodeCallMsg() to build these calls and executes them
 ///         through the Chainlink CRE EVMClient capability.
 ///
@@ -596,7 +596,7 @@ interface ICRECallback {
     ///         and lock collateral atomically.
     /// @dev This is a convenience function that calls:
     ///      1. CollateralManager.lockCollateral()
-    ///      2. GhostLoanLedger.createLoan()
+    ///      2. NoctrumLoanLedger.createLoan()
     ///      in a single transaction.
     function onMatchAccepted(
         bytes32 loanId,
@@ -745,11 +745,11 @@ with off-chain state.
 CronTrigger (every 30s):
 
   1. Read on-chain loan states via EVMClient
-     - GhostLoanLedger.getActiveLoanCount()
+     - NoctrumLoanLedger.getActiveLoanCount()
      - For each active loan: getLoan(), getLoanHealth()
 
   2. Compare with off-chain server state
-     - GET /internal/check-loans from GHOST server
+     - GET /internal/check-loans from NOCTRUM server
      - Detect discrepancies (loan exists on-chain but not server, or vice versa)
 
   3. Sync actions:
@@ -770,10 +770,10 @@ New flow:
   CRE matches → POST /internal/record-match-proposals
   Borrower accepts (or auto-accept timeout)
   CRE detects acceptance → EVMClient.writeContract():
-    GhostRouter.onMatchAccepted(loanId, borrower, ...)
+    NoctrumRouter.onMatchAccepted(loanId, borrower, ...)
     This atomically:
       1. CollateralManager.lockCollateral()
-      2. GhostLoanLedger.createLoan()
+      2. NoctrumLoanLedger.createLoan()
   CRE then executes private transfer for principal disbursement (as before)
 ```
 
@@ -787,11 +787,11 @@ Current flow:
 
 New flow:
   CRE reads price from Chainlink feed (via EVMClient, as current)
-  CRE reads loan health from GhostLoanLedger.getLoanHealth() on-chain
+  CRE reads loan health from NoctrumLoanLedger.getLoanHealth() on-chain
   If unhealthy:
-    CRE calls GhostRouter.onLiquidation(loanId, price, attestation)
+    CRE calls NoctrumRouter.onLiquidation(loanId, price, attestation)
     This atomically:
-      1. GhostLoanLedger.markDefaulted()
+      1. NoctrumLoanLedger.markDefaulted()
       2. CollateralManager.liquidate()
     CRE then POST /internal/liquidate-loans to update server state
     CRE queues private transfers for lender distribution
@@ -946,12 +946,12 @@ No user action required.
 
 ```
 Week 1-2:
-  - Deploy GhostVault (proxy)
+  - Deploy NoctrumVault (proxy)
   - Deploy CollateralManager (proxy)
-  - Deploy GhostLoanLedger (proxy)
-  - Deploy GhostPolicyEngine
-  - Deploy GhostRouter (orchestrator)
-  - Register gUSD and gETH tokens
+  - Deploy NoctrumLoanLedger (proxy)
+  - Deploy NoctrumPolicyEngine
+  - Deploy NoctrumRouter (orchestrator)
+  - Register nUSD and nETH tokens
   - Grant CRE_OPERATOR_ROLE to CRE DON address
   - Test with small deposits
 ```
@@ -979,7 +979,7 @@ until loans mature.
 ```
 Week 5-6:
   - Update client deposit flow:
-    - deposit() calls GhostVault.deposit() instead of old vault
+    - deposit() calls NoctrumVault.deposit() instead of old vault
     - withdraw flow uses new ticket system
   - Old vault deposits: let existing loans run to maturity
   - New vault handles all new lending activity
@@ -996,7 +996,7 @@ Week 7-10:
   - Users with remaining old vault balances:
     - Withdraw from old vault (withdrawWithTicket)
     - Deposit into new vault (deposit)
-    - Or: GHOST provides a migration contract that does this atomically
+    - Or: NOCTRUM provides a migration contract that does this atomically
   - Decommission old vault integration
   - Remove dual-write from CRE
 ```
@@ -1004,11 +1004,11 @@ Week 7-10:
 ### Migration Contract
 
 ```solidity
-/// @title GhostMigration
-/// @notice One-click migration from old Chainlink vault to new GhostVault.
+/// @title NoctrumMigration
+/// @notice One-click migration from old Chainlink vault to new NoctrumVault.
 ///         User calls migrate() with their old vault withdrawal ticket.
 ///         Contract withdraws from old, deposits into new, atomically.
-contract GhostMigration {
+contract NoctrumMigration {
     address public immutable oldVault;
     address public immutable newVault;
 
@@ -1024,7 +1024,7 @@ contract GhostMigration {
         IERC20(token).approve(newVault, amount);
 
         // 3. Deposit into new vault (on behalf of msg.sender)
-        IGhostVault(newVault).deposit(token, amount);
+        INoctrumVault(newVault).deposit(token, amount);
     }
 }
 ```
@@ -1036,7 +1036,7 @@ contract GhostMigration {
 ### Pause Granularity
 
 ```solidity
-// GhostVault supports granular pausing:
+// NoctrumVault supports granular pausing:
 enum PauseScope {
     ALL,                // Everything paused
     DEPOSITS_ONLY,      // No new deposits, withdrawals OK
@@ -1075,7 +1075,7 @@ modifier circuitBreaker() {
 // This gives users time to exit if they disagree with an upgrade
 
 // Implementation:
-// GhostVault proxy admin = TimelockController (48h delay)
+// NoctrumVault proxy admin = TimelockController (48h delay)
 // TimelockController owner = GnosisSafe (3/5 multisig)
 ```
 
@@ -1093,14 +1093,14 @@ modifier circuitBreaker() {
          ┌───────────────────┼───────────────────┐
          │                   │                   │
     ┌────▼────┐        ┌─────▼─────┐       ┌────▼──────┐
-    │GhostVault│        │Collateral │       │GhostLoan  │
+    │NoctrumVault│        │Collateral │       │NoctrumLoan  │
     │  (UUPS) │◄───────│Manager    │──────►│Ledger     │
     │         │ locks/  │  (UUPS)  │creates│  (UUPS)   │
     │         │releases │          │       │           │
     └────┬────┘        └─────┬─────┘       └─────┬─────┘
          │                   │                   │
          │              ┌────▼────┐              │
-         │              │GhostRouter│◄────────────┘
+         │              │NoctrumRouter│◄────────────┘
          │              │(orchestrator)│
          │              │           │
          │              └─────┬─────┘
@@ -1108,7 +1108,7 @@ modifier circuitBreaker() {
          │                    │ called by CRE via EVMClient
          │                    │
     ┌────▼──────────┐   ┌─────▼──────────┐
-    │GhostPolicy    │   │  CRE DON       │
+    │NoctrumPolicy    │   │  CRE DON       │
     │Engine         │   │  (off-chain)    │
     │               │   │                 │
     │extends ACE    │   │ settle-loans    │
@@ -1118,13 +1118,13 @@ modifier circuitBreaker() {
                         └─────────────────┘
 
 Dependencies:
-  GhostVault         → reads PolicyEngine on deposit/withdraw
-  CollateralManager  → calls GhostVault.lockBalance / releaseBalance
-  CollateralManager  → reads GhostLoanLedger for loan status
-  GhostLoanLedger    → calls CollateralManager on repayment (release)
-  GhostRouter        → orchestrates CollateralManager + LoanLedger
-  CRE                → calls GhostRouter via EVMClient
-  CRE                → calls GHOST Server via ConfidentialHTTPClient
+  NoctrumVault         → reads PolicyEngine on deposit/withdraw
+  CollateralManager  → calls NoctrumVault.lockBalance / releaseBalance
+  CollateralManager  → reads NoctrumLoanLedger for loan status
+  NoctrumLoanLedger    → calls CollateralManager on repayment (release)
+  NoctrumRouter        → orchestrates CollateralManager + LoanLedger
+  CRE                → calls NoctrumRouter via EVMClient
+  CRE                → calls NOCTRUM Server via ConfidentialHTTPClient
 ```
 
 ---
@@ -1140,7 +1140,7 @@ Dependencies:
 - Chainlink price feeds for collateral valuation
 - EIP-712 typed-data signature verification
 
-### Novel to GHOST custom vault
+### Novel to NOCTRUM custom vault
 
 1. **Collateral earmarking in the vault itself** — the vault tracks
    `totalLocked` per token so withdrawals are blocked for collateralized
@@ -1148,7 +1148,7 @@ Dependencies:
 
 2. **CRE-attested on-chain loan records** — loans are anchored on-chain
    with CRE attestations rather than existing purely in off-chain server state.
-   This makes loans verifiable without trusting the GHOST server.
+   This makes loans verifiable without trusting the NOCTRUM server.
 
 3. **Privacy-preserving loan ledger** — stores `borrowerHash` instead of
    raw addresses, and stores only the blended rate (not individual tick rates).
@@ -1167,7 +1167,7 @@ Dependencies:
    at once. The `createLoanBatch()` function handles this in a single
    transaction with one attestation, saving significant gas.
 
-7. **GhostRouter orchestrator** — a single entry point for CRE that
+7. **NoctrumRouter orchestrator** — a single entry point for CRE that
    coordinates multi-contract actions atomically (lock + create, or
    default + seize). Prevents partial state from CRE transaction failures.
 
@@ -1180,25 +1180,25 @@ Dependencies:
 ```
 Function                    │ Who can call            │ Verification
 ────────────────────────────┼─────────────────────────┼──────────────────
-GhostVault.deposit()        │ Anyone                  │ PolicyEngine check
-GhostVault.withdrawTicket() │ Ticket holder           │ Signature + policy
-GhostVault.lockBalance()    │ CollateralManager only  │ COLLATERAL_ROLE
-GhostVault.releaseBalance() │ CollateralManager only  │ COLLATERAL_ROLE
-GhostVault.pause()          │ PAUSER_ROLE             │ AccessControl
-CollMgr.lockCollateral()    │ GhostRouter only        │ CRE attestation
-CollMgr.releaseCollateral() │ GhostRouter only        │ CRE attestation
-CollMgr.liquidate()         │ GhostRouter only        │ CRE attestation + CB
-LoanLedger.createLoan()     │ GhostRouter only        │ CRE attestation
-LoanLedger.markDefaulted()  │ GhostRouter only        │ CRE attestation
-GhostRouter.onMatch*()      │ CRE_OPERATOR_ROLE       │ Role + attestation
-GhostRouter.onLiquidation() │ CRE_OPERATOR_ROLE       │ Role + attestation + CB
+NoctrumVault.deposit()        │ Anyone                  │ PolicyEngine check
+NoctrumVault.withdrawTicket() │ Ticket holder           │ Signature + policy
+NoctrumVault.lockBalance()    │ CollateralManager only  │ COLLATERAL_ROLE
+NoctrumVault.releaseBalance() │ CollateralManager only  │ COLLATERAL_ROLE
+NoctrumVault.pause()          │ PAUSER_ROLE             │ AccessControl
+CollMgr.lockCollateral()    │ NoctrumRouter only        │ CRE attestation
+CollMgr.releaseCollateral() │ NoctrumRouter only        │ CRE attestation
+CollMgr.liquidate()         │ NoctrumRouter only        │ CRE attestation + CB
+LoanLedger.createLoan()     │ NoctrumRouter only        │ CRE attestation
+LoanLedger.markDefaulted()  │ NoctrumRouter only        │ CRE attestation
+NoctrumRouter.onMatch*()      │ CRE_OPERATOR_ROLE       │ Role + attestation
+NoctrumRouter.onLiquidation() │ CRE_OPERATOR_ROLE       │ Role + attestation + CB
 ```
 
 ### Reentrancy Protection
 
-All state-changing functions in GhostVault, CollateralManager, and
-GhostLoanLedger use OpenZeppelin's ReentrancyGuardUpgradeable.
-The GhostRouter uses checks-effects-interactions pattern with
+All state-changing functions in NoctrumVault, CollateralManager, and
+NoctrumLoanLedger use OpenZeppelin's ReentrancyGuardUpgradeable.
+The NoctrumRouter uses checks-effects-interactions pattern with
 cross-contract calls at the end.
 
 ### Oracle Manipulation Resistance
@@ -1220,21 +1220,21 @@ cross-contract calls at the end.
 ## 15. Deployment Addresses (Planned — Sepolia)
 
 ```
-GhostVault (proxy):          TBD
-GhostVault (impl):           TBD
+NoctrumVault (proxy):          TBD
+NoctrumVault (impl):           TBD
 CollateralManager (proxy):   TBD
 CollateralManager (impl):    TBD
-GhostLoanLedger (proxy):     TBD
-GhostLoanLedger (impl):      TBD
-GhostRouter:                 TBD
-GhostPolicyEngine (proxy):   TBD
+NoctrumLoanLedger (proxy):     TBD
+NoctrumLoanLedger (impl):      TBD
+NoctrumRouter:                 TBD
+NoctrumPolicyEngine (proxy):   TBD
 InterestAccrual (library):   TBD
 TimelockController:          TBD
 GnosisSafe (multisig):       TBD
 
 Existing (unchanged):
-gUSD token:                  (config.TOKEN_ADDRESS)
-gETH token:                  0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6
+nUSD token:                  (config.TOKEN_ADDRESS)
+nETH token:                  0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6
 Old Chainlink vault:         0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13
 ETH/USD Chainlink feed:      0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612 (Arbitrum)
 ```

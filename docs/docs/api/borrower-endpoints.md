@@ -15,10 +15,10 @@ Submit a new borrow intent with collateral.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `token` | string | Yes | Token to borrow (e.g., gUSD address) |
+| `token` | string | Yes | Token to borrow (e.g., nUSD address) |
 | `amount` | string | Yes | Borrow amount (BigInt as string) |
 | `maxRate` | string | Yes | Maximum acceptable rate (encrypted, hex string) |
-| `collateralToken` | string | Yes | Collateral token address (e.g., gETH) |
+| `collateralToken` | string | Yes | Collateral token address (e.g., nETH) |
 | `collateralAmount` | string | Yes | Collateral offered (BigInt as string) |
 | `signature` | string | Yes | EIP 712 signature over `SubmitBorrow` |
 | `timestamp` | number | Yes | Unix timestamp (seconds) |

@@ -5,7 +5,7 @@ title: CRE Simulation
 
 # CRE Simulation
 
-Chainlink's CRE CLI provides a local simulation environment for testing GHOST's confidential workflows without deploying to the DON.
+Chainlink's CRE CLI provides a local simulation environment for testing NOCTRUM's confidential workflows without deploying to the DON.
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ cre --version
 ### Settle Loans
 
 ```bash
-cd ghost-settler
+cd noctrum-settler
 cre workflow simulate ./settle-loans \
   --target=staging-settings \
   --non-interactive \
@@ -35,7 +35,7 @@ cre workflow simulate ./settle-loans \
 
 This simulates a single cron trigger of the matching engine. The workflow will:
 
-1. Call `expireProposals` on the GHOST server
+1. Call `expireProposals` on the NOCTRUM server
 2. Fetch pending intents
 3. Decrypt rates (using the test private key from config)
 4. Run matching
@@ -66,7 +66,7 @@ Each workflow's `config.staging.json` should point to your local server for simu
 ```json
 {
   "schedule": "every 30 seconds",
-  "ghostApiUrl": "http://localhost:3000",
+  "noctrumApiUrl": "http://localhost:3000",
   "internalApiKey": "your-local-api-key"
 }
 ```
@@ -140,7 +140,7 @@ import type { Runtime, CronPayload } from "@chainlink/cre-sdk";
 
 interface Config {
   schedule: string;
-  ghostApiUrl: string;
+  noctrumApiUrl: string;
   internalApiKey: string;
   // ... workflow-specific config
 }

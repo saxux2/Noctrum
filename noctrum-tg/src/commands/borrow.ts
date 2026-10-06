@@ -22,8 +22,8 @@ composer.command("borrow", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 5) {
     const kb = new InlineKeyboard()
-      .text("\u{1F4B5} Borrow nUSD", "borrow_example_gusd")
-      .text("\u{1FA99} Borrow nETH", "borrow_example_geth");
+      .text("\u{1F4B5} Borrow nUSD", "borrow_example_nusd")
+      .text("\u{1FA99} Borrow nETH", "borrow_example_neth");
     await ctx.reply(
       `\u{1F3E6} <b>Borrow Tokens</b>\n\n` +
       `<b>Usage:</b> <code>/borrow [amount] [token] [collateral] [collToken] [maxRate%]</code>\n\n` +
@@ -276,7 +276,7 @@ composer.command("reject_proposal", async (ctx) => {
 
 // ── Borrow example callbacks ──
 
-composer.callbackQuery("borrow_example_gusd", async (ctx) => {
+composer.callbackQuery("borrow_example_nusd", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1F4B5} <b>Borrow nUSD Example</b>\n\n` +
@@ -287,7 +287,7 @@ composer.callbackQuery("borrow_example_gusd", async (ctx) => {
   );
 });
 
-composer.callbackQuery("borrow_example_geth", async (ctx) => {
+composer.callbackQuery("borrow_example_neth", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1FA99} <b>Borrow nETH Example</b>\n\n` +
@@ -325,8 +325,8 @@ composer.callbackQuery("action_borrower_status", async (ctx) => {
 composer.callbackQuery("menu_borrow", async (ctx) => {
   await ctx.answerCallbackQuery();
   const kb = new InlineKeyboard()
-    .text("\u{1F4B5} Borrow nUSD", "borrow_example_gusd")
-    .text("\u{1FA99} Borrow nETH", "borrow_example_geth").row()
+    .text("\u{1F4B5} Borrow nUSD", "borrow_example_nusd")
+    .text("\u{1FA99} Borrow nETH", "borrow_example_neth").row()
     .text("\u{1F4CA} My Status", "action_borrower_status")
     .text("\u{274C} Cancel Borrow", "borrow_cancel_help");
   await ctx.reply(

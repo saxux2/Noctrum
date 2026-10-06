@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 import { encrypt } from "eciesjs";
-import { SERVER, EXTERNAL_API, VAULT_ADDRESS, CHAIN_ID, CRE_PUBKEY, gUSD, gETH } from "./config";
+import { SERVER, EXTERNAL_API, VAULT_ADDRESS, CHAIN_ID, CRE_PUBKEY, nUSD, nETH } from "./config";
 
 // ── Domains ─────────────────────────────────────────
 
-export const GHOST_DOMAIN = {
-  name: "GhostProtocol",
+export const NOCTRUM_DOMAIN = {
+  name: "NoctrumProtocol",
   version: "0.0.1",
   chainId: CHAIN_ID,
   verifyingContract: VAULT_ADDRESS,
@@ -99,7 +99,7 @@ export async function getVaultBalances(wallet: ethers.Wallet) {
   const balances = data.balances ?? [];
   const find = (tok: string) =>
     balances.find((b: any) => b.token.toLowerCase() === tok.toLowerCase())?.amount ?? "0";
-  return { gUSD: find(gUSD), gETH: find(gETH) };
+  return { nUSD: find(nUSD), nETH: find(nETH) };
 }
 
 export async function requestWithdrawTicket(wallet: ethers.Wallet, token: string, amount: string) {

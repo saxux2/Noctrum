@@ -5,11 +5,11 @@ title: Privacy Model
 
 # Privacy Model
 
-GHOST implements layered privacy through compartmentalization. Different participants can observe different subsets of protocol data, and no single participant can reconstruct the complete picture.
+NOCTRUM implements layered privacy through compartmentalization. Different participants can observe different subsets of protocol data, and no single participant can reconstruct the complete picture.
 
 ## Information Visibility by Role
 
-| Data Item | Users | GHOST Server | CRE (TEE) | On Chain Observers |
+| Data Item | Users | NOCTRUM Server | CRE (TEE) | On Chain Observers |
 |-----------|-------|-------------|------------|-------------------|
 | Deposit amounts | Own only | All | All | Vault level only |
 | Encrypted rate bids | Own only | Ciphertext only | Plaintext (ephemeral) | Not visible |

@@ -5,7 +5,7 @@ title: Trust Model
 
 # Trust Model
 
-GHOST's security relies on separating trust across multiple independent boundaries. No single entity has full control over user funds, rate data, and matching logic simultaneously.
+NOCTRUM's security relies on separating trust across multiple independent boundaries. No single entity has full control over user funds, rate data, and matching logic simultaneously.
 
 ## Trust Boundaries
 
@@ -13,7 +13,7 @@ GHOST's security relies on separating trust across multiple independent boundari
 |----------|---------------|-------------------|
 | On Chain Vault | DON threshold signatures, ERC20 safety | Funds move only via user action or valid DON report |
 | CRE (TEE) | Chain state integrity, TEE isolation, threshold secret management | Sealed rates visible only inside TEE; key material wiped after execution |
-| GHOST Server | Nothing (it is a blob store) | No guarantees; compromised server cannot read rates or move funds |
+| NOCTRUM Server | Nothing (it is a blob store) | No guarantees; compromised server cannot read rates or move funds |
 | Users | Contract enforces fund safety, CRE runs fair matching, TEE preserves rate privacy | N/A |
 
 ## What Each Layer Can and Cannot Do
@@ -28,7 +28,7 @@ GHOST's security relies on separating trust across multiple independent boundari
 **Cannot do:**
 - Read encrypted rate bids
 - Determine which transfers are related to lending vs borrowing
-- Distinguish between different GHOST protocol operations
+- Distinguish between different NOCTRUM protocol operations
 
 ### The CRE
 
@@ -43,7 +43,7 @@ GHOST's security relies on separating trust across multiple independent boundari
 - Move funds without going through the vault's signature verification
 - Modify the matching algorithm without redeployment (code is immutable per workflow version)
 
-### The GHOST Server
+### The NOCTRUM Server
 
 **Can do:**
 - Store encrypted intents, proposals, loans, and balances
@@ -61,7 +61,7 @@ GHOST's security relies on separating trust across multiple independent boundari
 
 ### Compromised Server
 
-If an attacker gains full control of the GHOST server:
+If an attacker gains full control of the NOCTRUM server:
 
 - They can read encrypted rate blobs but cannot decrypt them
 - They can see loan amounts, collateral, and addresses (this is the storage layer)

@@ -5,7 +5,7 @@ title: Pedersen Commitments
 
 # Pedersen Commitments
 
-The ASCV uses Pedersen commitments on the BN254 elliptic curve to represent balances and amounts on chain without revealing their values. This page explains the commitment scheme, its properties, and how it integrates with GHOST's protocol operations.
+The ASCV uses Pedersen commitments on the BN254 elliptic curve to represent balances and amounts on chain without revealing their values. This page explains the commitment scheme, its properties, and how it integrates with NOCTRUM's protocol operations.
 
 ## Commitment Scheme
 
@@ -23,7 +23,7 @@ Where:
 
 ## Properties
 
-| Property | Description | Relevance to GHOST |
+| Property | Description | Relevance to NOCTRUM |
 |----------|-------------|-------------------|
 | Hiding | Given `C`, an adversary cannot determine `v` without `r` | Balance amounts are hidden from on chain observers |
 | Binding | The committer cannot open `C` to a different value | Users cannot claim a different balance than committed |
@@ -53,7 +53,7 @@ Without knowing any of the actual amounts.
 
 ## BN254 Curve Choice
 
-GHOST uses BN254 (also called alt_bn128) because:
+NOCTRUM uses BN254 (also called alt_bn128) because:
 
 | Reason | Detail |
 |--------|--------|
@@ -64,7 +64,7 @@ GHOST uses BN254 (also called alt_bn128) because:
 
 ## Hash Function
 
-Inside ZK circuits, GHOST uses Poseidon hash instead of SHA 256 or Keccak:
+Inside ZK circuits, NOCTRUM uses Poseidon hash instead of SHA 256 or Keccak:
 
 | Hash | Constraints in Circuit | Use Case |
 |------|----------------------|----------|
@@ -88,7 +88,7 @@ All balance commitments are stored in a Merkle tree on chain:
 
 - Each leaf is a Pedersen commitment to a user's balance
 - The tree uses Poseidon hash for internal nodes
-- The current root is stored in the GhostVault contract
+- The current root is stored in the NoctrumVault contract
 - ZK proofs include Merkle path witnesses to prove commitment membership
 
 When a balance changes, the old commitment is nullified (using a deterministic nullifier) and a new commitment is inserted. This prevents double spending while maintaining privacy.
@@ -128,4 +128,4 @@ On L2 (Arbitrum, Base), these costs are reduced by approximately 10 to 50x depen
 | FHE | Full | Very high | No |
 | Plaintext | None | Minimal | Yes |
 
-Pedersen on BN254 offers the best balance of privacy, gas efficiency, and EVM compatibility for GHOST's use case.
+Pedersen on BN254 offers the best balance of privacy, gas efficiency, and EVM compatibility for NOCTRUM's use case.

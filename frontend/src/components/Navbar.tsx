@@ -19,14 +19,14 @@ const products = [
   {
     category: "Tools",
     items: [
-      { name: "Raycast Extension", desc: "Use Ghost's confidential matching engine from Raycast.", colors: ["#67e8f9", "#0891b2", "#a5f3fc"], link: links.raycast },
-      { name: "Telegram Bot", desc: "Access all of Ghost's features via Telegram.", colors: ["#86efac", "#16a34a", "#bbf7d0"], link: links.telegram },
+      { name: "Raycast Extension", desc: "Use Noctrum's confidential matching engine from Raycast.", colors: ["#67e8f9", "#0891b2", "#a5f3fc"], link: links.raycast },
+      { name: "Telegram Bot", desc: "Access all of Noctrum's features via Telegram.", colors: ["#86efac", "#16a34a", "#bbf7d0"], link: links.telegram },
     ],
   },
   {
     category: "Institutions & Projects",
     items: [
-      { name: "Private Pools", desc: "Institutional-grade private lending pools with custom parameters.", colors: ["#f0abfc", "#a855f7", "#e9d5ff"], link: "https://app.ghost-finance.xyz/explore" },
+      { name: "Private Pools", desc: "Institutional-grade private lending pools with custom parameters.", colors: ["#f0abfc", "#a855f7", "#e9d5ff"], link: links.explore },
     ],
   },
 ];
@@ -34,12 +34,12 @@ const products = [
 const resources = [
   { name: "Blog", desc: "Protocol updates and research insights.", colors: ["#fbbf24", "#d97706", "#fde68a"], link: links.blog },
   { name: "Documentation", desc: "Protocol architecture & integration guides.", colors: ["#a78bfa", "#7c3aed", "#c4b5fd"], link: links.docs },
-  { name: "Litepaper", desc: "Read the Ghost protocol litepaper.", colors: ["#f472b6", "#db2777", "#fbcfe8"], link: links.litepaper },
+  { name: "Litepaper", desc: "Read the Noctrum protocol litepaper.", colors: ["#f472b6", "#db2777", "#fbcfe8"], link: links.litepaper },
 ];
 
 const tokens = [
-  { name: "$gUSD", desc: "Privacy-preserving stablecoin for lending and borrowing.", colors: ["#34d399", "#059669", "#a7f3d0"], link: links.tokenomics },
-  { name: "$gETH", desc: "Shielded ETH for collateral and private transfers.", colors: ["#60a5fa", "#2563eb", "#bfdbfe"], link: links.tokenomics },
+  { name: "$nUSD", desc: "Privacy-preserving stablecoin for lending and borrowing.", colors: ["#34d399", "#059669", "#a7f3d0"], link: links.tokenomics },
+  { name: "$nETH", desc: "Shielded ETH for collateral and private transfers.", colors: ["#60a5fa", "#2563eb", "#bfdbfe"], link: links.tokenomics },
 ];
 
 type MenuItem = { name: string; desc: string; badge?: string; colors: string[]; link: string };
@@ -235,7 +235,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Image src="/ghost-logo1.png" alt="Ghost" width={90} height={36} className="h-9 w-auto" />
+          <Image src="/noctrum-logo1.png" alt="Noctrum" width={36} height={36} className="h-9 w-9" />
         </div>
 
         {/* Desktop nav — single container for tabs + dropdown */}

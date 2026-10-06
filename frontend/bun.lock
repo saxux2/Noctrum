@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "ghost-frontend",
+      "name": "noctrum-frontend",
       "dependencies": {
         "framer-motion": "^11.15.0",
         "lenis": "^1.3.18",

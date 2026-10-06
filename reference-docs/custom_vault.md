@@ -1,4 +1,4 @@
-# GHOST Custom Vault Architecture
+# NOCTRUM Custom Vault Architecture
 
 ## Proposal: Application-Specific Confidential Vault (ASCV) for Private P2P Lending
 
@@ -32,12 +32,12 @@
 
 ## 1. Executive Summary
 
-GHOST Protocol currently delegates ALL fund custody to Chainlink's
+NOCTRUM Protocol currently delegates ALL fund custody to Chainlink's
 `DemoCompliantPrivateTokenVault` (`0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`).
 That vault is a general-purpose deposit/withdraw container with off-chain
 private transfer support. It knows nothing about lending.
 
-We propose a **GHOST-native vault** that:
+We propose a **NOCTRUM-native vault** that:
 
 - Replaces off-chain balance tracking with **on-chain Pedersen commitments**
   verified by ZK proofs (SNARK-enforced privacy, not trust-based)
@@ -90,7 +90,7 @@ mapping(bytes32 digest => bool used)           private sUsedWithdrawTickets;
 
 ### What's Missing for Lending
 
-| Gap | Impact on GHOST |
+| Gap | Impact on NOCTRUM |
 |-----|----------------|
 | No collateral locking | Borrower can withdraw collateral anytime — trust-based only |
 | No loan state | Server tracks loans in-memory Maps — zero on-chain enforceability |
@@ -103,7 +103,7 @@ mapping(bytes32 digest => bool used)           private sUsedWithdrawTickets;
 ### The Core Issue
 
 The vault is a **dumb ERC20 escrow** with compliance hooks. All privacy is
-provided by the off-chain API, which is a trusted black box. GHOST layers
+provided by the off-chain API, which is a trusted black box. NOCTRUM layers
 its lending logic entirely off-chain (server + CRE), with no on-chain
 enforceability for the most critical operations: collateral custody,
 liquidation, and interest calculation.
@@ -116,7 +116,7 @@ liquidation, and interest calculation.
 CURRENT: Trust Chain
   User --> trusts --> External API (balance tracking)
        --> trusts --> CRE (matching, rate decryption)
-       --> trusts --> GHOST Server (intent management)
+       --> trusts --> NOCTRUM Server (intent management)
        --> trusts --> Pool Wallet (fund movement)
 
 PROPOSED: Verify Chain
@@ -154,10 +154,10 @@ CRE also generates ZK proofs that anyone can verify.
          |                                        |
          v                                        v
 +--------+---------+               +--------------+------------------+
-| GHOST API SERVER |               |  ON-CHAIN CONTRACTS             |
+| NOCTRUM API SERVER |               |  ON-CHAIN CONTRACTS             |
 | (Hono + Bun)     |               |  (Sepolia / L2)                 |
 |                  |               |                                  |
-| "Dumb storage"   |               |  GhostVault.sol                 |
+| "Dumb storage"   |               |  NoctrumVault.sol                 |
 | + Merkle mirror  |               |    Pedersen commitment tree      |
 |                  |               |    Nullifier set                 |
 | state.ts:        |               |    SNARK verifiers               |
@@ -176,7 +176,7 @@ CRE also generates ZK proofs that anyone can verify.
 |  Event listener  |               |    PolicyEngine integration      |
 |  Batch submitter |               |    Compliance on deposit/withdraw|
 |  Proof forwarder |               |                                  |
-+--------+---------+               |  GhostRouter.sol                |
++--------+---------+               |  NoctrumRouter.sol                |
          |                         |    CRE entry point               |
   ConfidentialHTTPClient           |    Atomic multi-contract ops     |
          |                         +--------+--------+----------------+
@@ -189,11 +189,11 @@ CRE also generates ZK proofs that anyone can verify.
 |    - Run matching engine (existing)                           |
 |    - Generate rate-ordering ZK proof (NEW)                    |
 |    - Generate collateral-adequacy ZK proof (NEW)              |
-|    - Submit proofs + proposals to GhostRouter.sol             |
+|    - Submit proofs + proposals to NoctrumRouter.sol             |
 |                                                               |
 |  execute-transfers (every 15s)                                |
 |    - Build transfer ZK proofs (nullifier + new commitments)   |
-|    - Submit proofs to GhostVault.sol                          |
+|    - Submit proofs to NoctrumVault.sol                          |
 |    - Replaces: signing EIP-712 and calling external API       |
 |                                                               |
 |  check-loans (every 60s)                                      |
@@ -218,7 +218,7 @@ CRE also generates ZK proofs that anyone can verify.
 
 ## 5. Smart Contract Design
 
-### 5.1 GhostVault.sol — Core Privacy Vault
+### 5.1 NoctrumVault.sol — Core Privacy Vault
 
 Replaces `DemoCompliantPrivateTokenVault`. Uses a Pedersen commitment Merkle
 tree instead of trust-based off-chain balances.
@@ -231,7 +231,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPolicyEngine} from "@chainlink/policy-management/interfaces/IPolicyEngine.sol";
 
-interface IGhostVault {
+interface INoctrumVault {
 
     // ──────────────────── Events ────────────────────
     event NoteCreated(
@@ -294,7 +294,7 @@ interface IGhostVault {
 
 **Key differences from `DemoCompliantPrivateTokenVault`:**
 
-| Dimension | Current Vault | GhostVault |
+| Dimension | Current Vault | NoctrumVault |
 |-----------|--------------|------------|
 | Balance tracking | Off-chain API (trusted) | On-chain Pedersen commitments (ZK-verified) |
 | Transfer privacy | Off-chain API hides amounts | On-chain: only nullifiers + commitments visible |
@@ -305,7 +305,7 @@ interface IGhostVault {
 ### 5.2 CollateralManager.sol — Lending-Native Collateral
 
 Does not exist in the current system. All collateral tracking is in-memory on
-the GHOST server (`state.ts`). This contract makes collateral locks enforceable.
+the NOCTRUM server (`state.ts`). This contract makes collateral locks enforceable.
 
 ```solidity
 interface ICollateralManager {
@@ -418,12 +418,12 @@ maturity and aggregate rate. It does NOT reveal: who the borrower is (only hash)
 the actual principal or collateral (only commitments), or individual lender rates
 (only aggregate). Per-tick discriminatory rates remain known only to CRE.
 
-### 5.4 GhostRouter.sol — CRE Orchestrator
+### 5.4 NoctrumRouter.sol — CRE Orchestrator
 
 Single entry point for CRE to coordinate multi-contract actions atomically.
 
 ```solidity
-interface IGhostRouter {
+interface INoctrumRouter {
 
     // Called by CRE when a match proposal is accepted (or auto-accepted).
     // Atomically: locks collateral + creates loan + disburses principal.
@@ -525,11 +525,11 @@ Wraps Chainlink ACE PolicyEngine checks. Every deposit and withdrawal must pass.
 
 ```solidity
 interface IACEHook {
-    /// Called by GhostVault before accepting a deposit commitment.
+    /// Called by NoctrumVault before accepting a deposit commitment.
     /// Verifies depositor passes PolicyEngine rules (KYC/AML).
     function checkDeposit(address depositor, address token, uint256 amount) external view;
 
-    /// Called by GhostVault before executing a withdrawal.
+    /// Called by NoctrumVault before executing a withdrawal.
     function checkWithdraw(address withdrawer, address token, uint256 amount) external view;
 
     /// For ZK-KYC: verify a proof that the user has valid KYC
@@ -541,10 +541,10 @@ interface IACEHook {
 ### 5.7 Contract Deployment & Upgrade
 
 ```
-GhostVault         --> UUPS Proxy, 48h timelock, 3/5 multisig
+NoctrumVault         --> UUPS Proxy, 48h timelock, 3/5 multisig
 CollateralManager  --> UUPS Proxy, same timelock
 LoanLedger         --> UUPS Proxy, same timelock
-GhostRouter        --> Immutable (thin orchestrator, no state)
+NoctrumRouter        --> Immutable (thin orchestrator, no state)
 ACEHook            --> Immutable (delegates to PolicyEngine)
 Groth16Verifiers   --> Immutable (one per circuit, redeployed on circuit change)
 InterestAccrual    --> Library (linked at deploy, no proxy needed)
@@ -554,11 +554,11 @@ InterestAccrual    --> Library (linked at deploy, no proxy needed)
 
 ## 6. Zero-Knowledge Proof Layer
 
-### 6.1 Why ZK for GHOST
+### 6.1 Why ZK for NOCTRUM
 
 | Current (Trust-Based) | Proposed (ZK-Verified) |
 |----------------------|----------------------|
-| Off-chain API says "Alice has 500 gUSD" | On-chain commitment `C = 500*G + r*H` with ZK proof of well-formedness |
+| Off-chain API says "Alice has 500 nUSD" | On-chain commitment `C = 500*G + r*H` with ZK proof of well-formedness |
 | Server says "collateral is sufficient" | SNARK proves `collateral * price >= principal * multiplier` |
 | CRE says "matching was fair" | SNARK proves lends sorted cheapest-first, blended rate <= maxRate |
 | CRE says "loan is undercollateralized" | SNARK proves health ratio < threshold given oracle price |
@@ -587,7 +587,7 @@ Balance Commitment:
 ```
 Note {
     owner:   address    // stealth address (not raw Ethereum address)
-    token:   address    // gUSD or gETH contract
+    token:   address    // nUSD or nETH contract
     amount:  uint256    // balance value
     salt:    bytes32    // random blinding / nonce
 }
@@ -787,7 +787,7 @@ Hash function:    Poseidon (SNARK-friendly, ~1,500 gas on-chain with optimized a
 Depth:            20 (2^20 = 1,048,576 leaf slots)
 Type:             Append-only (no deletions — nullifiers handle "spending")
 On-chain storage: Only root (32 bytes) + next leaf index
-Off-chain mirror: Full tree in GHOST server + CRE (for witness generation)
+Off-chain mirror: Full tree in NOCTRUM server + CRE (for witness generation)
 Leaf insertion:   ~30K gas (20 Poseidon hashes)
 ```
 
@@ -829,8 +829,8 @@ Viewing keypair:   v (private, shared with CRE), V = v * G (public, published)
 
 **Key derivation from Ethereum wallet (no extra keys for user):**
 ```
-spending_key = Poseidon(eth_private_key, "ghost-spending-v1")
-viewing_key  = Poseidon(eth_private_key, "ghost-viewing-v1")
+spending_key = Poseidon(eth_private_key, "noctrum-spending-v1")
+viewing_key  = Poseidon(eth_private_key, "noctrum-viewing-v1")
 ```
 
 **Privacy guarantees:**
@@ -877,7 +877,7 @@ CRE workflows already compile to WASM. The ZK prover can be packaged as a WASM
 module, exactly like `eciesjs` is imported today:
 
 ```typescript
-// ghost-settler/settle-loans/main.ts (proposed addition)
+// noctrum-settler/settle-loans/main.ts (proposed addition)
 import { groth16 } from 'snarkjs';  // WASM-compatible
 
 // After matching engine runs:
@@ -893,9 +893,9 @@ const proof = await groth16.fullProve(
     'rate_ordering.zkey'     // proving key
 );
 
-// Submit proof + result to GhostRouter.sol
+// Submit proof + result to NoctrumRouter.sol
 await runtime.capabilities.EVMClient().submitTransaction(
-    ghostRouterAddress,
+    noctrumRouterAddress,
     'onMatchAccepted',
     [loanHash, collateralNote, loanRecord, proof, attestation]
 );
@@ -943,8 +943,8 @@ USER                         ON-CHAIN                           CRE
  |             {me,token,amt,   |                                |
  |              salt})          |                                |
  |                              |                                |
- | ERC20.approve(GhostVault)    |                                |
- | GhostVault.deposit(         |                                |
+ | ERC20.approve(NoctrumVault)    |                                |
+ | NoctrumVault.deposit(         |                                |
  |   token, amount, comm,      |                                |
  |   encNote, proof)       --->|                                |
  |                              |                                |
@@ -967,14 +967,14 @@ USER                         ON-CHAIN                           CRE
 ```
 CRE (execute-transfers workflow)
  |
- | Has pool's note: {owner=pool, token=gUSD, amount=500, salt=X}
- | Needs to send 500 gUSD to borrower stealth address
+ | Has pool's note: {owner=pool, token=nUSD, amount=500, salt=X}
+ | Needs to send 500 nUSD to borrower stealth address
  |
  | 1. Compute nullifier for pool's old note:
  |    nullifier = Poseidon(pool_spending_key, note_index, nonce)
  |
  | 2. Create new notes:
- |    new_comm_borrower = Poseidon(stealth_addr, gUSD, 500, salt_new)
+ |    new_comm_borrower = Poseidon(stealth_addr, nUSD, 500, salt_new)
  |    (no change note if spending entire amount)
  |
  | 3. Generate transfer proof:
@@ -983,7 +983,7 @@ CRE (execute-transfers workflow)
  |      private: [old_note_preimage, merkle_path, pool_key, new_salt]
  |    )
  |
- | 4. Submit to GhostVault.transfer(
+ | 4. Submit to NoctrumVault.transfer(
  |      [nullifier],
  |      [new_comm_borrower],
  |      [encrypted_note],
@@ -1005,7 +1005,7 @@ CRE (execute-transfers workflow)
 ```
 CRE (after borrower accepts proposal, or auto-accept on timeout)
  |
- | GhostRouter.onMatchAccepted(
+ | NoctrumRouter.onMatchAccepted(
  |   loanHash,
  |   collateralNoteCommitment,
  |   loanRecord,           // {borrowerHash, principalComm, collateralComm, rate, maturity, ...}
@@ -1017,12 +1017,12 @@ CRE (after borrower accepts proposal, or auto-accept on timeout)
  |   attestation           // DON threshold sig over entire payload
  | )
  |
- | GhostRouter atomically:
+ | NoctrumRouter atomically:
  |   1. CollateralManager.lockCollateral(loanHash, collateralNote, attestation)
  |      → Marks note as locked, cannot be spent
  |   2. LoanLedger.createLoan(loanHash, record, attestation)
  |      → On-chain loan record created
- |   3. GhostVault.transfer(nullifiers, newComms, ..., transferProof)
+ |   3. NoctrumVault.transfer(nullifiers, newComms, ..., transferProof)
  |      → Principal disbursed from pool to borrower
  |
  | All three succeed or all revert (atomic).
@@ -1031,11 +1031,11 @@ CRE (after borrower accepts proposal, or auto-accept on timeout)
 ### 9.4 Repayment Flow
 
 ```
-BORROWER                     GHOST SERVER              CRE                ON-CHAIN
+BORROWER                     NOCTRUM SERVER              CRE                ON-CHAIN
  |                              |                       |                    |
  | Transfer repayment to pool   |                       |                    |
  | (client-side transfer proof) |                       |                    |
- |--- GhostVault.transfer() ---|------ event --------->|                    |
+ |--- NoctrumVault.transfer() ---|------ event --------->|                    |
  |                              |                       |                    |
  | POST /repay {loanId, sig}-->|                       |                    |
  |                              |-- notify CRE -------->|                    |
@@ -1044,7 +1044,7 @@ BORROWER                     GHOST SERVER              CRE                ON-CHA
  |                              |        CRE generates interest proof       |
  |                              |        CRE generates lender payout proofs |
  |                              |                       |                    |
- |                              |        GhostRouter.onRepayment(           |
+ |                              |        NoctrumRouter.onRepayment(           |
  |                              |          loanHash,                        |
  |                              |          collateralNote,                  |
  |                              |          nullifiers,     // pool→lenders  |
@@ -1083,7 +1083,7 @@ CRE (check-loans, every 60s)
  |      - 95% pro-rata to lenders (higher-rate ticks absorb loss first)
  |      - Each lender gets a new note commitment
  |
- |   3. GhostRouter.onLiquidation(
+ |   3. NoctrumRouter.onLiquidation(
  |        loanHash,
  |        priceAttestation,    // DON-signed ETH/USD
  |        liquidationProof,    // SNARK: undercollateralized
@@ -1097,10 +1097,10 @@ CRE (check-loans, every 60s)
  |   1. Verify liquidation proof (health < threshold)
  |   2. Verify price attestation (Chainlink DON sig)
  |   3. CollateralManager.liquidate() — seize locked note
- |   4. GhostVault.transfer() — redistribute to lenders
+ |   4. NoctrumVault.transfer() — redistribute to lenders
  |   5. LoanLedger.markDefaulted()
  |
- | POST /internal/liquidate-loans → GHOST server
+ | POST /internal/liquidate-loans → NOCTRUM server
  |   Server updates credit score (downgrade tier)
 ```
 
@@ -1113,7 +1113,7 @@ CRE (check-loans, every 60s)
 |  LOCATION                 |  STATE                                       |
 +───────────────────────────+──────────────────────────────────────────────+
 |                           |                                              |
-|  ON-CHAIN (GhostVault)    |  Merkle root of all note commitments         |
+|  ON-CHAIN (NoctrumVault)    |  Merkle root of all note commitments         |
 |                           |  Nullifier set (which notes are spent)       |
 |                           |  Next leaf index                             |
 |                           |  SNARK verifier contract addresses           |
@@ -1142,7 +1142,7 @@ CRE (check-loans, every 60s)
 |                           |                                              |
 +───────────────────────────+──────────────────────────────────────────────+
 |                           |                                              |
-|  GHOST SERVER (in-memory)  |  depositSlots, activeBuffer, borrowIntents,  |
+|  NOCTRUM SERVER (in-memory)  |  depositSlots, activeBuffer, borrowIntents,  |
 |                           |    matchProposals, loans, creditScores       |
 |                           |    (all existing, unchanged)                 |
 |                           |                                              |
@@ -1172,7 +1172,7 @@ CRE (check-loans, every 60s)
 |  ENTITY           |  TRUSTED FOR       |  VERIFIABLE?                       |
 +───────────────────+────────────────────+────────────────────────────────────+
 |                   |                    |                                    |
-|  GhostVault.sol   |  Correct state     |  YES — all transitions require     |
+|  NoctrumVault.sol   |  Correct state     |  YES — all transitions require     |
 |  (on-chain)       |  transitions,      |  SNARK proofs verified on-chain.   |
 |                   |  nullifier         |  Anyone can audit the contract.    |
 |                   |  tracking,         |  Deposits/withdrawals are ERC20    |
@@ -1190,7 +1190,7 @@ CRE (check-loans, every 60s)
 |                   |                    |                                    |
 +───────────────────+────────────────────+────────────────────────────────────+
 |                   |                    |                                    |
-|  GHOST Server     |  Availability,     |  NO trust required for correctness.|
+|  NOCTRUM Server     |  Availability,     |  NO trust required for correctness.|
 |                   |  intent ordering,  |  Server cannot:                    |
 |                   |  metadata storage  |    - Read encrypted rates          |
 |                   |                    |    - Forge ZK proofs               |
@@ -1286,11 +1286,11 @@ disclosure without on-chain deanonymization.
 | Protocol | Deposit | Transfer | Withdraw |
 |----------|---------|----------|----------|
 | Current Chainlink Vault | ~80K | off-chain (0 gas) | ~120K |
-| GhostVault (proposed) | ~287K | ~284K | ~267K |
+| NoctrumVault (proposed) | ~287K | ~284K | ~267K |
 | Tornado Cash | ~900K | — | ~300K |
 | Aztec Connect | ~500K | ~500K | ~500K |
 
-GhostVault is more expensive than the current vault (which does no on-chain
+NoctrumVault is more expensive than the current vault (which does no on-chain
 privacy) but significantly cheaper than Tornado Cash and competitive with Aztec.
 The tradeoff: cryptographic privacy guarantees instead of trust-based privacy.
 
@@ -1306,14 +1306,14 @@ All gas costs drop ~50-100x when deployed on L2:
 
 ### Phase 1: Sepolia L1 (Current Chain)
 
-- Deploy GhostVault + supporting contracts on Sepolia
+- Deploy NoctrumVault + supporting contracts on Sepolia
 - Groth16 proofs, ~220K gas per verification
 - Acceptable for testnet and demo
 - Merkle tree depth 20 (~1M notes)
 
 ### Phase 2: L2 Migration (Arbitrum or Base)
 
-- Move GhostVault to L2 for 50-100x cheaper operations
+- Move NoctrumVault to L2 for 50-100x cheaper operations
 - Same security (L1 settlement via rollup)
 - CRE already reads Arbitrum (check-loans uses Arbitrum price feed)
 - Transfer cost: ~$0.02-0.05 per operation
@@ -1336,7 +1336,7 @@ amortized cost drops to ~50K gas per transfer.
 
 ### Phase 4: Dedicated DA Layer
 
-Move intent/metadata storage from GHOST server to a DA layer (EigenDA, Celestia,
+Move intent/metadata storage from NOCTRUM server to a DA layer (EigenDA, Celestia,
 or Chainlink's own DA). Server becomes stateless — reads from DA, writes to DA.
 Eliminates single-point-of-failure.
 
@@ -1346,11 +1346,11 @@ Eliminates single-point-of-failure.
 
 ### Phase 1: Parallel Deployment (Weeks 1-6)
 
-**Goal:** GhostVault runs alongside existing Chainlink vault. Both work.
+**Goal:** NoctrumVault runs alongside existing Chainlink vault. Both work.
 
 ```
 Week 1-2: Smart Contracts
-  - Deploy GhostVault.sol, CollateralManager.sol, LoanLedger.sol on Sepolia
+  - Deploy NoctrumVault.sol, CollateralManager.sol, LoanLedger.sol on Sepolia
   - Deploy Groth16 verifier contracts (circom/snarkjs)
   - Deploy ACEHook.sol with existing PolicyEngine
   - Zero changes to existing server or CRE
@@ -1370,12 +1370,12 @@ Week 5-6: CRE Workflow Updates
       if (transfer.backend === "cpt")   → existing external API flow
       if (transfer.backend === "vault") → generate ZK proof + submit on-chain
   - Add pool note inventory to CRE (track preimages for spending)
-  - Feature flags in CRE config: vaultBackend: "cpt" | "ghost" | "both"
+  - Feature flags in CRE config: vaultBackend: "cpt" | "noctrum" | "both"
 ```
 
 ### Phase 2: Feature Parity (Weeks 7-10)
 
-**Goal:** GhostVault supports everything the current vault does, plus lending extensions.
+**Goal:** NoctrumVault supports everything the current vault does, plus lending extensions.
 
 ```
 Week 7-8: Collateral + Liquidation
@@ -1397,11 +1397,11 @@ Week 9-10: Client Integration
 ```
 Week 11-12: Migration Tool
   - Automated script: for each user with CPT balance,
-    withdraw from CPT → deposit into GhostVault
+    withdraw from CPT → deposit into NoctrumVault
   - CRE-assisted migration (pool wallet facilitates)
   - Atomic migration contract:
       1. CPT.withdrawWithTicket(token, amount, ticket)
-      2. GhostVault.deposit(token, amount, commitment, proof)
+      2. NoctrumVault.deposit(token, amount, commitment, proof)
     Single transaction, no intermediate state.
 
 Week 13-14: Cleanup
@@ -1416,17 +1416,17 @@ Week 13-14: Cleanup
 
 ```env
 # server/.env additions
-GHOST_VAULT_ADDRESS=0x...
+NOCTRUM_VAULT_ADDRESS=0x...
 COLLATERAL_MANAGER_ADDRESS=0x...
 LOAN_LEDGER_ADDRESS=0x...
-GHOST_ROUTER_ADDRESS=0x...
+NOCTRUM_ROUTER_ADDRESS=0x...
 TRANSFER_VERIFIER_ADDRESS=0x...
 COLLATERAL_VERIFIER_ADDRESS=0x...
 LIQUIDATION_VERIFIER_ADDRESS=0x...
 INTEREST_VERIFIER_ADDRESS=0x...
 MATCHING_VERIFIER_ADDRESS=0x...
 RELAYER_PRIVATE_KEY=...
-VAULT_BACKEND=cpt|ghost|both        # Phase 1 feature flag
+VAULT_BACKEND=cpt|noctrum|both        # Phase 1 feature flag
 ```
 
 ---
@@ -1469,7 +1469,7 @@ Currently, Chainlink operates the CPT vault API as a centralized service:
 - Issues withdrawal tickets
 - Single point of failure
 
-With GhostVault, custody moves to smart contracts verified by ZK proofs.
+With NoctrumVault, custody moves to smart contracts verified by ZK proofs.
 Chainlink's role becomes the confidential compute layer (CRE) rather than
 the custody layer. **Less operational risk, same revenue from CRE usage.**
 
@@ -1482,7 +1482,7 @@ point for institutional adoption.
 
 ### 5. Generalizable ASCV Pattern
 
-The GhostVault architecture is a reusable template:
+The NoctrumVault architecture is a reusable template:
 
 | Application | What Changes | What Stays |
 |-------------|-------------|-----------|
@@ -1491,7 +1491,7 @@ The GhostVault architecture is a reusable template:
 | Private Insurance | Claim verification circuits | Same |
 | Private Voting | Ballot commitments | Same tree + nullifier scheme |
 
-GHOST becomes the **reference implementation** for Application-Specific
+NOCTRUM becomes the **reference implementation** for Application-Specific
 Confidential Vaults. Chainlink can offer this as a product: "Build your
 privacy-preserving app on CRE + ASCV."
 
@@ -1534,7 +1534,7 @@ circomlib (iden3)         — Poseidon hash, MerkleProof, comparators, range che
 ## Appendix C: Emergency Mechanisms
 
 ```
-GhostVault:
+NoctrumVault:
   - Granular pause scopes:
       PAUSE_DEPOSITS      = 0x01
       PAUSE_TRANSFERS     = 0x02
@@ -1558,4 +1558,4 @@ LoanLedger:
 ---
 
 *This document is a living proposal. Version 0.1, March 2026.*
-*GHOST Protocol — Private P2P Lending with Tick-Based Rate Discovery.*
+*NOCTRUM Protocol — Private P2P Lending with Tick-Based Rate Discovery.*

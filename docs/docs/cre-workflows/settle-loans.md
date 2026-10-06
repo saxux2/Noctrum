@@ -32,7 +32,7 @@ The workflow fetches all unmatched lend intents and pending borrow intents:
 
 ```typescript
 const response = ConfidentialHTTPClient.sendRequest(runtime, {
-  url: `${config.ghostApiUrl}/api/v1/internal/pending-intents`,
+  url: `${config.noctrumApiUrl}/api/v1/internal/pending-intents`,
   method: "GET",
   headers: { "x-api-key": config.internalApiKey },
 }).result();
@@ -147,7 +147,7 @@ Valid proposals are posted to the server:
 
 ```typescript
 ConfidentialHTTPClient.sendRequest(runtime, {
-  url: `${config.ghostApiUrl}/api/v1/internal/record-match-proposals`,
+  url: `${config.noctrumApiUrl}/api/v1/internal/record-match-proposals`,
   method: "POST",
   headers: {
     "x-api-key": config.internalApiKey,
@@ -162,6 +162,6 @@ ConfidentialHTTPClient.sendRequest(runtime, {
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `schedule` | Cron interval | Every 30 seconds |
-| `ghostApiUrl` | GHOST API base URL | Required |
+| `noctrumApiUrl` | NOCTRUM API base URL | Required |
 | `internalApiKey` | API key for internal endpoints | DON Secret |
 | `crePrivateKey` | ECIES private key for rate decryption | DON Secret |

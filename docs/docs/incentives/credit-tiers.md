@@ -5,7 +5,7 @@ title: Credit Tiers
 
 # Credit Tiers
 
-GHOST implements an endogenous credit scoring system that rewards good repayment behavior with lower collateral requirements. This creates a progression path where responsible borrowers gain increasing capital efficiency over time.
+NOCTRUM implements an endogenous credit scoring system that rewards good repayment behavior with lower collateral requirements. This creates a progression path where responsible borrowers gain increasing capital efficiency over time.
 
 ## Tier Schedule
 
@@ -74,7 +74,7 @@ New users are initialized with `{ tier: "bronze", loansRepaid: 0, loansDefaulted
 
 The tier system creates meaningful economic incentives:
 
-**For a 10,000 gUSD loan at ETH price $2,000:**
+**For a 10,000 nUSD loan at ETH price $2,000:**
 
 | Tier | Required Collateral | ETH Required | Capital Freed vs Bronze |
 |------|--------------------:|-------------:|------------------------:|
@@ -87,7 +87,7 @@ A Platinum borrower locks 40% less collateral than a Bronze borrower for the sam
 
 ## Design Rationale
 
-**Why endogenous credit scoring?** Unlike traditional credit scores that rely on off chain identity and historical data, GHOST's credit system is entirely on protocol. This preserves pseudonymity (no KYC needed for tier progression) while still rewarding responsible behavior.
+**Why endogenous credit scoring?** Unlike traditional credit scores that rely on off chain identity and historical data, NOCTRUM's credit system is entirely on protocol. This preserves pseudonymity (no KYC needed for tier progression) while still rewarding responsible behavior.
 
 **Why single step progression?** Requiring one repayment per tier upgrade (rather than, say, five) keeps the system responsive while still creating meaningful friction. A borrower must complete at least three successful loans to reach Platinum.
 

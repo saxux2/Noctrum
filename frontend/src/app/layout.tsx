@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import { site } from "@/constants/links";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -9,16 +10,16 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ghost-finance.xyz"),
+  metadataBase: new URL(site),
   title: {
-    default: "Ghost Finance: Private P2P Lending on Chainlink CRE",
-    template: "%s | Ghost Finance",
+    default: "Noctrum Finance: Private P2P Lending on Chainlink CRE",
+    template: "%s | Noctrum Finance",
   },
   description:
     "Private peer-to-peer lending with sealed-bid rate discovery. Lenders submit encrypted rates, borrowers get matched to the cheapest — all settled inside Chainlink's confidential compute runtime.",
   keywords: [
-    "Ghost Finance",
-    "Ghost Protocol",
+    "Noctrum Finance",
+    "Noctrum Protocol",
     "DeFi lending",
     "private lending",
     "P2P lending",
@@ -27,19 +28,19 @@ export const metadata: Metadata = {
     "confidential compute",
     "rate discovery",
     "discriminatory pricing",
-    "gUSD",
-    "gETH",
+    "nUSD",
+    "nETH",
     "shielded transfers",
     "decentralized finance",
     "crypto lending",
     "DeFi protocol",
     "private DeFi",
-    "Ethereum",
+    "Monad",
     "Web3",
   ],
-  authors: [{ name: "Ghost Finance" }],
-  creator: "Ghost Finance",
-  publisher: "Ghost Finance",
+  authors: [{ name: "Noctrum Finance" }],
+  creator: "Noctrum Finance",
+  publisher: "Noctrum Finance",
   robots: {
     index: true,
     follow: true,
@@ -52,17 +53,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Ghost Finance — Private P2P Lending on Chainlink CRE",
+    title: "Noctrum Finance — Private P2P Lending on Chainlink CRE",
     description:
       "Sealed-bid rate discovery, confidential compute matching, and shielded transfers. Fair lending markets, private by default.",
-    url: "https://ghost-finance.xyz",
-    siteName: "Ghost Finance",
+    url: site,
+    siteName: "Noctrum Finance",
     images: [
       {
         url: "/SEO-BANNER.png",
         width: 1200,
         height: 630,
-        alt: "Ghost Finance — Private P2P Lending Protocol",
+        alt: "Noctrum Finance — Private P2P Lending Protocol",
       },
     ],
     locale: "en_US",
@@ -70,15 +71,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ghost Finance — Private P2P Lending on Chainlink CRE",
+    title: "Noctrum Finance — Private P2P Lending on Chainlink CRE",
     description:
       "Sealed-bid rate discovery, confidential compute matching, and shielded transfers. Fair lending markets, private by default.",
     images: ["/SEO-BANNER.png"],
-    creator: "@ghostfinance",
-    site: "@ghostfinance",
   },
   alternates: {
-    canonical: "https://ghost-finance.xyz",
+    canonical: site,
   },
   category: "finance",
 };

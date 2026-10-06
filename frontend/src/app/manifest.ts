@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Ghost Finance",
-    short_name: "Ghost",
+    name: "Noctrum Finance",
+    short_name: "Noctrum",
     description:
       "Private peer-to-peer lending with sealed-bid rate discovery on Chainlink CRE.",
     start_url: "/",
@@ -15,6 +15,11 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/favicon.ico",
         sizes: "any",
         type: "image/x-icon",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
       },
     ],
   };

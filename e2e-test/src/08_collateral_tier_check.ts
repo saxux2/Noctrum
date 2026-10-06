@@ -1,13 +1,13 @@
 /**
  * Step 8: Test collateral requirement enforcement by credit tier
  * - Fetches live ETH/USD price from credit-score endpoint
- * - Submits a borrow intent with insufficient collateral (0.01 gETH for 100 gUSD)
+ * - Submits a borrow intent with insufficient collateral (0.01 nETH for 100 nUSD)
  * - Expects rejection with USD-denominated details
  * - Then submits with sufficient collateral computed from live price
  */
 import { ethers } from "ethers";
 import { borrower } from "./utils";
-import { gUSD, gETH, post, get, ts, toWei, encryptRate, GHOST_DOMAIN, SERVER } from "./utils";
+import { nUSD, nETH, post, get, ts, toWei, encryptRate, NOCTRUM_DOMAIN, SERVER } from "./utils";
 
 async function main() {
   console.log("=== Step 8: Collateral Tier Check (Price-Based) ===\n");
@@ -17,25 +17,25 @@ async function main() {
   console.log(`Borrower tier: ${score.tier} (multiplier: ${score.collateralMultiplier}x)`);
   console.log(`Live ETH/USD:  $${score.ethPrice.toFixed(2)}`);
 
-  const borrowAmount = toWei(100); // 100 gUSD
-  // 0.01 gETH — always insufficient (worth ~$25 at $2500/ETH vs 100*multiplier required)
+  const borrowAmount = toWei(100); // 100 nUSD
+  // 0.01 nETH — always insufficient (worth ~$25 at $2500/ETH vs 100*multiplier required)
   const lowCollateral = ethers.parseEther("0.01").toString();
 
   const encrypted = encryptRate("0.10");
 
   // ── Test 1: Should REJECT insufficient collateral ──
-  console.log("\nTest 1: Submit with insufficient collateral (0.01 gETH)...");
+  console.log("\nTest 1: Submit with insufficient collateral (0.01 nETH)...");
   const timestamp = ts();
   const borrowMsg = {
     account: borrower.address,
-    token: gUSD,
+    token: nUSD,
     amount: borrowAmount,
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: lowCollateral,
     encryptedMaxRate: encrypted,
     timestamp,
   };
-  const auth = await borrower.signTypedData(GHOST_DOMAIN, {
+  const auth = await borrower.signTypedData(NOCTRUM_DOMAIN, {
     "Submit Borrow": [
       { name: "account", type: "address" },
       { name: "token", type: "address" },
@@ -75,19 +75,19 @@ async function main() {
   const requiredEth = (100 * score.collateralMultiplier) / score.ethPrice;
   const safeEth = requiredEth * 1.1; // 10% buffer
   const highCollateral = ethers.parseEther(safeEth.toFixed(6)).toString();
-  console.log(`\nTest 2: Submit with sufficient collateral (${safeEth.toFixed(4)} gETH ≈ $${(safeEth * score.ethPrice).toFixed(2)})...`);
+  console.log(`\nTest 2: Submit with sufficient collateral (${safeEth.toFixed(4)} nETH ≈ $${(safeEth * score.ethPrice).toFixed(2)})...`);
 
   const timestamp2 = ts();
   const borrowMsg2 = {
     account: borrower.address,
-    token: gUSD,
+    token: nUSD,
     amount: borrowAmount,
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: highCollateral,
     encryptedMaxRate: encrypted,
     timestamp: timestamp2,
   };
-  const auth2 = await borrower.signTypedData(GHOST_DOMAIN, {
+  const auth2 = await borrower.signTypedData(NOCTRUM_DOMAIN, {
     "Submit Borrow": [
       { name: "account", type: "address" },
       { name: "token", type: "address" },

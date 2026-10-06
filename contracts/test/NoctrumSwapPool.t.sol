@@ -147,7 +147,7 @@ contract NoctrumSwapPoolTest is Test {
         assertEq(nETH.balanceOf(owner), ownerBefore + 10e18);
     }
 
-    /// Ghost parity: removeLiquidity does not check `supportedTokens`, so stray tokens can be recovered.
+    /// Parity with the original pool: removeLiquidity does not check `supportedTokens`, so stray tokens can be recovered.
     function test_RemoveLiquidity_NoSupportCheck() public {
         vm.prank(owner);
         other.mint(address(pool), 7e18);

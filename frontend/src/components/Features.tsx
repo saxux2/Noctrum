@@ -2,6 +2,7 @@
 
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { links } from "@/constants/links";
 
 const features = [
   {
@@ -11,7 +12,7 @@ const features = [
     thumbnail: "/thumbnail1.png",
     visualBg: "bg-[#161616]",
     hoverBg: "group-hover:bg-[#e2a9f1]",
-    link: "https://docs.ghost-finance.xyz/protocol/privacy-model"
+    link: links.privacyModel
   },
   {
 
@@ -20,7 +21,7 @@ const features = [
     thumbnail: "/thumbnail2.png",
     visualBg: "bg-[#161616]",
     hoverBg: "group-hover:bg-[#f5c882]",
-    link: "https://docs.ghost-finance.xyz/protocol/trust-model"
+    link: links.trustModel
   },
   {
 
@@ -29,7 +30,7 @@ const features = [
     thumbnail: "/thumbnail3.png",
     visualBg: "bg-[#161616]",
     hoverBg: "group-hover:bg-[#a5b4fc]",
-    link: "https://docs.ghost-finance.xyz/cre-workflows/overview"
+    link: links.creWorkflows
   },
   {
 
@@ -38,7 +39,7 @@ const features = [
     thumbnail: "/thumbnail4.png",
     visualBg: "bg-[#161616]",
     hoverBg: "group-hover:bg-[#c4b5fd]",
-    link: "https://docs.ghost-finance.xyz/incentives/credit-tiers"
+    link: links.creditTiers
   },
 ];
 
@@ -53,7 +54,7 @@ export default function Features() {
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           className="text-3xl sm:text-[40px] font-semibold tracking-tight leading-tight mb-3 text-white"
         >
-          How Ghost works.
+          How Noctrum works.
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 20 }}

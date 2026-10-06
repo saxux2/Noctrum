@@ -158,7 +158,7 @@ The CRE generates all ZK proofs inside the TEE:
 3. CRE generates Groth16/PLONK proofs using snarkjs (WASM compatible)
 4. CRE bundles proofs into a DON report
 5. DON signs the report (threshold signature)
-6. Report is submitted to GhostVault.onReport()
+6. Report is submitted to NoctrumVault.onReport()
 7. Contract verifies all proofs before executing operations
 
 This means the CRE is a "trusted but verified" prover. It generates proofs, but anyone can check them on chain.

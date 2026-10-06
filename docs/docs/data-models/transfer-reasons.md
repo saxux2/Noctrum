@@ -5,7 +5,7 @@ title: Transfer Reasons
 
 # Transfer Reasons
 
-Every pending transfer in GHOST has a `reason` field that identifies why the fund movement was queued. This enables auditing, debugging, and correct routing of funds.
+Every pending transfer in NOCTRUM has a `reason` field that identifies why the fund movement was queued. This enables auditing, debugging, and correct routing of funds.
 
 ## Reason Codes
 

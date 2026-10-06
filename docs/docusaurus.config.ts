@@ -3,19 +3,19 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Ghost Finance Docs',
+  title: 'Noctrum Finance Docs',
   tagline: 'Privacy Preserving P2P Lending with Sealed Bid Rate Discovery',
-  favicon: 'img/Ghost.png',
+  favicon: 'img/Noctrum.png',
 
   future: {
     v4: true,
   },
 
-  url: 'https://ghost-protocol.finance',
+  url: 'https://docs.example.noctrum',
   baseUrl: '/',
 
-  organizationName: 'ghost-protocol',
-  projectName: 'ghost',
+  organizationName: 'example',
+  projectName: 'noctrum',
 
   onBrokenLinks: 'throw',
 
@@ -48,10 +48,10 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'Ghost Finance Docs',
+      title: 'Noctrum Finance Docs',
       logo: {
-        alt: 'Ghost Finance',
-        src: 'img/Ghost.png',
+        alt: 'Noctrum Finance',
+        src: 'img/Noctrum.png',
         href: '/',
         style: { height: '28px' },
       },
@@ -63,7 +63,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/ghost-protocol/ghost',
+          href: 'https://github.com/example/noctrum',
           label: 'GitHub',
           position: 'right',
         },
@@ -119,12 +119,12 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/ghost-protocol/ghost',
+              href: 'https://github.com/example/noctrum',
             },
           ],
         },
       ],
-      copyright: `Copyright ${new Date().getFullYear()} Ghost Finance.`,
+      copyright: `Copyright ${new Date().getFullYear()} Noctrum Finance.`,
     },
     prism: {
       theme: prismThemes.github,

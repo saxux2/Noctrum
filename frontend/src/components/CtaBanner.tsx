@@ -17,7 +17,7 @@ export default function CtaBanner() {
         </h2>
         <div className="max-w-md">
           <p className="text-gray-300 leading-relaxed mb-8 text-base">
-            Ghost replaces algorithmic rate curves with sealed-bid auctions settled inside Chainlink&apos;s confidential compute. Fair markets, private by default.
+            Noctrum replaces algorithmic rate curves with sealed-bid auctions settled inside Chainlink&apos;s confidential compute. Fair markets, private by default.
           </p>
           <button className="inline-flex items-center gap-2.5 px-7 py-3.5 text-gray-900 text-sm font-semibold rounded-full hover:opacity-90 transition-all" style={{ backgroundColor: "#e2a9f1" }}>
             Read the litepaper

@@ -1,4 +1,4 @@
-# GHOST Protocol — Private P2P Lending with Tick-Based Rate Discovery
+# NOCTRUM Protocol — Private P2P Lending with Tick-Based Rate Discovery
 
 > Fixed-rate, **discriminatory-price**, continuous-matching lending overlay
 > built on top of the Chainlink Compliant Private Transfer vault + API.
@@ -23,7 +23,7 @@
                                │  private-transfer / balances / withdraw
                                │
 ┌──────────────────────────────▼──────────────────────────────────────┐
-│  GHOST API SERVER  (Hono + Bun)                                     │
+│  NOCTRUM API SERVER  (Hono + Bun)                                     │
 │                                                                     │
 │  Dumb storage + fund movement. Stores encrypted intents,            │
 │  executes transfers via pool wallet when CRE tells it to.           │
@@ -175,7 +175,7 @@ EPOCH N+1:
 ### Repayment
 
 1. Borrower private-transfers payment to pool
-2. Borrower POSTs /repay to GHOST API
+2. Borrower POSTs /repay to NOCTRUM API
 3. Server credits matched lenders at their **individual tick rates** (discriminatory)
 4. On full repayment → collateral released back to borrower via private-transfer
 
@@ -235,7 +235,7 @@ LIQUIDATION (alternate path)
 
 ## Pool Wallet
 
-Single `POOL_PRIVATE_KEY`. All fund custody lives in the external vault — GHOST never holds tokens directly. Pool wallet operations:
+Single `POOL_PRIVATE_KEY`. All fund custody lives in the external vault — NOCTRUM never holds tokens directly. Pool wallet operations:
 
 - **Receive**: users private-transfer tokens to pool's shielded addresses
 - **Disburse**: CRE triggers pool private-transfer to borrower on match
@@ -319,11 +319,11 @@ CronTrigger (every 60s)
 
 ## Privacy Model
 
-| Data              | On-Chain (Public) | GHOST Server        | CRE                 |
+| Data              | On-Chain (Public) | NOCTRUM Server        | CRE                 |
 | ----------------- | ----------------- | ------------------- | ------------------- |
 | Vault deposits    | Visible           | —                   | —                   |
 | Private transfers | Hidden            | Known               | Known               |
-| GHOST balances    | Hidden            | Tracked             | —                   |
+| NOCTRUM balances    | Hidden            | Tracked             | —                   |
 | Lender rates      | Hidden            | Encrypted blob      | **Decrypted**       |
 | Borrower max rate | Hidden            | Encrypted blob      | **Decrypted**       |
 | Who lent to whom  | Hidden            | Recorded post-match | Known at match      |
@@ -416,7 +416,7 @@ interface DepositSlot {
 
 ## Chainlink Services Used
 
-| Service                            | How GHOST Uses It                                                        |
+| Service                            | How NOCTRUM Uses It                                                        |
 | ---------------------------------- | ------------------------------------------------------------------------ |
 | **CRE Workflows**                  | Matching (continuous), liquidation monitoring (60s cron)                 |
 | **CRE ConfidentialHTTPClient**     | All CRE↔server and CRE↔external API calls encrypted end-to-end         |
@@ -428,7 +428,7 @@ interface DepositSlot {
 
 ## Environment Variables
 
-### GHOST Server (`server/.env`)
+### NOCTRUM Server (`server/.env`)
 
 | Var                      | Description                                                            |
 | ------------------------ | ---------------------------------------------------------------------- |
@@ -453,10 +453,10 @@ interface DepositSlot {
 ## Directory Structure
 
 ```
-ghost/
+noctrum/
 ├── ARCHITECTURE.md
 │
-├── server/                          ← GHOST API Server (Hono + Bun)
+├── server/                          ← NOCTRUM API Server (Hono + Bun)
 │   ├── src/
 │   │   ├── index.ts                 ← entry, health, /cre-public-key
 │   │   ├── config.ts                ← env vars
@@ -470,13 +470,13 @@ ghost/
 │   │   │   ├── internal.controllers.ts  ← getPendingIntents, recordMatchProposals, expireProposals, checkLoans
 │   │   │   └── repay.controllers.ts     ← repayLoan
 │   │   └── routes/
-│   │       └── ghost.routes.ts      ← route mounting
+│   │       └── noctrum.routes.ts      ← route mounting
 │   ├── scripts/
 │   │   └── real-flow-test.ts        ← end-to-end integration test
 │   └── src/__tests__/
 │       └── lend.test.ts             ← unit tests (real external API)
 │
-├── ghost-cre/                       ← CRE Workflows
+├── noctrum-cre/                       ← CRE Workflows
 │   └── src/workflows/
 │       ├── matching/                ← decrypts rates, matches, disburses
 │       └── liquidation/             ← checks loan health, seizes collateral

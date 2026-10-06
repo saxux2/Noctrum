@@ -5,7 +5,7 @@ title: Raycast Extension
 
 # Raycast Extension
 
-The GHOST Raycast extension (`ghost-raycast`) provides quick access to protocol operations directly from the Raycast launcher on macOS. It features a multi view interface with forms, lists, and detail views for all protocol operations.
+The NOCTRUM Raycast extension (`noctrum-raycast`) provides quick access to protocol operations directly from the Raycast launcher on macOS. It features a multi view interface with forms, lists, and detail views for all protocol operations.
 
 ## Technology Stack
 
@@ -42,7 +42,7 @@ Create a new wallet or import an existing one by entering a private key. The wal
 ### BalancesView
 
 Displays two sections:
-- **Private balances:** gUSD and gETH held in the shielded vault
+- **Private balances:** nUSD and nETH held in the shielded vault
 - **On chain balances:** ERC20 token balances on Sepolia
 
 Balances auto refresh on view open.
@@ -53,7 +53,7 @@ A 5 step guided lending flow:
 
 | Step | Input |
 |------|-------|
-| 1 | Select token (gUSD) |
+| 1 | Select token (nUSD) |
 | 2 | Enter lending amount |
 | 3 | Enter desired interest rate (encrypted with CRE public key) |
 | 4 | Confirm vault deposit and private transfer to pool |
@@ -117,7 +117,7 @@ Custom React hooks for data fetching:
 | Module | Purpose |
 |--------|---------|
 | `constants.ts` | Server URLs, contract addresses, EIP 712 type definitions |
-| `ghost-api.ts` | GHOST server API client (all endpoints) |
+| `noctrum-api.ts` | NOCTRUM server API client (all endpoints) |
 | `external-api.ts` | Vault API client (deposits, transfers, withdrawals, balances) |
 | `chain.ts` | On chain interactions (ERC20 balances, approvals) |
 | `encryption.ts` | Rate encryption using eciesjs |
@@ -128,7 +128,7 @@ Custom React hooks for data fetching:
 ### Development
 
 ```bash
-cd ghost-raycast
+cd noctrum-raycast
 npm install
 ray develop
 ```
@@ -153,11 +153,11 @@ The extension uses hardcoded configuration in `constants.ts`:
 
 | Constant | Value |
 |----------|-------|
-| `GHOST_SERVER_URL` | GHOST API base URL |
+| `NOCTRUM_SERVER_URL` | NOCTRUM API base URL |
 | `RPC_URL` | Sepolia RPC endpoint |
 | `VAULT_ADDRESS` | Compliant Private Transfer vault address |
-| `TOKEN_ADDRESS` | gUSD token address |
-| `GETH_ADDRESS` | gETH token address |
+| `TOKEN_ADDRESS` | nUSD token address |
+| `NETH_ADDRESS` | nETH token address |
 | `CRE_PUBLIC_KEY` | CRE public key for rate encryption |
 
 For local development, update these constants to point to your local server.

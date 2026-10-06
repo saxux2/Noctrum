@@ -1,11 +1,11 @@
 /**
  * Step 1: Fund test wallets
- * - Mint gUSD to lenders, gETH to borrower
+ * - Mint nUSD to lenders, nETH to borrower
  * - Send gas ETH to all 3
  */
 import { ethers } from "ethers";
 import { deployer, lenderA, lenderB, borrower, provider } from "./utils";
-import { gUSD, gETH, ERC20_ABI, MINT_ABI, toWei } from "./utils";
+import { nUSD, nETH, ERC20_ABI, MINT_ABI, toWei } from "./utils";
 
 async function main() {
   console.log("=== Step 1: Transfer Funds ===\n");
@@ -14,18 +14,18 @@ async function main() {
   console.log(`Lender B:  ${lenderB.address}`);
   console.log(`Borrower:  ${borrower.address}`);
 
-  const gUSDContract = new ethers.Contract(gUSD, [...MINT_ABI, ...ERC20_ABI], deployer);
-  const gETHContract = new ethers.Contract(gETH, [...MINT_ABI, ...ERC20_ABI], deployer);
+  const nUSDContract = new ethers.Contract(nUSD, [...MINT_ABI, ...ERC20_ABI], deployer);
+  const nETHContract = new ethers.Contract(nETH, [...MINT_ABI, ...ERC20_ABI], deployer);
 
   // Mint tokens
-  console.log("\nMinting 500 gUSD to Lender A...");
-  await (await gUSDContract.mint(lenderA.address, toWei(500))).wait();
+  console.log("\nMinting 500 nUSD to Lender A...");
+  await (await nUSDContract.mint(lenderA.address, toWei(500))).wait();
 
-  console.log("Minting 500 gUSD to Lender B...");
-  await (await gUSDContract.mint(lenderB.address, toWei(500))).wait();
+  console.log("Minting 500 nUSD to Lender B...");
+  await (await nUSDContract.mint(lenderB.address, toWei(500))).wait();
 
-  console.log("Minting 5 gETH to Borrower...");
-  await (await gETHContract.mint(borrower.address, toWei(5))).wait();
+  console.log("Minting 5 nETH to Borrower...");
+  await (await nETHContract.mint(borrower.address, toWei(5))).wait();
 
   // Send gas ETH
   console.log("\nSending 0.005 ETH gas to each wallet...");
@@ -44,10 +44,10 @@ async function main() {
     { label: "Lender B", addr: lenderB.address },
     { label: "Borrower", addr: borrower.address },
   ]) {
-    const usd = await gUSDContract.balanceOf(addr);
-    const eth = await gETHContract.balanceOf(addr);
+    const usd = await nUSDContract.balanceOf(addr);
+    const eth = await nETHContract.balanceOf(addr);
     const gas = await provider.getBalance(addr);
-    console.log(`  ${label.padEnd(10)} gUSD: ${ethers.formatEther(usd).padStart(10)}  gETH: ${ethers.formatEther(eth).padStart(10)}  ETH: ${ethers.formatEther(gas).padStart(10)}`);
+    console.log(`  ${label.padEnd(10)} nUSD: ${ethers.formatEther(usd).padStart(10)}  nETH: ${ethers.formatEther(eth).padStart(10)}  ETH: ${ethers.formatEther(gas).padStart(10)}`);
   }
 
   console.log("\nDone! Run step 02 next.");

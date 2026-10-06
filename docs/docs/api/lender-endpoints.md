@@ -16,7 +16,7 @@ Initialize a deposit slot. This creates a pending slot that the lender must conf
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `userId` | string | Yes | Lender's Ethereum address |
-| `token` | string | Yes | Token address (e.g., gUSD) |
+| `token` | string | Yes | Token address (e.g., nUSD) |
 | `amount` | string | Yes | Deposit amount (BigInt as string) |
 
 ### Response

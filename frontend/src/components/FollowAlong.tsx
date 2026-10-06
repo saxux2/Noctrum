@@ -37,7 +37,7 @@ export default function FollowAlong() {
           </motion.a>
 
           <motion.a
-            href="https://docs.ghost-finance.xyz/"
+            href={links.docs}
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, y: 30 }}
@@ -60,7 +60,7 @@ export default function FollowAlong() {
         {/* Bottom row: X + Discord + Telegram */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <motion.a
-            href="https://x.com/_ghostfi"
+            href={links.x}
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, y: 30 }}
@@ -76,7 +76,7 @@ export default function FollowAlong() {
               </div>
               <ArrowUpRight className="w-4.5 h-4.5 text-gray-600 group-hover:text-gray-400 transition-colors shrink-0" />
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed mt-auto pt-8">Follow @ghostfinance for protocol updates and announcements.</p>
+            <p className="text-sm text-gray-400 leading-relaxed mt-auto pt-8">Follow Noctrum on X for protocol updates and announcements.</p>
           </motion.a>
 
           <motion.a
@@ -116,7 +116,7 @@ export default function FollowAlong() {
               </div>
               <ArrowUpRight className="w-4.5 h-4.5 text-gray-600 group-hover:text-gray-400 transition-colors shrink-0" />
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed mt-auto pt-8">Access Ghost directly via our Telegram bot.</p>
+            <p className="text-sm text-gray-400 leading-relaxed mt-auto pt-8">Access Noctrum directly via our Telegram bot.</p>
           </motion.a>
         </div>
       </div>

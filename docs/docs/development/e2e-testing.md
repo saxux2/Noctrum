@@ -5,7 +5,7 @@ title: E2E Testing
 
 # End to End Testing
 
-The `e2e-test/` directory contains integration tests that exercise the full GHOST protocol flow, from deposits through matching to repayment.
+The `e2e-test/` directory contains integration tests that exercise the full NOCTRUM protocol flow, from deposits through matching to repayment.
 
 ## Setup
 
@@ -14,7 +14,7 @@ cd e2e-test
 bun install
 ```
 
-Ensure the GHOST server is running on `http://localhost:3000` before running tests.
+Ensure the NOCTRUM server is running on `http://localhost:3000` before running tests.
 
 ## Test Scripts
 
@@ -49,8 +49,8 @@ bun run index.ts
 ### Step 1: Transfer Funds
 
 - Creates test wallets (lender and borrower)
-- Deposits gUSD and gETH into the vault
-- Executes private transfers to the GHOST pool address
+- Deposits nUSD and nETH into the vault
+- Executes private transfers to the NOCTRUM pool address
 - Verifies shielded balances
 
 ### Step 2: Submit Intents
@@ -83,9 +83,9 @@ The `e2e-test/src/utils/` directory contains helpers:
 | Utility | Purpose |
 |---------|---------|
 | Wallet generation | Create test wallets with deterministic keys |
-| EIP 712 signing | Sign typed data for GHOST endpoints |
+| EIP 712 signing | Sign typed data for NOCTRUM endpoints |
 | Rate encryption | Encrypt rates with the test CRE public key |
-| API client | Typed wrappers around GHOST API endpoints |
+| API client | Typed wrappers around NOCTRUM API endpoints |
 
 ## Testing Without CRE
 

@@ -1,9 +1,9 @@
 /**
  * Step 6: Full repay flow + verify credit tier upgrade
  * - Creates a loan via internal endpoints (auto-accept)
- * - Mints gUSD to borrower for repayment
- * - Deposits gUSD into vault (on-chain)
- * - Private-transfers gUSD to pool (actual repayment funds)
+ * - Mints nUSD to borrower for repayment
+ * - Deposits nUSD into vault (on-chain)
+ * - Private-transfers nUSD to pool (actual repayment funds)
  * - Calls /repay on server
  * - Verifies credit score upgraded
  *
@@ -12,9 +12,9 @@
 import { ethers } from "ethers";
 import { borrower, lenderA, lenderB, deployer, pool } from "./utils";
 import {
-  gUSD, gETH, VAULT_ADDRESS, ERC20_ABI, VAULT_ABI, MINT_ABI,
+  nUSD, nETH, VAULT_ADDRESS, ERC20_ABI, VAULT_ABI, MINT_ABI,
   post, get, ts, toWei, encryptRate, privateTransfer, getVaultBalances,
-  GHOST_DOMAIN,
+  NOCTRUM_DOMAIN,
 } from "./utils";
 
 async function main() {
@@ -31,14 +31,14 @@ async function main() {
   const timestamp = ts();
   const borrowMsg = {
     account: borrower.address,
-    token: gUSD,
+    token: nUSD,
     amount: toWei(100),
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: toWei(200),
     encryptedMaxRate: encrypted,
     timestamp,
   };
-  const borrowAuth = await borrower.signTypedData(GHOST_DOMAIN, {
+  const borrowAuth = await borrower.signTypedData(NOCTRUM_DOMAIN, {
     "Submit Borrow": [
       { name: "account", type: "address" },
       { name: "token", type: "address" },
@@ -57,14 +57,14 @@ async function main() {
   const proposal = {
     borrowIntentId: borrowResult.intentId,
     borrower: borrower.address,
-    token: gUSD,
+    token: nUSD,
     principal: toWei(100),
     matchedTicks: [
       { lender: lenderA.address, lendIntentId: "repay-test-a", amount: toWei(60), rate: 0.05 },
       { lender: lenderB.address, lendIntentId: "repay-test-b", amount: toWei(40), rate: 0.08 },
     ],
     effectiveBorrowerRate: 0.062,
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: toWei(200),
   };
   await post("/api/v1/internal/record-match-proposals", { proposals: [proposal] });
@@ -94,33 +94,33 @@ async function main() {
     totalOwed += amt + interest;
   }
   const totalOwedStr = totalOwed.toString();
-  console.log(`  Total owed: ${ethers.formatEther(totalOwed)} gUSD`);
+  console.log(`  Total owed: ${ethers.formatEther(totalOwed)} nUSD`);
 
   // ── Actual fund movement: mint + deposit + private transfer ──
   console.log("\n--- Funding borrower for repayment ---");
 
-  // Mint gUSD to borrower (simulates borrower acquiring funds to repay)
-  const gUSDContract = new ethers.Contract(gUSD, [...MINT_ABI, ...ERC20_ABI], deployer);
-  console.log(`  Minting ${ethers.formatEther(totalOwed)} gUSD to borrower...`);
-  await (await gUSDContract.mint(borrower.address, totalOwedStr)).wait();
+  // Mint nUSD to borrower (simulates borrower acquiring funds to repay)
+  const nUSDContract = new ethers.Contract(nUSD, [...MINT_ABI, ...ERC20_ABI], deployer);
+  console.log(`  Minting ${ethers.formatEther(totalOwed)} nUSD to borrower...`);
+  await (await nUSDContract.mint(borrower.address, totalOwedStr)).wait();
 
   // Borrower approves + deposits into vault
-  const tokenAsBorrower = new ethers.Contract(gUSD, ERC20_ABI, borrower);
+  const tokenAsBorrower = new ethers.Contract(nUSD, ERC20_ABI, borrower);
   const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, borrower);
   console.log("  Approving vault...");
   await (await tokenAsBorrower.approve(VAULT_ADDRESS, totalOwedStr)).wait();
   console.log("  Depositing into vault...");
-  await (await vault.deposit(gUSD, totalOwedStr)).wait();
+  await (await vault.deposit(nUSD, totalOwedStr)).wait();
 
   // Private transfer to pool (actual repayment)
-  console.log(`  Private transfer ${ethers.formatEther(totalOwed)} gUSD -> pool...`);
-  await privateTransfer(borrower, pool.address, gUSD, totalOwedStr);
+  console.log(`  Private transfer ${ethers.formatEther(totalOwed)} nUSD -> pool...`);
+  await privateTransfer(borrower, pool.address, nUSD, totalOwedStr);
 
   // Verify private balance moved
   const borrowerBal = await getVaultBalances(borrower);
   const poolBal = await getVaultBalances(pool);
-  console.log(`  Borrower private gUSD: ${ethers.formatEther(borrowerBal.gUSD)}`);
-  console.log(`  Pool private gUSD:     ${ethers.formatEther(poolBal.gUSD)}`);
+  console.log(`  Borrower private nUSD: ${ethers.formatEther(borrowerBal.nUSD)}`);
+  console.log(`  Pool private nUSD:     ${ethers.formatEther(poolBal.nUSD)}`);
 
   // ── Call repay on server ──────────────────────────────
   console.log("\n--- Repaying loan ---");
@@ -131,7 +131,7 @@ async function main() {
     amount: totalOwedStr,
     timestamp: repayTs,
   };
-  const repayAuth = await borrower.signTypedData(GHOST_DOMAIN, {
+  const repayAuth = await borrower.signTypedData(NOCTRUM_DOMAIN, {
     "Repay Loan": [
       { name: "account", type: "address" },
       { name: "loanId", type: "string" },
@@ -142,7 +142,7 @@ async function main() {
 
   const result = await post("/api/v1/repay", { ...repayMsg, auth: repayAuth });
   console.log(`  Status:     ${result.status}`);
-  console.log(`  Total paid: ${ethers.formatEther(result.totalPaid)} gUSD`);
+  console.log(`  Total paid: ${ethers.formatEther(result.totalPaid)} nUSD`);
   console.log(`  Transfer:   ${result.transferId} (collateral return queued)`);
 
   // ── Verify repay-lender transfers queued ──────────────
@@ -153,7 +153,7 @@ async function main() {
   );
   console.log(`  repay-lender transfers: ${repayTransfers.length}`);
   for (const t of repayTransfers) {
-    console.log(`    ${t.recipient.slice(0, 10)}... | ${ethers.formatEther(t.amount)} gUSD`);
+    console.log(`    ${t.recipient.slice(0, 10)}... | ${ethers.formatEther(t.amount)} nUSD`);
   }
 
   if (repayTransfers.length !== 2) {
@@ -161,7 +161,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Verify lender A gets 60 + 5% interest = 63 gUSD
+  // Verify lender A gets 60 + 5% interest = 63 nUSD
   const lenderATransfer = repayTransfers.find(
     (t: any) => t.recipient === lenderA.address.toLowerCase()
   );
@@ -179,8 +179,8 @@ async function main() {
   const expectedA = BigInt(toWei(60)) + BigInt(Math.floor(Number(BigInt(toWei(60))) * 0.05));
   const expectedB = BigInt(toWei(40)) + BigInt(Math.floor(Number(BigInt(toWei(40))) * 0.08));
 
-  console.log(`\n  Lender A: ${ethers.formatEther(lenderAPayout)} gUSD (expected ${ethers.formatEther(expectedA)})`);
-  console.log(`  Lender B: ${ethers.formatEther(lenderBPayout)} gUSD (expected ${ethers.formatEther(expectedB)})`);
+  console.log(`\n  Lender A: ${ethers.formatEther(lenderAPayout)} nUSD (expected ${ethers.formatEther(expectedA)})`);
+  console.log(`  Lender B: ${ethers.formatEther(lenderBPayout)} nUSD (expected ${ethers.formatEther(expectedB)})`);
 
   if (lenderAPayout !== expectedA) {
     console.error(`FAIL: lenderA payout mismatch`);
@@ -199,7 +199,7 @@ async function main() {
     console.error("FAIL: no collateral return transfer queued");
     process.exit(1);
   }
-  console.log(`  Collateral return: ${ethers.formatEther(collateralReturn.amount)} gETH -> borrower`);
+  console.log(`  Collateral return: ${ethers.formatEther(collateralReturn.amount)} nETH -> borrower`);
 
   // ── Verify credit score upgraded ──────────────────────
   const scoreAfter = await get(`/api/v1/credit-score/${borrower.address}`);

@@ -9,7 +9,7 @@
  */
 import { ethers } from "ethers";
 import { borrower, lenderA, lenderB, pool } from "./utils";
-import { gUSD, gETH, post, get, ts, toWei, encryptRate, GHOST_DOMAIN } from "./utils";
+import { nUSD, nETH, post, get, ts, toWei, encryptRate, NOCTRUM_DOMAIN } from "./utils";
 
 async function main() {
   console.log("=== Step 7: Liquidation Flow ===\n");
@@ -26,7 +26,7 @@ async function main() {
   const requiredEth = (100 * multiplier) / ethPrice;
   const safeEth = requiredEth * 1.2;
   const collateral = ethers.parseEther(safeEth.toFixed(6)).toString();
-  console.log(`ETH/USD: $${ethPrice.toFixed(2)}, using ${safeEth.toFixed(4)} gETH as collateral`);
+  console.log(`ETH/USD: $${ethPrice.toFixed(2)}, using ${safeEth.toFixed(4)} nETH as collateral`);
 
   // Step A: Submit a fresh borrow intent
   console.log("Submitting borrow intent for liquidation test...");
@@ -34,14 +34,14 @@ async function main() {
   const timestamp = ts();
   const borrowMsg = {
     account: borrower.address,
-    token: gUSD,
+    token: nUSD,
     amount: toWei(100),
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: collateral,
     encryptedMaxRate: encrypted,
     timestamp,
   };
-  const auth = await borrower.signTypedData(GHOST_DOMAIN, {
+  const auth = await borrower.signTypedData(NOCTRUM_DOMAIN, {
     "Submit Borrow": [
       { name: "account", type: "address" },
       { name: "token", type: "address" },
@@ -61,14 +61,14 @@ async function main() {
   const proposal = {
     borrowIntentId: borrowResult.intentId,
     borrower: borrower.address,
-    token: gUSD,
+    token: nUSD,
     principal: toWei(100),
     matchedTicks: [
       { lender: lenderA.address, lendIntentId: "test-lend-a", amount: toWei(60), rate: 0.05 },
       { lender: lenderB.address, lendIntentId: "test-lend-b", amount: toWei(40), rate: 0.08 },
     ],
     effectiveBorrowerRate: 0.062,
-    collateralToken: gETH,
+    collateralToken: nETH,
     collateralAmount: collateral,
   };
   await post("/api/v1/internal/record-match-proposals", { proposals: [proposal] });
@@ -99,8 +99,8 @@ async function main() {
   }
 
   console.log(`\nActive loan to liquidate: ${activeLoan.loanId}`);
-  console.log(`  Principal:  ${ethers.formatEther(activeLoan.principal)} gUSD`);
-  console.log(`  Collateral: ${ethers.formatEther(activeLoan.collateralAmount)} gETH`);
+  console.log(`  Principal:  ${ethers.formatEther(activeLoan.principal)} nUSD`);
+  console.log(`  Collateral: ${ethers.formatEther(activeLoan.collateralAmount)} nETH`);
 
   // Check credit score before liquidation
   const scoreBefore = await get(`/api/v1/credit-score/${borrower.address}`);
@@ -155,7 +155,7 @@ async function main() {
   );
   console.log(`\n--- Pending Liquidation Transfers ---`);
   for (const t of liqTransfers) {
-    console.log(`  ${t.id.slice(0, 8)}... -> ${t.recipient.slice(0, 10)}... | ${ethers.formatEther(t.amount)} ${t.token === gETH.toLowerCase() ? "gETH" : "gUSD"}`);
+    console.log(`  ${t.id.slice(0, 8)}... -> ${t.recipient.slice(0, 10)}... | ${ethers.formatEther(t.amount)} ${t.token === nETH.toLowerCase() ? "nETH" : "nUSD"}`);
   }
 
   console.log(`\nPASS: loan liquidated, ${liqRes.transfers.length} transfers queued, borrower tier ${scoreBefore.tier} -> ${scoreAfter.tier}`);

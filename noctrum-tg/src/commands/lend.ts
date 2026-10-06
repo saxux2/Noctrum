@@ -18,8 +18,8 @@ composer.command("lend", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 3) {
     const kb = new InlineKeyboard()
-      .text("\u{1FA99} Lend nUSD", "lend_example_gusd")
-      .text("\u{1FA99} Lend nETH", "lend_example_geth");
+      .text("\u{1FA99} Lend nUSD", "lend_example_nusd")
+      .text("\u{1FA99} Lend nETH", "lend_example_neth");
     await ctx.reply(
       `\u{1FA99} <b>Lend Tokens</b>\n\n` +
       `<b>Usage:</b> <code>/lend [amount] [token] [rate%]</code>\n\n` +
@@ -196,7 +196,7 @@ composer.command("lender_status", async (ctx) => {
 
 // ── Lend example callbacks ──
 
-composer.callbackQuery("lend_example_gusd", async (ctx) => {
+composer.callbackQuery("lend_example_nusd", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1FA99} <b>Lend nUSD Example</b>\n\n` +
@@ -207,7 +207,7 @@ composer.callbackQuery("lend_example_gusd", async (ctx) => {
   );
 });
 
-composer.callbackQuery("lend_example_geth", async (ctx) => {
+composer.callbackQuery("lend_example_neth", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1FA99} <b>Lend nETH Example</b>\n\n` +
@@ -243,8 +243,8 @@ composer.callbackQuery("action_lender_status", async (ctx) => {
 composer.callbackQuery("menu_lend", async (ctx) => {
   await ctx.answerCallbackQuery();
   const kb = new InlineKeyboard()
-    .text("\u{1FA99} Lend nUSD", "lend_example_gusd")
-    .text("\u{1FA99} Lend nETH", "lend_example_geth").row()
+    .text("\u{1FA99} Lend nUSD", "lend_example_nusd")
+    .text("\u{1FA99} Lend nETH", "lend_example_neth").row()
     .text("\u{1F4CA} My Positions", "action_lender_status")
     .text("\u{274C} Cancel Lend", "lend_cancel_help");
   await ctx.reply(

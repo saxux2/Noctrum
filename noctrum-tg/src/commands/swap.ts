@@ -15,8 +15,8 @@ composer.command("swap", async (ctx) => {
   const parts = (ctx.match || "").trim().split(/\s+/);
   if (parts.length < 3) {
     const kb = new InlineKeyboard()
-      .text("\u{1F4B5} nUSD \u{2192} nETH", "swap_example_gusd_geth")
-      .text("\u{1FA99} nETH \u{2192} nUSD", "swap_example_geth_gusd");
+      .text("\u{1F4B5} nUSD \u{2192} nETH", "swap_example_nusd_neth")
+      .text("\u{1FA99} nETH \u{2192} nUSD", "swap_example_neth_nusd");
     await ctx.reply(
       `\u{1F504} <b>Swap Tokens</b>\n\n` +
       `<b>Usage:</b> <code>/swap [amount] [from] [to]</code>\n\n` +
@@ -115,7 +115,7 @@ composer.command("swap_quote", async (ctx) => {
 
 // ── Swap callbacks ──
 
-composer.callbackQuery("swap_example_gusd_geth", async (ctx) => {
+composer.callbackQuery("swap_example_nusd_neth", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1F504} <b>Swap nUSD to nETH</b>\n\n` +
@@ -125,7 +125,7 @@ composer.callbackQuery("swap_example_gusd_geth", async (ctx) => {
   );
 });
 
-composer.callbackQuery("swap_example_geth_gusd", async (ctx) => {
+composer.callbackQuery("swap_example_neth_nusd", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply(
     `\u{1F504} <b>Swap nETH to nUSD</b>\n\n` +
@@ -148,8 +148,8 @@ composer.callbackQuery("swap_now_help", async (ctx) => {
 composer.callbackQuery("menu_swap", async (ctx) => {
   await ctx.answerCallbackQuery();
   const kb = new InlineKeyboard()
-    .text("\u{1F4B5} nUSD \u{2192} nETH", "swap_example_gusd_geth")
-    .text("\u{1FA99} nETH \u{2192} nUSD", "swap_example_geth_gusd").row()
+    .text("\u{1F4B5} nUSD \u{2192} nETH", "swap_example_nusd_neth")
+    .text("\u{1FA99} nETH \u{2192} nUSD", "swap_example_neth_nusd").row()
     .text("\u{1F4B1} Get Quote", "swap_quote_help");
   await ctx.reply(
     `\u{1F504} <b>Swap Tokens</b>\n\n` +

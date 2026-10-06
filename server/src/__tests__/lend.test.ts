@@ -1,4 +1,4 @@
-// D-17: rewrite of Ghost's stale lend.test.ts against Mongo, same 9 cases plus 404/403 paths.
+// D-17: rewrite of the original stale lend.test.ts against Mongo, same 9 cases plus 404/403 paths.
 import { describe, it, expect } from "bun:test";
 import { ethers } from "ethers";
 import { post, sign, NUSD, wei } from "./helpers";

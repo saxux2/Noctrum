@@ -11,7 +11,7 @@
 - [x] expireProposals: queue transfer
 - [x] repayLoan: queue collateral return transfer
 - [x] Add getPendingTransfers, executeTransfer, confirmTransfers to internal.controllers.ts
-- [x] Mount new internal endpoints in ghost.routes.ts
+- [x] Mount new internal endpoints in noctrum.routes.ts
 
 ## CRE Workflows
 - [x] settle-loans/main.ts — matching engine

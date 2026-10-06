@@ -64,7 +64,7 @@ contract InterestAccrualTest is Test {
         assertEq(h.computeSimpleInterest(1000e18, 500, 0), 0);
         assertEq(h.computeSimpleInterest(1000e18, 0, 365 days), 0);
         assertEq(h.computeSimpleInterest(1000e18, 1000, 730 days), 200e18);
-        // 30-day loan (Ghost maturity) at 5%: 1000 * 0.05 * 30 / 365, floored
+        // 30-day loan (default maturity) at 5%: 1000 * 0.05 * 30 / 365, floored
         assertEq(h.computeSimpleInterest(1000e18, 500, 30 days), 4109589041095890410);
         // 508 bps for half a year
         assertEq(h.computeSimpleInterest(800e18, 508, 365 days / 2), 20.32e18);

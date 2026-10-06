@@ -1,4 +1,4 @@
-# GHOST Protocol — Production Architecture
+# NOCTRUM Protocol — Production Architecture
 
 > Private P2P lending with sealed-bid rate discovery on Chainlink CRE.
 > Discriminatory-price auction per the tick-based framework from
@@ -19,7 +19,7 @@
             │ on-chain txs                 │ HTTPS (encrypted intent)
             ▼                              ▼
 ┌───────────────────────┐    ┌──────────────────────────────────────────┐
-│  GhostVault.sol        │    │  CRE (DON Nodes + TEE)                   │
+│  NoctrumVault.sol        │    │  CRE (DON Nodes + TEE)                   │
 │  (Sepolia)             │    │                                          │
 │                        │    │  HTTP Endpoint: /submit-intent           │
 │  • deposit()           │    │    → receives encrypted+signed intents   │
@@ -40,7 +40,7 @@
 └───────────────────────┘    └──────────────────────────────────────────┘
                                            │
 ┌──────────────────────────────────────────┼───────────────────────────┐
-│  GHOST Server (Off-Chain State Store)     │ reads prices              │
+│  NOCTRUM Server (Off-Chain State Store)     │ reads prices              │
 │                                          ▼                           │
 │  Dumb encrypted blob server.   ┌──────────────────────────┐         │
 │  CRE reads/writes via          │  Chainlink Data Streams    │         │
@@ -56,7 +56,7 @@
 ```
 
 **Three actors:**
-- **GhostVault contract** — holds funds, enforces rules, receives DON-signed reports
+- **NoctrumVault contract** — holds funds, enforces rules, receives DON-signed reports
 - **CRE (Confidential Compute)** — only entity that reads sealed rates, runs matching, produces signed settlement reports
 - **Users** — interact on-chain (deposit/withdraw/repay) and off-chain (submit encrypted intents to DON)
 
@@ -72,10 +72,10 @@ Every intent is signed with EIP-712 before encryption. CRE verifies the signatur
 
 ```
 {
-  name: "GHOST Protocol",
+  name: "NOCTRUM Protocol",
   version: "1.0",
   chainId: 11155111,
-  verifyingContract: <GhostVault address>
+  verifyingContract: <NoctrumVault address>
 }
 ```
 
@@ -117,7 +117,7 @@ CancelIntent: [
 
 ---
 
-## 3. GhostVault Smart Contract
+## 3. NoctrumVault Smart Contract
 
 ### State
 
@@ -498,7 +498,7 @@ CRE check-loans (every 60s):
 
 ## 8. State Location Map
 
-### On-Chain (GhostVault — public, trustless, verifiable)
+### On-Chain (NoctrumVault — public, trustless, verifiable)
 
 | State | Why On-Chain |
 |---|---|
@@ -511,7 +511,7 @@ CRE check-loans (every 60s):
 
 **Note:** `balances` and `lockedBalances` use `internal` visibility — no public getter. CRE reads raw storage slots. Raises the bar for casual observers.
 
-### Off-Chain Store (GHOST Server — private, CRE-encrypted)
+### Off-Chain Store (NOCTRUM Server — private, CRE-encrypted)
 
 | State | Why Off-Chain |
 |---|---|
@@ -591,7 +591,7 @@ CRE check-loans (every 60s):
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────┐
-│  TRUST BOUNDARY 3: Off-Chain Store (GHOST Server)                    │
+│  TRUST BOUNDARY 3: Off-Chain Store (NOCTRUM Server)                    │
 │                                                                      │
 │  TRUSTS: nothing — it's a dumb blob store                            │
 │  TRUSTED BY: CRE (for availability, not integrity)                   │
@@ -619,11 +619,11 @@ CRE check-loans (every 60s):
 
 | Component Down | Impact | Recovery |
 |---|---|---|
-| GHOST Server | CRE can't read off-chain state. New intents via HTTP fail. | Fallback: on-chain `submitIntent()`. CRE uses chain-only data (degraded). |
+| NOCTRUM Server | CRE can't read off-chain state. New intents via HTTP fail. | Fallback: on-chain `submitIntent()`. CRE uses chain-only data (degraded). |
 | CRE / DON | No new pools, no matching, no liquidation. | Funds safe on-chain. Users can still withdraw unlocked balances. Locked funds wait for CRE recovery. |
 | Single DON node | No impact — threshold signing continues with remaining nodes. | Automatic. |
 | TEE compromise | Sealed rates exposed to attacker. | CRE key rotation. Existing loans unaffected (rates already settled). |
-| GhostVault bug | Fund loss possible. | Audit, formal verification, upgrade proxy pattern. |
+| NoctrumVault bug | Fund loss possible. | Audit, formal verification, upgrade proxy pattern. |
 
 ---
 
@@ -631,7 +631,7 @@ CRE check-loans (every 60s):
 
 | Dimension | Hackathon (current) | Production |
 |---|---|---|
-| Fund custody | Pool wallet (single private key) | GhostVault contract (trustless) |
+| Fund custody | Pool wallet (single private key) | NoctrumVault contract (trustless) |
 | Fund verification | User claims transfer, server believes | `transferFrom` — succeeds or reverts |
 | State persistence | In-memory Maps (crash = gone) | On-chain + encrypted off-chain store |
 | CRE role | Advisor (tells server what to do) | Autonomous settler (writes chain directly via onReport) |

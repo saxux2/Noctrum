@@ -44,7 +44,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="Documentation"
-      description="GHOST Protocol: Privacy preserving P2P lending with sealed bid rate discovery on Chainlink CRE">
+      description="NOCTRUM Protocol: Privacy preserving P2P lending with sealed bid rate discovery on Chainlink CRE">
       <HomepageHeader />
       <main>
         <section className="padding-vert--xl">

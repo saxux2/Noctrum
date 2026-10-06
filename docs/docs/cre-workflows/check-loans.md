@@ -70,7 +70,7 @@ const [, answer] = result;
 const ethPrice = Number(answer) / 1e8; // 8 decimal precision
 ```
 
-Using Chainlink's own price infrastructure ensures consistency. The same price feed that DeFi protocols rely on for billions in TVL protects GHOST's collateral valuations.
+Using Chainlink's own price infrastructure ensures consistency. The same price feed that DeFi protocols rely on for billions in TVL protects NOCTRUM's collateral valuations.
 
 ## Liquidation Submission
 
@@ -79,7 +79,7 @@ When unhealthy loans are found, the workflow submits their IDs to the server:
 ```typescript
 if (toLiquidate.length > 0) {
   ConfidentialHTTPClient.sendRequest(runtime, {
-    url: `${config.ghostApiUrl}/api/v1/internal/liquidate-loans`,
+    url: `${config.noctrumApiUrl}/api/v1/internal/liquidate-loans`,
     method: "POST",
     headers: {
       "x-api-key": config.internalApiKey,
@@ -95,8 +95,8 @@ The server then processes the liquidation (marking defaults, distributing collat
 ## Example Scenario
 
 Consider a loan:
-- Principal: 10,000 gUSD
-- Collateral: 6 gETH
+- Principal: 10,000 nUSD
+- Collateral: 6 nETH
 - ETH price at creation: $2,500 (health = 1.5)
 
 If ETH drops to $2,400:
@@ -111,7 +111,7 @@ Since 1.44 < 1.5, this loan is liquidated on the next check cycle.
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `schedule` | Cron interval | Every 60 seconds |
-| `ghostApiUrl` | GHOST API base URL | Required |
+| `noctrumApiUrl` | NOCTRUM API base URL | Required |
 | `internalApiKey` | API key for internal endpoints | DON Secret |
 | `feedChainName` | Chain name for price feed reads | `ethereum-testnet-sepolia-arbitrum-1` |
 | `ethUsdFeed` | Chainlink ETH/USD feed contract address | Config |

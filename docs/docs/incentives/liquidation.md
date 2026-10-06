@@ -5,7 +5,7 @@ title: Liquidation
 
 # Liquidation
 
-GHOST liquidates undercollateralized positions to protect lenders from borrower default risk. The liquidation process is automated via the CRE's `check-loans` workflow and distributes seized collateral to affected lenders.
+NOCTRUM liquidates undercollateralized positions to protect lenders from borrower default risk. The liquidation process is automated via the CRE's `check-loans` workflow and distributes seized collateral to affected lenders.
 
 ## Health Factor
 
@@ -15,7 +15,7 @@ The health factor of a loan is defined as:
 healthFactor = (collateralAmount * currentCollateralPrice) / principal
 ```
 
-For example, a loan with 5 ETH collateral (at $2,000/ETH) and 8,000 gUSD principal has:
+For example, a loan with 5 ETH collateral (at $2,000/ETH) and 8,000 nUSD principal has:
 
 ```
 healthFactor = (5 * 2000) / 8000 = 1.25
@@ -65,7 +65,7 @@ For each matched tick:
 ## Distribution Example
 
 Consider a loan with:
-- Principal: 10,000 gUSD
+- Principal: 10,000 nUSD
 - Collateral: 6 ETH
 - Matched ticks: Alice (4,000 at 3.5%), Bob (6,000 at 4.0%)
 

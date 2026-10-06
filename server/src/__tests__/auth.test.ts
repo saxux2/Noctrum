@@ -32,8 +32,8 @@ describe("EIP-712 domain", () => {
     expect(res.status).toBe(401);
   });
 
-  it("Ghost domain name must fail", async () => {
-    const { auth, ...msg } = await sign(wallet, "Cancel Lend", { slotId: "s" }, { ...EIP712_DOMAIN, name: "GhostProtocol" });
+  it("Foreign domain name must fail", async () => {
+    const { auth, ...msg } = await sign(wallet, "Cancel Lend", { slotId: "s" }, { ...EIP712_DOMAIN, name: "OtherProtocol" });
     expect(() => authenticate("Cancel Lend", msg, auth, wallet.address)).toThrow(/Signature mismatch/);
   });
 

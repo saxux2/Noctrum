@@ -27,4 +27,4 @@
 - No target set → defaults ES3 → BigInt/Map iteration errors. Pre-existing, bun handles at runtime.
 
 ## Naming Conventions
-- Config vars should be clear and direct: `GETH_ADDRESS` not `COLLATERAL_TOKEN_ADDRESS`. Don't over-abstract when there are only two known tokens.
+- Config vars should be clear and direct: `NETH_ADDRESS` not `COLLATERAL_TOKEN_ADDRESS`. Don't over-abstract when there are only two known tokens.

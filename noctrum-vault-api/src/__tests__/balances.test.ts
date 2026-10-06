@@ -37,7 +37,7 @@ describe("POST /balances", () => {
       ]),
     );
 
-    // Ghost client lookup: case-insensitive token match
+    // Client lookup: case-insensitive token match
     const find = (tok: string) =>
       json.balances.find((b: any) => b.token.toLowerCase() === tok.toLowerCase())?.amount ?? "0";
     expect(find("0x339a948f3667d222FAD43d313b3b8c3BE1415ad5")).toBe(wei(10));

@@ -1,4 +1,4 @@
-# GHOST Protocol: Privacy-Preserving Rate Discovery for Decentralised Lending
+# NOCTRUM Protocol: Privacy-Preserving Rate Discovery for Decentralised Lending
 
 **A Sealed-Bid Discriminatory Auction Framework with Confidential Compute Settlement**
 
@@ -6,7 +6,7 @@
 
 ## Abstract
 
-Decentralised lending today suffers from a fundamental tension: rate transparency enables market efficiency but invites strategic manipulation, front-running, and collusion. We present GHOST (General Hosting of Sealed Ticks), a protocol that resolves this tension by combining sealed-bid discriminatory-price auctions with confidential compute execution. Lenders submit rate bids encrypted under a secp256k1 public key held by a Chainlink Confidential Runtime Environment (CRE) node. Neither the storage layer, other participants, nor any single node operator can observe plaintext rates. Matching, rate validation, and fund disbursement occur entirely within the CRE's trusted execution boundary, producing a system where price discovery is both market-driven and manipulation-resistant. GHOST achieves what open order books cannot: truthful rate revelation without the attack surface of public bids.
+Decentralised lending today suffers from a fundamental tension: rate transparency enables market efficiency but invites strategic manipulation, front-running, and collusion. We present NOCTRUM (General Hosting of Sealed Ticks), a protocol that resolves this tension by combining sealed-bid discriminatory-price auctions with confidential compute execution. Lenders submit rate bids encrypted under a secp256k1 public key held by a Chainlink Confidential Runtime Environment (CRE) node. Neither the storage layer, other participants, nor any single node operator can observe plaintext rates. Matching, rate validation, and fund disbursement occur entirely within the CRE's trusted execution boundary, producing a system where price discovery is both market-driven and manipulation-resistant. NOCTRUM achieves what open order books cannot: truthful rate revelation without the attack surface of public bids.
 
 ---
 
@@ -22,7 +22,7 @@ Eli and Alexandre (2025) proposed a tick-based auction framework where lending p
 
 However, their model assumes an *open* auction: all bids are visible on-chain throughout the book-building phase. While this enables competitive re-bidding, it also creates vulnerability to front-running, last-second sniping, and coordinated rate manipulation — precisely the market frictions the authors acknowledge as limitations.
 
-GHOST resolves this by making the auction *sealed*. Every rate bid — both lender rates and borrower maximum rates — is encrypted client-side with a public key whose corresponding private key exists only inside a Chainlink CRE workflow. The server that stores these bids is architecturally incapable of reading them. Decryption, matching, and settlement execute atomically within the CRE's confidential boundary, inheriting the security guarantees of Chainlink's Decentralised Oracle Network (DON) infrastructure.
+NOCTRUM resolves this by making the auction *sealed*. Every rate bid — both lender rates and borrower maximum rates — is encrypted client-side with a public key whose corresponding private key exists only inside a Chainlink CRE workflow. The server that stores these bids is architecturally incapable of reading them. Decryption, matching, and settlement execute atomically within the CRE's confidential boundary, inheriting the security guarantees of Chainlink's Decentralised Oracle Network (DON) infrastructure.
 
 The result is a lending protocol where:
 
@@ -61,11 +61,11 @@ The indicator function captures the matching constraint: the lender earns only i
 
 $$r_k^* = \frac{p_{k,B} \cdot (1 - RR)}{1 - p_{k,B}}$$
 
-In an open auction with sufficient liquidity ($CD_{r^* + \epsilon} > K$), lenders are incentivised to bid at $r_k^*$, as underbidding risks negative expected returns while overbidding risks exclusion. GHOST preserves this equilibrium property while removing the information leakage that open auctions entail.
+In an open auction with sufficient liquidity ($CD_{r^* + \epsilon} > K$), lenders are incentivised to bid at $r_k^*$, as underbidding risks negative expected returns while overbidding risks exclusion. NOCTRUM preserves this equilibrium property while removing the information leakage that open auctions entail.
 
 ### 2.3 The Sealed-Bid Extension
 
-In GHOST, lender bids are not observable during the book-building phase. Each lender encrypts their rate $r_i$ as:
+In NOCTRUM, lender bids are not observable during the book-building phase. Each lender encrypts their rate $r_i$ as:
 
 $$c_i = \text{ECIES}_{\text{encrypt}}(pk_{\text{CRE}}, r_i)$$
 
@@ -87,7 +87,7 @@ $$u_{\text{borrower}} = K \cdot (ROI - R_{\text{eff}})$$
 
 where $ROI$ is the borrower's expected return on the borrowed capital. The borrower accepts if $R_{\text{eff}} \leq R_{\max} \leq ROI$.
 
-To prevent frivolous borrowing and ensure credible participation, GHOST requires borrowers to post collateral $C$ satisfying:
+To prevent frivolous borrowing and ensure credible participation, NOCTRUM requires borrowers to post collateral $C$ satisfying:
 
 $$C \geq K \cdot \mu(\tau)$$
 
@@ -103,7 +103,7 @@ where $P_{\text{ETH/USD}}$ is sourced from a Chainlink price feed.
 
 ## 3. Protocol Architecture
 
-GHOST implements a three-layer separation of concerns, each operating under distinct trust assumptions.
+NOCTRUM implements a three-layer separation of concerns, each operating under distinct trust assumptions.
 
 ### 3.1 Layer 1: Privacy-Preserving Custody (External)
 
@@ -114,13 +114,13 @@ All fund custody is delegated to a Chainlink Compliant Private Transfer vault de
 - **Withdrawal tickets**: Signed authorisations redeemable on-chain within a time-bound window.
 - **Compliance enforcement**: Every transfer is checked against configurable policy rules without revealing transaction details publicly.
 
-The vault holds all deposited tokens. GHOST never takes direct custody — it orchestrates movements through a pool wallet that signs EIP-712 typed-data messages against the vault's API.
+The vault holds all deposited tokens. NOCTRUM never takes direct custody — it orchestrates movements through a pool wallet that signs EIP-712 typed-data messages against the vault's API.
 
-The proof-of-concept operates with two synthetic assets registered on the vault: **gUSD**, a USD-pegged stablecoin used as the primary lending denomination, and **gETH**, a synthetic ether token used as borrower collateral. Lenders deposit gUSD into tick positions at their chosen rate; borrowers post gETH collateral valued against a live Chainlink ETH/USD price feed. This two-token design captures the essential cross-asset dynamics of real lending markets — currency risk in collateral valuation, liquidation threshold monitoring, and the need for oracle-sourced pricing — while remaining tractable for confidential compute execution within CRE's WASM runtime.
+The proof-of-concept operates with two synthetic assets registered on the vault: **nUSD**, a USD-pegged stablecoin used as the primary lending denomination, and **nETH**, a synthetic ether token used as borrower collateral. Lenders deposit nUSD into tick positions at their chosen rate; borrowers post nETH collateral valued against a live Chainlink ETH/USD price feed. This two-token design captures the essential cross-asset dynamics of real lending markets — currency risk in collateral valuation, liquidation threshold monitoring, and the need for oracle-sourced pricing — while remaining tractable for confidential compute execution within CRE's WASM runtime.
 
-### 3.2 Layer 2: Blind Storage (GHOST Server)
+### 3.2 Layer 2: Blind Storage (NOCTRUM Server)
 
-The GHOST API server (Hono + Bun) functions as a deliberately blind storage layer. It maintains in-memory state — deposit slots, lend intents, borrow intents, match proposals, active loans, pending transfers, and credit scores — but is architecturally excluded from rate information.
+The NOCTRUM API server (Hono + Bun) functions as a deliberately blind storage layer. It maintains in-memory state — deposit slots, lend intents, borrow intents, match proposals, active loans, pending transfers, and credit scores — but is architecturally excluded from rate information.
 
 All user-facing endpoints authenticate via EIP-712 typed-data signatures with timestamp validation ($\pm 5$ minutes) to prevent replay attacks. The server stores encrypted rate blobs, queues fund movement instructions, and tracks loan lifecycle state. It cannot decrypt rates, cannot execute matching, and cannot disburse funds autonomously.
 
@@ -200,9 +200,9 @@ Lender recovery is pro-rata by principal contribution. This aligns with the disc
 
 ## 6. Privacy Model
 
-GHOST achieves a layered privacy architecture where information is compartmentalised by role:
+NOCTRUM achieves a layered privacy architecture where information is compartmentalised by role:
 
-| Data | Public Chain | GHOST Server | CRE |
+| Data | Public Chain | NOCTRUM Server | CRE |
 |---|---|---|---|
 | Vault deposits | Visible | — | — |
 | Private transfer amounts | Hidden | Known (for bookkeeping) | Known |
@@ -219,7 +219,7 @@ Rate encryption uses ECIES on the secp256k1 curve (eciesjs v0.4), which provides
 
 ## 7. Role of Chainlink Infrastructure
 
-GHOST is designed as a native CRE application, leveraging multiple Chainlink services as composable infrastructure primitives:
+NOCTRUM is designed as a native CRE application, leveraging multiple Chainlink services as composable infrastructure primitives:
 
 **CRE Workflows** provide the confidential compute environment where rate decryption and matching execute with cryptographic isolation. The WASM-based runtime supports pure-JavaScript cryptographic libraries (eciesjs, @noble/curves, viem), enabling complex financial logic — EIP-712 signing, ECIES decryption, multi-tick matching — within a single workflow execution.
 
@@ -231,7 +231,7 @@ GHOST is designed as a native CRE application, leveraging multiple Chainlink ser
 
 **Chainlink ACE (Automated Compliance Engine)** enforces policy rules on every private transfer through the vault's PolicyEngine contract, enabling regulatory compliance without exposing transaction details on-chain.
 
-This composability is foundational: GHOST does not merely use Chainlink as an oracle — it delegates its most security-critical operations (key custody, rate decryption, fund execution, compliance checking) to Chainlink's decentralised infrastructure, inheriting its liveness and security guarantees.
+This composability is foundational: NOCTRUM does not merely use Chainlink as an oracle — it delegates its most security-critical operations (key custody, rate decryption, fund execution, compliance checking) to Chainlink's decentralised infrastructure, inheriting its liveness and security guarantees.
 
 ---
 
@@ -239,11 +239,11 @@ This composability is foundational: GHOST does not merely use Chainlink as an or
 
 ### 8.1 Trade-offs of Sealed vs. Open Auctions
 
-The Eli-Alexandre model achieves rate convergence through iterative re-bidding: lenders observe the order book and adjust rates competitively. GHOST's sealed-bid design sacrifices this iterative convergence for manipulation resistance. In practice, we expect convergence to emerge across epochs rather than within a single auction — as market participants learn clearing rates from past loan originations and calibrate future bids accordingly.
+The Eli-Alexandre model achieves rate convergence through iterative re-bidding: lenders observe the order book and adjust rates competitively. NOCTRUM's sealed-bid design sacrifices this iterative convergence for manipulation resistance. In practice, we expect convergence to emerge across epochs rather than within a single auction — as market participants learn clearing rates from past loan originations and calibrate future bids accordingly.
 
 ### 8.2 Capital Efficiency
 
-The tick-based model requires total liquidity $CD_{r_n} > K$ for competitive rate discovery. GHOST addresses this through continuous matching: lend intents persist across epochs until matched or cancelled, creating a standing liquidity book that grows over time. The credit tier system further improves capital efficiency by reducing collateral requirements for proven borrowers.
+The tick-based model requires total liquidity $CD_{r_n} > K$ for competitive rate discovery. NOCTRUM addresses this through continuous matching: lend intents persist across epochs until matched or cancelled, creating a standing liquidity book that grows over time. The credit tier system further improves capital efficiency by reducing collateral requirements for proven borrowers.
 
 ### 8.3 Limitations and Future Work
 
@@ -253,7 +253,7 @@ The current implementation uses in-memory state, suitable for proof-of-concept b
 
 ## 9. Conclusion
 
-GHOST demonstrates that privacy and market efficiency in decentralised lending are not mutually exclusive. By combining the tick-based rate discovery framework of Eli and Alexandre with Chainlink CRE's confidential compute capabilities, the protocol achieves sealed-bid price discovery with discriminatory settlement — a mechanism that incentivises truthful rate revelation while eliminating the front-running, sniping, and collusion vectors inherent in open on-chain auctions.
+NOCTRUM demonstrates that privacy and market efficiency in decentralised lending are not mutually exclusive. By combining the tick-based rate discovery framework of Eli and Alexandre with Chainlink CRE's confidential compute capabilities, the protocol achieves sealed-bid price discovery with discriminatory settlement — a mechanism that incentivises truthful rate revelation while eliminating the front-running, sniping, and collusion vectors inherent in open on-chain auctions.
 
 The protocol's architecture — a blind storage layer, a privacy-preserving custody layer, and a confidential settlement engine — establishes a separation of concerns where no single component possesses sufficient information to compromise rate privacy or manipulate matching outcomes. This design pattern, enabled by Chainlink's composable infrastructure stack, points toward a broader class of DeFi applications where sensitive financial logic can execute with institutional-grade confidentiality guarantees on decentralised infrastructure.
 
@@ -281,4 +281,4 @@ The protocol's architecture — a blind storage layer, a privacy-preserving cust
 
 ---
 
-*GHOST Protocol — Built on Chainlink CRE, Compliant Private Transfer, ACE, and Price Feeds.*
+*NOCTRUM Protocol — Built on Chainlink CRE, Compliant Private Transfer, ACE, and Price Feeds.*

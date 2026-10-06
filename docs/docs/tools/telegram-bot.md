@@ -5,7 +5,7 @@ title: Telegram Bot
 
 # Telegram Bot
 
-The GHOST Telegram bot (`ghost-tg`) provides a conversational interface for interacting with the protocol directly from Telegram. It supports multi wallet management, encrypted lending, collateralized borrowing, and real time notifications.
+The NOCTRUM Telegram bot (`noctrum-tg`) provides a conversational interface for interacting with the protocol directly from Telegram. It supports multi wallet management, encrypted lending, collateralized borrowing, and real time notifications.
 
 ## Technology Stack
 
@@ -70,7 +70,7 @@ Users can switch between wallets at any time. All protocol operations use the cu
 |---------|-------------|
 | `/transfer` | Execute a private transfer to another shielded address |
 | `/withdraw` | Withdraw funds from the vault to an on chain address |
-| `/swap` | Swap between gUSD and gETH with live quotes |
+| `/swap` | Swap between nUSD and nETH with live quotes |
 
 ### Information
 
@@ -86,14 +86,14 @@ Users can switch between wallets at any time. All protocol operations use the cu
 
 The lending flow is a guided 4 step conversation:
 
-1. **Amount.** Bot prompts for the lending amount in gUSD.
+1. **Amount.** Bot prompts for the lending amount in nUSD.
 2. **Rate.** Bot prompts for the desired interest rate. The rate is encrypted client side using the CRE public key before submission.
 3. **Deposit.** Bot instructs the user to deposit tokens into the vault and private transfer to the pool. Provides the pool's shielded address.
 4. **Confirm.** Bot submits the lend intent with the EIP 712 signature and encrypted rate.
 
 ## Borrowing Flow
 
-1. **Amount.** Bot prompts for the borrow amount in gUSD.
+1. **Amount.** Bot prompts for the borrow amount in nUSD.
 2. **Collateral.** Bot calculates required collateral based on the user's credit tier and current ETH price. User confirms the collateral amount.
 3. **Max Rate.** Bot prompts for the maximum acceptable rate. Encrypted before submission.
 4. **Submit.** Bot submits the borrow intent with EIP 712 signature.
@@ -114,7 +114,7 @@ Users can toggle notifications with the `/alerts` command.
 ## Architecture
 
 ```
-User (Telegram) <-> grammY Bot <-> GHOST Server API
+User (Telegram) <-> grammY Bot <-> NOCTRUM Server API
                                 <-> External Vault API
                                 <-> WalletConnect v2 (optional)
 ```
@@ -123,13 +123,13 @@ The bot acts as a thin client. All protocol logic runs on the server and CRE. Th
 - Conversation state (multi step flows)
 - Wallet management and signing
 - Rate encryption
-- API calls to the GHOST server
+- API calls to the NOCTRUM server
 - User notification polling
 
 ## Running the Bot
 
 ```bash
-cd ghost-tg
+cd noctrum-tg
 bun install
 ```
 
@@ -137,7 +137,7 @@ Set environment variables:
 
 ```bash
 BOT_TOKEN=<telegram-bot-token>
-GHOST_SERVER_URL=<ghost-api-url>
+NOCTRUM_SERVER_URL=<noctrum-api-url>
 EXTERNAL_API_URL=<vault-api-url>
 CRE_PUBLIC_KEY=<secp256k1-public-key-hex>
 WALLETCONNECT_PROJECT_ID=<wc-project-id>
@@ -158,7 +158,7 @@ bun run --hot src/index.ts
 | `src/index.ts` | Bot entry point, command registration |
 | `src/config.ts` | Environment configuration |
 | `src/constants.ts` | ABIs, EIP 712 type definitions |
-| `src/api.ts` | GHOST server and vault API clients |
+| `src/api.ts` | NOCTRUM server and vault API clients |
 | `src/wallet.ts` | Wallet creation, import, storage |
 | `src/wc.ts` | WalletConnect v2 session management |
 | `src/notifier.ts` | Polling notification system |

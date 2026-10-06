@@ -1,14 +1,14 @@
 ---
 sidebar_position: 1
-title: GhostVault Contract
+title: NoctrumVault Contract
 ---
 
-# GhostVault Contract
+# NoctrumVault Contract
 
-The production architecture replaces the generic Chainlink Compliant Private Transfer vault with a purpose built `GhostVault` smart contract. This contract adds protocol specific logic for collateral locking, DON authorized fund movements, and on chain settlement verification.
+The production architecture replaces the generic Chainlink Compliant Private Transfer vault with a purpose built `NoctrumVault` smart contract. This contract adds protocol specific logic for collateral locking, DON authorized fund movements, and on chain settlement verification.
 
 :::note
-The GhostVault is the production design target. The current implementation uses Chainlink's generic vault at `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`.
+The NoctrumVault is the production design target. The current implementation uses Chainlink's generic vault at `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`.
 :::
 
 ## Contract Responsibilities
@@ -22,7 +22,7 @@ The GhostVault is the production design target. The current implementation uses 
 
 ## Soft Locking Mechanism
 
-The GhostVault introduces a `lockedBalances` mapping that prevents users from withdrawing funds that are committed to active protocol operations:
+The NoctrumVault introduces a `lockedBalances` mapping that prevents users from withdrawing funds that are committed to active protocol operations:
 
 ```solidity
 mapping(address => mapping(address => uint256)) public lockedBalances;
@@ -82,7 +82,7 @@ These typed data signatures are verified by the contract before forwarding to th
 
 ## Differences from Generic Vault
 
-| Feature | Generic Vault | GhostVault |
+| Feature | Generic Vault | NoctrumVault |
 |---------|--------------|------------|
 | Collateral locking | Not supported | Native `lockedBalances` |
 | Protocol specific operations | None | Lock, unlock, seize via DON report |

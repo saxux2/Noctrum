@@ -100,7 +100,7 @@ After executing transfers, the workflow confirms them on the server so they are 
 
 ```typescript
 ConfidentialHTTPClient.sendRequest(runtime, {
-  url: `${config.ghostApiUrl}/api/v1/internal/confirm-transfers`,
+  url: `${config.noctrumApiUrl}/api/v1/internal/confirm-transfers`,
   method: "POST",
   headers: {
     "x-api-key": config.internalApiKey,
@@ -130,7 +130,7 @@ The workflow handles all transfer types produced by the server:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `schedule` | Cron interval | Every 15 seconds |
-| `ghostApiUrl` | GHOST API base URL | Required |
+| `noctrumApiUrl` | NOCTRUM API base URL | Required |
 | `internalApiKey` | API key for internal endpoints | DON Secret |
 | `externalApiUrl` | Vault API base URL | DON Secret |
 | `vaultAddress` | Vault contract address | Config |

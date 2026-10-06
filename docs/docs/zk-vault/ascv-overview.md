@@ -5,7 +5,7 @@ title: ASCV Overview
 
 # Application Specific Confidential Vault
 
-The ASCV (Application Specific Confidential Vault) is the next generation architecture for GHOST. It replaces the generic Chainlink vault with a purpose built system that uses zero knowledge proofs to achieve full amount privacy, address privacy, and verifiable computation.
+The ASCV (Application Specific Confidential Vault) is the next generation architecture for NOCTRUM. It replaces the generic Chainlink vault with a purpose built system that uses zero knowledge proofs to achieve full amount privacy, address privacy, and verifiable computation.
 
 :::note
 The ASCV is a future design target. The current implementation uses Chainlink's generic vault with off chain balance tracking.
@@ -13,7 +13,7 @@ The ASCV is a future design target. The current implementation uses Chainlink's 
 
 ## Why a Custom Vault
 
-The generic Chainlink Compliant Private Transfer vault provides basic shielded balance tracking but lacks several features that GHOST needs for production:
+The generic Chainlink Compliant Private Transfer vault provides basic shielded balance tracking but lacks several features that NOCTRUM needs for production:
 
 | Limitation | Impact | ASCV Solution |
 |-----------|--------|--------------|
@@ -29,10 +29,10 @@ The ASCV introduces four smart contracts:
 
 | Contract | Purpose |
 |----------|---------|
-| `GhostVault` | Core vault: deposits, withdrawals, commitment storage, proof verification |
+| `NoctrumVault` | Core vault: deposits, withdrawals, commitment storage, proof verification |
 | `CollateralManager` | Collateral locking, health factor verification, liquidation execution |
 | `LoanLedger` | Loan lifecycle tracking with privacy preserving records |
-| `GhostRouter` | Entry point that coordinates operations across contracts |
+| `NoctrumRouter` | Entry point that coordinates operations across contracts |
 
 All contracts use the UUPS proxy pattern with a 48 hour timelock and 3/5 multisig for upgrades.
 

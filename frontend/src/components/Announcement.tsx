@@ -20,7 +20,7 @@ export default function Announcement() {
           <div className="flex-1 min-w-0">
             {/* Title */}
             <h3 className="text-xl sm:text-2xl font-semibold text-white group-hover:text-black transition-colors duration-300 flex items-center gap-2.5 mb-2">
-              GHOST: Privacy-Preserving Rate Discovery
+              NOCTRUM: Privacy-Preserving Rate Discovery
               <ArrowUpRight className="w-5 h-5 text-gray-500 group-hover:text-black transition-colors duration-300 shrink-0" />
             </h3>
 
@@ -33,8 +33,8 @@ export default function Announcement() {
           {/* Right — purple paper image */}
           <div className="shrink-0 hidden sm:flex items-end pr-4 self-end -mb-10 -ml-36">
             <img
-              src="/ghost-purple-paper.png"
-              alt="Ghost Purple Paper"
+              src="/noctrum-purple-paper.png"
+              alt="Noctrum Purple Paper"
               className="w-80 h-auto rounded-xl transition-transform duration-300 group-hover:scale-[1.12]"
             />
           </div>
