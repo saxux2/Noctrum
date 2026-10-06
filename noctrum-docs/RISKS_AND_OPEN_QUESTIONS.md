@@ -5,7 +5,7 @@
 | ID | Decision | Options | Recommendation | Blocks |
 |---|---|---|---|---|
 | D-1 | **Custody on Monad.** Chainlink's CPT vault and API are Sepolia-only ❌ | A) Ask Chainlink DevRel to deploy CPT on Monad Testnet. B) Self-host a wire-compatible `NoctrumVault` + `noctrum-vault-api`. C) Keep custody on Sepolia | ✅ **Decided 2026-10-06: B** (self-hosted NoctrumVault + noctrum-vault-api) | T1.4, T5.3 |
-| D-2 | **Rate-decryption bug.** All clients send `"0x"+hex`. settle-loans does `Buffer.from(enc,"hex")`, which gives an empty buffer, so every rate becomes **0.05** (Node 22 verified; ⚠️ VERIFY in the CRE simulator). Ghost's live matching was therefore effectively "everyone at 5%" | (a) Replicate exactly (true parity). (b) Strip an optional `0x` in `decryptRate` (one line, matches the documented intent) | ✅ **Decided 2026-10-06: (b)** strip an optional `0x` in `decryptRate` | T4.1 |
+| D-2 | **Rate-decryption bug.** All clients send `"0x"+hex`. settle-loans does `Buffer.from(enc,"hex")`, which gives an empty buffer, so every rate becomes **0.05** (Node 22 verified; with the fix, the CRE simulator decrypts real rates: blended 0.06125, T5.4). Ghost's live matching was therefore effectively "everyone at 5%" | (a) Replicate exactly (true parity). (b) Strip an optional `0x` in `decryptRate` (one line, matches the documented intent) | ✅ **Decided 2026-10-06: (b)** strip an optional `0x` in `decryptRate` | T4.1 |
 | D-3 | Other carried math quirks: (i) check-loans multiplies nUSD collateral by the ETH price; (ii) borrow-intent check values nETH borrows at $1/unit; (iii) health ignores interest/repaid; (iv) liquidation 5% fee is "transferred" from the pool to the pool | Keep (parity) / fix | Keep; list fixes under Later | — |
 | D-4 | ETH/USD source | Keep Arbitrum One mainnet feed (works unchanged) / switch to Monad Testnet feed `0x0c76…7818` ⚠️ | Keep Arbitrum | — |
 | D-5 | EIP-712 domain name for the vault API (and ticket) | Keep `CompliantPrivateTokenDemo` (zero client-logic change) / rename `NoctrumPrivateToken` | ✅ **Decided 2026-10-06: `NoctrumPrivateToken`** | T1.4, T5.3 |
@@ -15,12 +15,12 @@
 | D-9 | Domains, hosting, socials (API host, app/docs/marketing domains, Discord, Telegram bot handle, careers link, GitHub org, Raycast author) | — | You provide | T5.6, T6.4, T8.1 |
 | D-10 | Contracts folder | `contracts/` / keep `transfer-demo/` | ✅ **Decided 2026-10-06: `contracts/`** | T0.2 |
 | D-11 | CRE SDK version | Keep 1.1.x (parity) / upgrade to ≥ 1.19.0 | Keep unless the Monad chain is used | T4.1 |
-| D-12 | Identifier renames (`ghostApiUrl`, `TOKEN_ADDRESS`, TG hard-coded addresses) | Rename per REBRAND / keep | REBRAND map | T4.1, T5.1 |
-| D-13 | Ghost's **production** CRE configs are incomplete (settle and execute lack the API URL / vault fields; check-loans prod points to localhost) | Replicate / complete them | Complete them (otherwise prod deploy cannot work) | T4.1 |
+| D-12 | Identifier renames (`ghostApiUrl`, `TOKEN_ADDRESS`, TG hard-coded addresses) | Rename per REBRAND / keep | ✅ **Applied 2026-10-06 (T4.1): REBRAND map** (`noctrumApiUrl`, namespace `noctrum-protocol`) | T4.1, T5.1 |
+| D-13 | Ghost's **production** CRE configs are incomplete (settle and execute lack the API URL / vault fields; check-loans prod points to localhost) | Replicate / complete them | ✅ **Applied 2026-10-06 (T4.1): completed** with the staging values; API hosts are `*.example.noctrum` placeholders until D-9 | T4.1 |
 | D-14 | Explorer | MonadVision / Monadscan | MonadVision (Sourcify verify) | T6.1 |
 | D-15 | `next.config.ts` rewrites hard-code `http://localhost:3000` | Keep / env-driven | Env-driven (needed to deploy the web app) | T6.1 |
 | D-16 | Gas thresholds and funding: TG `MIN_GAS_WEI=0.001`, e2e funding 0.005 ETH | Keep numbers / adjust for Monad (100 gwei min base fee, gas-limit charging, 10 MON reserve) | ✅ **TG applied 2026-10-06 (T5.5): `MIN_GAS_WEI` = 0.05 MON.** Measured: a plain MON transfer costs 21000 gas at ~102 gwei ≈ 0.0022 MON; a 0.5 MON transfer from a 5 MON EOA succeeded (no reserve-balance issue); the TG `/lend` flow (approve + deposit) cost ≈ 0.021 MON. e2e funding still open (T7.1) | T5.5, T7.1 |
-| D-17 | Stale tests (`lend.test.ts`, `main.test.ts`) | Port broken / rewrite | Rewrite (test-only) | T5.2, T4.2 |
+| D-17 | Stale tests (`lend.test.ts`, `main.test.ts`) | Port broken / rewrite | ✅ **Applied 2026-10-06 (T4.2, T5.2): rewritten** (server: Mongo via `mongodb-memory-server`, price feed mocked) | T5.2, T4.2 |
 | D-18 | TG Dockerfile bakes `.env` into the image | Keep / runtime env | ✅ **Applied 2026-10-06 (T5.5): runtime env** (`docker run --env-file .env`; `.env` in `.dockerignore`) | T5.5 |
 | D-19 | Name spelling: folder `C:\Nocturm` vs product "Noctrum" | Noctrum / Nocturm | ✅ **Decided 2026-10-06: Noctrum** | T0.1 |
 | D-20 | `poolAddress` exposure requires `POOL_PRIVATE_KEY` on the server | Keep / add `POOL_ADDRESS` env | Keep (parity), Later | — |

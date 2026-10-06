@@ -31,13 +31,15 @@ Goal: prove **behavioural parity with Ghost** on Monad Testnet. The tests Ghost 
 
 ### 2.2 CRE workflows (`bun test` with `@chainlink/cre-sdk/test` `newTestRuntime`)
 - Extract `runMatchingEngine`/`decryptRate` into a testable export without changing logic.
+  ✅ Done in T4.2: `settle-loans/matching.ts` and `execute-transfers/eip712.ts` (moved verbatim). They cannot stay as `export function` in `main.ts`: `cre workflow build` fails with "Exported functions with parameters are not supported". Exported `const` arrows (`onCronTrigger`, `initWorkflow`) are fine.
+- Handlers are tested end to end with `ConfidentialHttpMock` and `EvmMock` + `addContractMock` from `@chainlink/cre-sdk/test`; secrets via `newTestRuntime(new Map([["default", new Map([[id, value]])]]))`.
 - Vectors:
   - Lends A 500 @ 0.05, B 500 @ 0.08; borrow 800, max 0.10 → ticks A 500 @ 0.05, B 300 @ 0.08; blended 0.06125.
   - Blended > max → no proposal and remaining restored.
   - Token mismatch skipped.
   - Partial fill.
   - Ordering: largest borrow first.
-- `decryptRate`: plaintext `"0.07"` → 0.07; `"0x"+ciphertext` → **0.05** (Ghost observed behaviour, D-2); bare hex ciphertext → real rate; garbage → 0.05.
+- `decryptRate`: plaintext `"0.07"` → 0.07; `"0x"+ciphertext` → **real rate** (D-2 = b; Ghost returned 0.05); bare hex ciphertext → real rate; garbage / no key / wrong key → 0.05.
 - check-loans health: matured → unhealthy; ratio < 1.5 → unhealthy; nUSD collateral still multiplied by the ETH price (parity).
 - execute-transfers: slices to 3; EIP-712 domain/types snapshot.
 
@@ -72,6 +74,15 @@ Expected outputs:
 - settle-loans: `matched:1 recorded:1`, then on the next run `no-match` (or `no-proposals`).
 - execute-transfers: `executed=N failed=0`.
 - check-loans: `checked=N unhealthy=M liquidated=K ethPrice=…`.
+
+✅ **Run 2026-10-06 (T5.4)** with `--target=local-settings` (each workflow has `config.local.json` → server `http://localhost:8080/api/v1`, vault-api `http://localhost:8081`; staging keeps the `*.example.noctrum` placeholders until D-9). Setup:
+- MongoDB 8.2 single-node replica set `rs0` on 27017 (vault-api needs transactions); `server/.env` and `noctrum-vault-api/.env` (ticket-signer key from `.secrets/`); `noctrum-settler/.env` per ENV_AND_CONFIG §3.
+- Seed: e2e steps 1–3 replayed on Monad (`e2e-test/` is still the Sepolia/Ghost copy until T7.1) with the same amounts and rates, against the local services. Wallets already held 0.5 MON (T0.4), so no gas sends. Result: lenders 500 + 500 nUSD @ 5 % / 8 %, borrower 5 nETH; pool private nUSD 1000, nETH 5; 2 lend intents + 1 borrow intent (800 nUSD, max 10 %).
+- Results:
+  - settle-loans → `matched:1 recorded:1`; proposal principal 800, ticks 500 @ 0.05 + 300 @ 0.08, blended **0.06125** (D-2 fix works in the CRE WASM runtime). Second run after 6 s → `no-match`; proposal `accepted`, loan `active`, `disburse` transfer queued.
+  - execute-transfers → `executed=1 failed=0`; transfer `completed`; borrower private nUSD = 800 on vault-api.
+  - check-loans → `checked=1 unhealthy=0 liquidated=0 ethPrice=2714.29`.
+- RPC note: `https://arbitrum-one-rpc.publicnode.com` (Ghost's value) and `arbitrum.drpc.org` fail the `LAST_FINALIZED_BLOCK_NUMBER` reads with "historical state … is not available". `project.yaml` now uses `https://arb1.arbitrum.io/rpc` for every target.
 
 ## 4. End-to-end on Monad Testnet (`e2e-test/`, run in order)
 
