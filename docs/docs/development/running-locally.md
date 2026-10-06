@@ -30,17 +30,16 @@ Create a `.env` file in the `server/` directory:
 
 ```bash
 MONGODB_URI=mongodb://localhost:27017/noctrum
-POOL_PRIVATE_KEY=<your-pool-wallet-private-key>
-TOKEN_ADDRESS=<nUSD-token-address>
-CRE_PUBLIC_KEY=<secp256k1-public-key-hex>
-EXTERNAL_API_URL=https://convergence2026-token-api.cldev.cloud
-EXTERNAL_VAULT_ADDRESS=0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13
-CHAIN_ID=11155111
-PORT=3000
+TOKEN_ADDRESS=0x339a948f3667d222FAD43d313b3b8c3BE1415ad5
+CRE_PUBLIC_KEY=03a62ca0efd28497d24e1cc2dc587f8e7e20ebc3de0c2315778997ead8bedda649
+EXTERNAL_API_URL=http://localhost:8081
+EXTERNAL_VAULT_ADDRESS=0x65877F6BFd3f2D293454658BCb290b112397Eeb5
+CHAIN_ID=10143
+PORT=8080
 INTERNAL_API_KEY=<your-api-key>
-ARBITRUM_RPC_URL=<arbitrum-rpc-url>
-ETH_USD_FEED=<chainlink-feed-address>
-NETH_ADDRESS=<nETH-token-address>
+ARBITRUM_RPC_URL=https://arbitrum-one-rpc.publicnode.com
+ETH_USD_FEED=0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612
+NETH_ADDRESS=0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A
 ```
 
 ### Start the Server
@@ -50,12 +49,12 @@ cd server
 bun run --hot src/index.ts
 ```
 
-The `--hot` flag enables hot module reloading. The server starts on the configured port (default 3000).
+The `--hot` flag enables hot module reloading. The server starts on the configured port (default 8080).
 
 ### Verify
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:8080/health
 ```
 
 Should return a 200 OK response.
@@ -73,6 +72,26 @@ docker run -d -p 27017:27017 --name noctrum-mongo mongo:7
 ```
 
 The default connection string is `mongodb://localhost:27017/noctrum`.
+
+## Vault API Setup
+
+`noctrum-vault-api` keeps the private ledger (shielded balances, private transfers, withdrawal tickets) and indexes `NoctrumVault` events on Monad Testnet. The server, CRE workflows and clients call it for every vault operation.
+
+Its MongoDB must be a replica set, because ledger writes use transactions:
+
+```bash
+docker run -d -p 27017:27017 --name noctrum-mongo mongo:7 --replSet rs0
+docker exec noctrum-mongo mongosh --eval "rs.initiate()"
+```
+
+Copy `noctrum-vault-api/.env.example` to `.env` and set `TICKET_SIGNER_PRIVATE_KEY` (its address must equal `NoctrumVault.ticketSigner`). Then:
+
+```bash
+cd noctrum-vault-api
+bun install
+bun run --hot src/index.ts
+curl http://localhost:8081/health
+```
 
 ## CRE Workflow Development
 
@@ -102,23 +121,24 @@ This runs the workflow locally using the staging configuration, simulating a sin
 
 ### Workflow Configuration
 
-Each workflow has a `config.staging.json`:
+Each workflow has a `config.staging.json` (deployed Railway services), a `config.production.json` and a `config.local.json` (localhost):
 
 ```json
 {
-  "schedule": "every 30 seconds",
-  "noctrumApiUrl": "http://localhost:3000",
-  "internalApiKey": "your-key-here"
+  "schedule": "*/30 * * * * *",
+  "noctrumApiUrl": "http://localhost:8080/api/v1"
 }
 ```
 
-For local development, point `noctrumApiUrl` to your local server.
+For local development, simulate with `--target=local-settings`. Secrets (`INTERNAL_API_KEY`, `POOL_PRIVATE_KEY`, `CRE_PRIVATE_KEY`) are declared in `secrets.yaml` and read from `noctrum-settler/.env`.
 
 ## Project Structure Reference
 
 ```
 noctrum/
   server/           # Start here: bun run --hot src/index.ts
+  noctrum-vault-api/  # Private ledger: bun run --hot src/index.ts (port 8081)
+  contracts/        # Foundry: NoctrumVault, SimpleToken, NoctrumSwapPool
   noctrum-settler/
     settle-loans/   # CRE matching engine
     execute-transfers/  # CRE fund executor
@@ -137,5 +157,5 @@ noctrum/
 | MongoDB connection refused | Ensure MongoDB is running on port 27017 |
 | Missing CRE_PUBLIC_KEY | Generate a secp256k1 key pair and set the public key |
 | ECIES decryption failure | Ensure eciesjs v0.4 is installed (not v0.3 or v0.5) |
-| CRE simulation fails | Install the Chainlink CRE CLI: `npm i -g @chainlink/cre-cli` |
+| CRE simulation fails | Install the Chainlink CRE CLI (see CRE Simulation; it is not on npm) |
 | Port already in use | Change PORT in .env or kill the existing process |

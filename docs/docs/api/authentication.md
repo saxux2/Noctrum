@@ -17,8 +17,8 @@ All user facing endpoints require an EIP 712 signature that proves the request w
 const EIP712_DOMAIN = {
   name: "NoctrumProtocol",
   version: "0.0.1",
-  chainId: 11155111,  // Sepolia
-  verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13"  // Vault address
+  chainId: 10143,  // Monad Testnet
+  verifyingContract: "0x65877F6BFd3f2D293454658BCb290b112397Eeb5"  // NoctrumVault address
 };
 ```
 
@@ -81,8 +81,8 @@ const signature = await wallet.signTypedData(
   {
     name: "NoctrumProtocol",
     version: "0.0.1",
-    chainId: 11155111,
-    verifyingContract: "0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13",
+    chainId: 10143,
+    verifyingContract: "0x65877F6BFd3f2D293454658BCb290b112397Eeb5",
   },
   {
     ConfirmDeposit: [

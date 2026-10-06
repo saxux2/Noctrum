@@ -13,14 +13,14 @@ The NOCTRUM Raycast extension (`noctrum-raycast`) provides quick access to proto
 |-----------|------------|
 | Framework | Raycast API |
 | UI | React 19 |
-| Blockchain | ethers.js v6 on Sepolia |
+| Blockchain | ethers.js v6 on Monad Testnet (10143) |
 | Encryption | eciesjs v0.4 |
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| Wallet Management | Create or import a Sepolia wallet. Private key stored in Raycast preferences. |
+| Wallet Management | Create or import a Monad Testnet wallet. Private key stored in Raycast LocalStorage (`noctrum-wallet-pk`). |
 | Balance Dashboard | View private vault balances and on chain token balances side by side. |
 | Lend Intent | 5 step guided form: token, amount, rate, deposit confirmation, intent submission. |
 | Borrow Intent | Form with collateral calculation based on credit tier and live ETH price. |
@@ -43,7 +43,7 @@ Create a new wallet or import an existing one by entering a private key. The wal
 
 Displays two sections:
 - **Private balances:** nUSD and nETH held in the shielded vault
-- **On chain balances:** ERC20 token balances on Sepolia
+- **On chain balances:** ERC20 token balances on Monad Testnet
 
 Balances auto refresh on view open.
 
@@ -149,15 +149,17 @@ npx @raycast/api@latest publish
 
 ## Configuration
 
-The extension uses hardcoded configuration in `constants.ts`:
+The extension uses hardcoded configuration in `src/lib/constants.ts`:
 
 | Constant | Value |
 |----------|-------|
 | `NOCTRUM_SERVER_URL` | NOCTRUM API base URL |
-| `RPC_URL` | Sepolia RPC endpoint |
-| `VAULT_ADDRESS` | Compliant Private Transfer vault address |
-| `TOKEN_ADDRESS` | nUSD token address |
-| `NETH_ADDRESS` | nETH token address |
-| `CRE_PUBLIC_KEY` | CRE public key for rate encryption |
+| `RPC_URL` | Monad Testnet RPC endpoint (`https://testnet-rpc.monad.xyz`) |
+| `CHAIN_ID` | `10143` |
+| `VAULT_ADDRESS` | NoctrumVault address |
+| `EXTERNAL_API` | Noctrum vault API base URL |
+| `nUSD` | nUSD token address |
+| `nETH` | nETH token address |
+| `CRE_PUBKEY` | CRE public key for rate encryption |
 
 For local development, update these constants to point to your local server.

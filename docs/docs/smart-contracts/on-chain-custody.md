@@ -5,28 +5,29 @@ title: On Chain Custody
 
 # On Chain Custody
 
-This page describes how fund custody works in both the current hackathon implementation and the production target.
+This page describes how fund custody works in both the current implementation and the production target.
 
 ## Current Implementation
 
-The hackathon version uses Chainlink's generic Compliant Private Transfer vault deployed on Sepolia.
+The current version runs on Monad Testnet. Chainlink's Compliant Private Token (CPT) vault and API only exist on Ethereum Sepolia, so NOCTRUM self-hosts a wire-compatible pair: the `NoctrumVault` contract and the `noctrum-vault-api` private ledger service.
 
 ### Vault Details
 
 | Property | Value |
 |----------|-------|
-| Contract Address | `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13` |
-| Chain | Ethereum Sepolia (11155111) |
+| Contract Address | `0x65877F6BFd3f2D293454658BCb290b112397Eeb5` |
+| Chain | Monad Testnet (10143) |
 | Tokens | nUSD, nETH |
-| Balance Model | Off chain (shielded balances tracked by vault) |
+| Balance Model | Off chain (shielded balances kept by `noctrum-vault-api` in MongoDB) |
+| Compliance | Chainlink ACE PolicyEngine checks on deposit, withdrawal and private transfer |
 
 ### Fund Flow
 
-1. **Deposit.** User calls `deposit(token, amount)` on the vault contract. ERC20 tokens are transferred from user to vault. The vault credits the user's shielded balance.
+1. **Deposit.** User calls `deposit(token, amount)` (or `depositWithPermit`) on the vault contract. ERC20 tokens are transferred from user to vault. The vault API indexes the `Deposit` event once the block is finalized and credits the user's shielded balance.
 
-2. **Private Transfer.** User (or CRE via pool wallet) calls the vault's API endpoint `/private-transfer` with a signed request. The vault debits sender's shielded balance and credits recipient's.
+2. **Private Transfer.** User (or CRE via pool wallet) calls the vault API endpoint `/private-transfer` with an EIP 712 signed request. The API debits the sender's shielded balance and credits the recipient's.
 
-3. **Withdrawal.** User calls the vault's API `/withdraw` with a signed request. The vault burns shielded balance and transfers ERC20 tokens back to the user's on chain address.
+3. **Withdrawal.** User calls the vault API `/withdraw` with a signed request. The API debits the shielded balance and returns a withdrawal ticket signed by the vault's `ticketSigner` (valid 1 hour). The user redeems it on chain with `withdrawWithTicket(token, amount, ticket)`, which transfers the ERC20 tokens back. If the ticket expires unredeemed, the balance is credited back.
 
 ### Pool Wallet
 
@@ -62,13 +63,13 @@ async function privateTransfer(params: {
 
 ## Production Architecture
 
-The production version replaces the generic vault with the NoctrumVault contract (see the NoctrumVault Contract page).
+The production target extends the vault with protocol specific logic (see the NoctrumVault Contract page).
 
 ### Key Differences
 
-| Aspect | Hackathon | Production |
+| Aspect | Current | Production |
 |--------|-----------|------------|
-| Vault Contract | Generic Chainlink vault | Custom NoctrumVault |
+| Vault Contract | CPT-compatible NoctrumVault | NoctrumVault with locking and DON reports |
 | Balance Model | Off chain shielded | On chain with Pedersen commitments (future) |
 | Collateral Locking | In memory (server state) | On chain `lockedBalances` mapping |
 | Fund Movement Auth | Pool wallet signature | DON threshold report |
@@ -77,9 +78,9 @@ The production version replaces the generic vault with the NoctrumVault contract
 
 ### State Location Map
 
-| Data | Hackathon Location | Production Location |
+| Data | Current Location | Production Location |
 |------|-------------------|-------------------|
-| User balances | Vault (off chain) + server | NoctrumVault contract |
+| User balances | Vault API ledger (off chain) + server | NoctrumVault contract |
 | Collateral locks | Server in memory | NoctrumVault `lockedBalances` |
 | Encrypted intents | Server MongoDB | Server MongoDB (unchanged) |
 | Loan records | Server MongoDB | Server MongoDB + on chain summary hash |

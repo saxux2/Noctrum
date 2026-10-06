@@ -45,7 +45,7 @@ Used to read on chain state (price feeds, contract storage):
 import { EVMClient } from "@chainlink/cre-sdk";
 
 const result = EVMClient.readContract(runtime, {
-  chainName: "ethereum-testnet-sepolia-arbitrum-1",
+  chainName: "ethereum-mainnet-arbitrum-1",
   contractAddress: feedAddress,
   abi: PriceFeedAggregatorABI,
   functionName: "latestRoundData",
@@ -103,13 +103,12 @@ Each workflow has a `config.staging.json` that defines:
 
 ```json
 {
-  "schedule": "every 30 seconds",
-  "noctrumApiUrl": "https://api.example.noctrum",
-  "internalApiKey": "DON_SECRET:internal_api_key",
-  "externalApiUrl": "DON_SECRET:external_api_url",
-  "vaultAddress": "0xE588...",
-  "chainId": 11155111
+  "schedule": "*/15 * * * * *",
+  "noctrumApiUrl": "https://server-production-291b.up.railway.app/api/v1",
+  "externalApiUrl": "https://vault-api-production-30bb.up.railway.app",
+  "vaultAddress": "0x65877F6BFd3f2D293454658BCb290b112397Eeb5",
+  "chainId": 10143
 }
 ```
 
-Values prefixed with `DON_SECRET:` are resolved from the DON's secret store at runtime.
+Secrets (`INTERNAL_API_KEY`, `POOL_PRIVATE_KEY`, `CRE_PRIVATE_KEY`) are not in the config files. They are declared in `secrets.yaml` and resolved from the DON's secret store at runtime.

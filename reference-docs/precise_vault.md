@@ -1,5 +1,7 @@
 # NOCTRUM Vault: Application-Specific Confidential Vault (ASCV)
 
+> **Deployment note (2026-10):** NOCTRUM now runs on **Monad Testnet (chain 10143)**. Chainlink's Compliant Private Token (CPT) vault and API only exist on Ethereum Sepolia, so custody is a self-hosted, CPT-compatible pair: `NoctrumVault` (`0x65877F6BFd3f2D293454658BCb290b112397Eeb5`) and `noctrum-vault-api`. This document predates that move; Sepolia addresses and CPT references below describe the original design context. Current addresses: `deployments/monad-testnet.json`.
+
 **Version 0.1 | March 2026 | Proposed to Chainlink Engineering**
 
 ---

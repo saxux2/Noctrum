@@ -1,7 +1,7 @@
 # NOCTRUM Protocol — Private P2P Lending with Tick-Based Rate Discovery
 
 > Fixed-rate, **discriminatory-price**, continuous-matching lending overlay
-> built on top of the Chainlink Compliant Private Transfer vault + API.
+> built on top of a Chainlink CPT-compatible vault + API (self-hosted on Monad Testnet).
 > Rate discovery follows the tick-based framework from
 > "Rate Discovery in Decentralised Lending" (Eli & Alexandre, JBBA 2025).
 
@@ -11,10 +11,10 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  EXTERNAL LAYER  (Chainlink Compliant Private Transfer)             │
+│  EXTERNAL LAYER  (NoctrumVault + noctrum-vault-api, CPT-compatible) │
 │                                                                     │
-│  Vault: 0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13  (Sepolia)       │
-│  API:   convergence2026-token-api.cldev.cloud                       │
+│  Vault: 0x65877F6BFd3f2D293454658BCb290b112397Eeb5  (Monad Testnet) │
+│  API:   noctrum-vault-api (localhost:8081 / Railway)                │
 │                                                                     │
 │  Provides: deposit, withdraw, private-transfer, balances,           │
 │            shielded-address                                         │
@@ -422,7 +422,7 @@ interface DepositSlot {
 | **CRE ConfidentialHTTPClient**     | All CRE↔server and CRE↔external API calls encrypted end-to-end         |
 | **CRE Vault DON Secrets**          | CRE eciesjs private key as threshold-encrypted secret                    |
 | **ACE (PolicyEngine)**             | Compliance check on token deposits to external vault                     |
-| **Compliant Private Transfer API** | Base layer: private transfers, balances, withdrawals, shielded addresses |
+| **noctrum-vault-api** (CPT-compatible) | Base layer: private transfers, balances, withdrawals, shielded addresses |
 
 ---
 
@@ -435,10 +435,10 @@ interface DepositSlot {
 | `POOL_PRIVATE_KEY`       | Pool wallet private key (required)                                     |
 | `TOKEN_ADDRESS`          | Deployed token address (required)                                      |
 | `CRE_PUBLIC_KEY`         | eciesjs secp256k1 public key for rate encryption (required)            |
-| `EXTERNAL_API_URL`       | External API base URL (default: convergence2026-token-api.cldev.cloud) |
-| `EXTERNAL_VAULT_ADDRESS` | External vault contract (default: 0xE588...)                           |
-| `CHAIN_ID`               | Chain ID (default: 11155111)                                           |
-| `PORT`                   | Server port (default: 3000)                                            |
+| `EXTERNAL_API_URL`       | Vault API base URL (default: http://localhost:8081)                    |
+| `EXTERNAL_VAULT_ADDRESS` | NoctrumVault contract (default: 0x6587...Eeb5)                         |
+| `CHAIN_ID`               | Chain ID (default: 10143, Monad Testnet)                               |
+| `PORT`                   | Server port (default: 8080)                                            |
 | `INTERNAL_API_KEY`       | API key for CRE internal routes (optional)                             |
 
 ### CRE Secrets (Vault DON)

@@ -13,7 +13,7 @@ The NOCTRUM Telegram bot (`noctrum-tg`) provides a conversational interface for 
 |-----------|------------|
 | Runtime | Bun |
 | Bot Framework | grammY |
-| Blockchain | ethers.js v6 on Sepolia |
+| Blockchain | ethers.js v6 on Monad Testnet (10143), WalletConnect v2 on `eip155:10143` |
 | Encryption | eciesjs (secp256k1 ECIES) |
 | External Wallets | WalletConnect v2 |
 | Authentication | EIP 712 typed data signatures |
@@ -115,7 +115,7 @@ Users can toggle notifications with the `/alerts` command.
 
 ```
 User (Telegram) <-> grammY Bot <-> NOCTRUM Server API
-                                <-> External Vault API
+                                <-> Noctrum Vault API
                                 <-> WalletConnect v2 (optional)
 ```
 

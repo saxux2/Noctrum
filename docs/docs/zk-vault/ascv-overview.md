@@ -5,15 +5,15 @@ title: ASCV Overview
 
 # Application Specific Confidential Vault
 
-The ASCV (Application Specific Confidential Vault) is the next generation architecture for NOCTRUM. It replaces the generic Chainlink vault with a purpose built system that uses zero knowledge proofs to achieve full amount privacy, address privacy, and verifiable computation.
+The ASCV (Application Specific Confidential Vault) is the next generation architecture for NOCTRUM. It replaces the current CPT-compatible vault with a purpose built system that uses zero knowledge proofs to achieve full amount privacy, address privacy, and verifiable computation.
 
 :::note
-The ASCV is a future design target. The current implementation uses Chainlink's generic vault with off chain balance tracking.
+The ASCV is a future design target. The current implementation uses the CPT-compatible NoctrumVault with off chain balance tracking in `noctrum-vault-api`.
 :::
 
 ## Why a Custom Vault
 
-The generic Chainlink Compliant Private Transfer vault provides basic shielded balance tracking but lacks several features that NOCTRUM needs for production:
+The current CPT-compatible vault provides basic shielded balance tracking but lacks several features that NOCTRUM needs for production:
 
 | Limitation | Impact | ASCV Solution |
 |-----------|--------|--------------|

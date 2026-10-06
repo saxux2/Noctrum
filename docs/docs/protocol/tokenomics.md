@@ -5,7 +5,7 @@ title: Tokenomics
 
 # Tokenomics
 
-NOCTRUM operates with two synthetic tokens on Sepolia: nUSD as the lending denomination and nETH as the collateral asset. Both are ERC20 tokens deployed via the `SimpleToken` contract with ERC20Permit support for gasless approvals.
+NOCTRUM operates with two synthetic tokens on Monad Testnet: nUSD as the lending denomination and nETH as the collateral asset. Both are ERC20 tokens deployed via the `SimpleToken` contract with ERC20Permit support for gasless approvals.
 
 ## Token Overview
 
@@ -15,7 +15,7 @@ NOCTRUM operates with two synthetic tokens on Sepolia: nUSD as the lending denom
 | Role | Lending and borrowing denomination | Borrower collateral |
 | Decimals | 18 | 18 |
 | Contract | SimpleToken (ERC20 + ERC20Permit) | SimpleToken (ERC20 + ERC20Permit) |
-| Address (Sepolia) | `0xD318551FbC638C4C607713A92A19FAd73eb8f743` | `0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6` |
+| Address (Monad Testnet) | `0x339a948f3667d222FAD43d313b3b8c3BE1415ad5` | `0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A` |
 | Supply Cap | Unlimited (owner mintable) | Unlimited (owner mintable) |
 | Peg Target | 1 USD | Tracks ETH/USD |
 
@@ -27,7 +27,7 @@ nUSD is a USD pegged stablecoin that serves as the primary unit of account in th
 
 | Stage | Flow |
 |-------|------|
-| Deposit | Lender transfers nUSD from wallet to Chainlink vault via on chain `deposit()` |
+| Deposit | Lender transfers nUSD from wallet to the NoctrumVault via on chain `deposit()` |
 | Shield | Lender executes a private transfer from their vault balance to the NOCTRUM pool shielded address |
 | Lend Intent | Lender submits an intent specifying the nUSD amount and an encrypted interest rate |
 | Matching | CRE matches lender nUSD supply with borrower demand at the best available rates |
@@ -97,7 +97,7 @@ NOCTRUM includes a swap pool contract (`NoctrumSwapPool`) that enables exchangin
 
 | Property | Value |
 |----------|-------|
-| Contract Address (Sepolia) | `0xF683c97a1072e4C41ae568341141b7553d40B08B` |
+| Contract Address (Monad Testnet) | `0x404483376395A8F56B7e0C6Fe9B17F55d9046B71` |
 | nUSD Price | $1.00 |
 | nETH Price | $2,200.00 (owner configurable) |
 | Slippage Protection | 5% |
@@ -142,7 +142,7 @@ Key properties:
 
 ## Custody and Privacy
 
-Both tokens are held in the Chainlink Compliant Private Transfer vault at `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`. Once deposited:
+Both tokens are held in the NoctrumVault at `0x65877F6BFd3f2D293454658BCb290b112397Eeb5`, with private balances kept by the Noctrum vault API. Once deposited:
 
 | Property | On Chain | In Vault |
 |----------|---------|----------|

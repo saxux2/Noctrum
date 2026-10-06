@@ -107,7 +107,7 @@ NOCTRUM implements a three-layer separation of concerns, each operating under di
 
 ### 3.1 Layer 1: Privacy-Preserving Custody (External)
 
-All fund custody is delegated to a Chainlink Compliant Private Transfer vault deployed on Ethereum Sepolia. This layer provides:
+All fund custody is delegated to `NoctrumVault` on Monad Testnet and its private ledger service `noctrum-vault-api`, a self-hosted, wire-compatible replacement for Chainlink's Compliant Private Token vault (which only exists on Ethereum Sepolia). This layer provides:
 
 - **Shielded addresses**: Unlinkable recipient identifiers that prevent sender-recipient correlation.
 - **Private transfers**: Off-chain balance mutations validated against an on-chain PolicyEngine (Chainlink ACE) via `eth_call`, exposing no transaction metadata on-chain.
@@ -281,4 +281,4 @@ The protocol's architecture — a blind storage layer, a privacy-preserving cust
 
 ---
 
-*NOCTRUM Protocol — Built on Chainlink CRE, Compliant Private Transfer, ACE, and Price Feeds.*
+*NOCTRUM Protocol — Built on Chainlink CRE, ACE, and Price Feeds, on Monad Testnet.*

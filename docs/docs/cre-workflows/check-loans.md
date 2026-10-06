@@ -113,8 +113,8 @@ Since 1.44 < 1.5, this loan is liquidated on the next check cycle.
 | `schedule` | Cron interval | Every 60 seconds |
 | `noctrumApiUrl` | NOCTRUM API base URL | Required |
 | `internalApiKey` | API key for internal endpoints | DON Secret |
-| `feedChainName` | Chain name for price feed reads | `ethereum-testnet-sepolia-arbitrum-1` |
-| `ethUsdFeed` | Chainlink ETH/USD feed contract address | Config |
+| `feedChainName` | Chain name for price feed reads | `ethereum-mainnet-arbitrum-1` |
+| `ethUsdFeed` | Chainlink ETH/USD feed contract address | `0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612` (Arbitrum One) |
 | `liquidationThreshold` | Minimum health factor | 1.5 |
 
 ## Monitoring Frequency

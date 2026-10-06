@@ -132,7 +132,7 @@ The workflow handles all transfer types produced by the server:
 | `schedule` | Cron interval | Every 15 seconds |
 | `noctrumApiUrl` | NOCTRUM API base URL | Required |
 | `internalApiKey` | API key for internal endpoints | DON Secret |
-| `externalApiUrl` | Vault API base URL | DON Secret |
-| `vaultAddress` | Vault contract address | Config |
-| `chainId` | Target chain ID | 11155111 |
+| `externalApiUrl` | Noctrum vault API base URL | Config |
+| `vaultAddress` | NoctrumVault contract address | `0x65877F6BFd3f2D293454658BCb290b112397Eeb5` |
+| `chainId` | Target chain ID | 10143 (Monad Testnet) |
 | `poolPrivateKey` | Pool wallet private key for signing | DON Secret |

@@ -14,7 +14,7 @@ NOCTRUM separates concerns across three independent trust domains:
 
 | Layer | Role | Trust Property |
 |-------|------|----------------|
-| **Custody** | Chainlink Compliant Private Transfer vault on Sepolia | Funds move only via user action or valid DON threshold signature |
+| **Custody** | `NoctrumVault` on Monad Testnet + `noctrum-vault-api` private ledger (wire-compatible with Chainlink's Compliant Private Token vault) | Funds move only via user action or a signed request from the balance owner |
 | **Blind Storage** | NOCTRUM API server (Hono + Bun + MongoDB) | Stores encrypted intents; cannot decrypt rates or move funds |
 | **Settlement Engine** | Chainlink CRE (TEE) | Decrypts rates, runs matching, executes transfers; key material wiped after each cycle |
 
@@ -37,16 +37,19 @@ The server is a dumb blob store. It holds encrypted rate bids but has no decrypt
 ```
 noctrum/
   server/               Hono API server (Bun runtime, MongoDB)
+  noctrum-vault-api/    Private ledger: shielded balances, private transfers, withdrawal tickets, Monad event indexer
   noctrum-settler/
     settle-loans/       CRE matching engine (30s epoch)
     execute-transfers/  CRE fund executor (15s cycle)
     check-loans/        CRE health monitor (60s cycle)
   client/               Next.js application frontend
   frontend/             Next.js marketing site
-  noctrum-tg/             Telegram bot (grammY)
-  noctrum-raycast/        Raycast extension
+  noctrum-tg/           Telegram bot (grammY)
+  noctrum-raycast/      Raycast extension
   e2e-test/             End to end integration tests
-  transfer-demo/        Foundry smart contracts (SimpleToken, NoctrumSwapPool)
+  contracts/            Foundry smart contracts (NoctrumVault, SimpleToken, NoctrumSwapPool)
+  deployments/          monad-testnet.json (deployed addresses)
+  deploy/               Railway deploy scripts
   reference-docs/       Architecture documents and litepaper
   docs/                 Docusaurus documentation site
 ```
@@ -61,27 +64,46 @@ noctrum/
 | Confidential Compute | Chainlink CRE SDK |
 | Encryption | eciesjs v0.4 (secp256k1 ECIES, WASM compatible) |
 | Authentication | EIP 712 typed data signatures |
-| Price Feeds | Chainlink Data Streams (ETH/USD) |
-| Chain | Ethereum Sepolia (11155111) |
+| Price Feeds | Chainlink ETH/USD Price Feed (Arbitrum One) |
+| Chain | Monad Testnet (10143) |
 | Smart Contracts | Foundry (Solidity) |
-| Frontend | Next.js 15, React 19, Tailwind CSS |
+| Frontend | Next.js 16 (app), Next.js 15 (marketing), React 19, Tailwind CSS |
 
 ## Tokens
 
-| Token | Symbol | Address (Sepolia) | Role |
-|-------|--------|-------------------|------|
-| Noctrum USD | nUSD | `0xD318551FbC638C4C607713A92A19FAd73eb8f743` | Lending denomination |
-| Noctrum ETH | nETH | `0x81aF9668d4a67AeDFD43bF38787debA8FD33cbA6` | Borrower collateral |
+| Token | Symbol | Address (Monad Testnet) | Role |
+|-------|--------|-------------------------|------|
+| Noctrum USD | nUSD | `0x339a948f3667d222FAD43d313b3b8c3BE1415ad5` | Lending denomination |
+| Noctrum ETH | nETH | `0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A` | Borrower collateral |
 
-Both are ERC20 + ERC20Permit tokens deployed via the `SimpleToken` contract. The vault address is `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`.
+Both are ERC20 + ERC20Permit tokens deployed via the `SimpleToken` contract.
+
+## Deployments (Monad Testnet)
+
+Chain ID 10143 · RPC `https://testnet-rpc.monad.xyz` · Explorer [testnet.monadvision.com](https://testnet.monadvision.com) · Faucet [faucet.monad.xyz](https://faucet.monad.xyz)
+
+| Contract | Address |
+|----------|---------|
+| NoctrumVault | [`0x65877F6BFd3f2D293454658BCb290b112397Eeb5`](https://testnet.monadvision.com/address/0x65877F6BFd3f2D293454658BCb290b112397Eeb5) |
+| PolicyEngine (nUSD, proxy) | `0x60B04476b481B10Ea26877C2cb144d6599b3d3C3` |
+| PolicyEngine (nETH, proxy) | `0x1cb5Ac8d2C8d003009d62Eedd9ce06462a2D1d82` |
+| NoctrumSwapPool | `0x404483376395A8F56B7e0C6Fe9B17F55d9046B71` |
+| Pool wallet | `0xc6faD39c8F8C8abaec2943e77670AeCDfe10f6C7` |
+
+The full list (implementations, ticket signer, CRE public key, deploy block, service URLs) is in [`deployments/monad-testnet.json`](deployments/monad-testnet.json). The ETH/USD price comes from the Chainlink feed on Arbitrum One (`0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612`).
+
+### Why a self-hosted vault
+
+Chainlink's Compliant Private Token (CPT) vault and API only exist on Ethereum Sepolia. NOCTRUM replaces them with `NoctrumVault` (same ABI, events, withdrawal-ticket struct and ACE PolicyEngine checks) and `noctrum-vault-api` (same endpoints and EIP 712 request types, domain `NoctrumPrivateToken`). Deposits are credited when the vault API indexes the finalized `Deposit` event. Withdrawals return a ticket signed by the vault's `ticketSigner`, which the user redeems on chain with `withdrawWithTicket`.
 
 ## Quick Start
 
 ### Prerequisites
 
 - [Bun](https://bun.sh) (latest)
-- MongoDB 7.x+
-- Chainlink CRE CLI (`npm i -g @chainlink/cre-cli`)
+- MongoDB 7.x+ (a replica set for `noctrum-vault-api`)
+- [Foundry](https://getfoundry.sh) (contracts)
+- Chainlink CRE CLI ([install guide](https://docs.chain.link/cre/getting-started/cli-installation); not on npm)
 
 ### Server
 
@@ -92,7 +114,25 @@ cp .env.example .env  # configure environment variables
 bun run --hot src/index.ts
 ```
 
-The server starts on port 3000 (configurable). Verify with `curl http://localhost:3000/health`.
+The server starts on port 8080 (configurable). Verify with `curl http://localhost:8080/health`.
+
+### Vault API
+
+```bash
+cd noctrum-vault-api
+bun install
+cp .env.example .env  # set TICKET_SIGNER_PRIVATE_KEY; MongoDB must be a replica set
+bun run --hot src/index.ts
+```
+
+The vault API starts on port 8081. Verify with `curl http://localhost:8081/health`.
+
+### Contracts
+
+```bash
+cd contracts
+forge build && forge test -vvv
+```
 
 ### CRE Workflows
 
@@ -112,15 +152,15 @@ cre workflow simulate ./settle-loans \
   --trigger-index=0
 ```
 
+Use `--target=local-settings` to point the workflows at a local server and vault API.
+
 ### E2E Tests
 
 ```bash
 cd e2e-test
 bun install
-bun run src/01_transfer-funds.ts
-bun run src/02_submit-intents.ts
-bun run src/03_trigger-matching.ts
-bun run src/04_settlement.ts
+# .env: test wallet keys (Monad Testnet)
+bun run src/01_transfer-funds.ts   # ... through src/08_collateral_tier_check.ts
 ```
 
 ### Documentation Site
@@ -138,7 +178,7 @@ Three cron triggered workflows run inside the Chainlink DON:
 | Workflow | Interval | What It Does |
 |----------|----------|-------------|
 | `settle-loans` | 30s | Expires stale proposals, fetches pending intents, decrypts rates inside TEE, runs greedy matching (cheapest lends first, largest borrows first), posts proposals to server |
-| `execute-transfers` | 15s | Polls pending transfers, signs each with pool wallet via EIP 712, submits to vault private transfer API, confirms execution (max 3 per cycle due to 5 call budget) |
+| `execute-transfers` | 15s | Polls pending transfers, signs each with pool wallet via EIP 712, submits to the Noctrum vault API `/private-transfer`, confirms execution (max 3 per cycle due to 5 call budget) |
 | `check-loans` | 60s | Reads ETH/USD from Chainlink feed on Arbitrum, computes health factor for each active loan, triggers liquidation for positions below 1.5x or past maturity |
 
 ## API Endpoints
@@ -194,7 +234,7 @@ The CRE private key is split across DON nodes via threshold secret sharing. No s
 
 | Interface | Stack | Entry Point |
 |-----------|-------|-------------|
-| Web App | Next.js 15, Privy wallet | `client/` |
+| Web App | Next.js 16, Privy wallet, Wormhole bridge | `client/` |
 | Marketing Site | Next.js 15, Framer Motion | `frontend/` |
 | Telegram Bot | grammY, WalletConnect v2 | `noctrum-tg/` |
 | Raycast Extension | Raycast API, React 19 | `noctrum-raycast/` |
@@ -219,7 +259,7 @@ The CRE private key is split across DON nodes via threshold secret sharing. No s
 
 | File | Chainlink Usage |
 |------|-----------------|
-| [`noctrum-settler/project.yaml`](noctrum-settler/project.yaml) | CRE project settings, RPC endpoints for Sepolia and Arbitrum |
+| [`noctrum-settler/project.yaml`](noctrum-settler/project.yaml) | CRE project settings, RPC endpoints for Monad Testnet and Arbitrum |
 | [`noctrum-settler/secrets.yaml`](noctrum-settler/secrets.yaml) | Vault DON secret definitions (CRE_PRIVATE_KEY, POOL_PRIVATE_KEY, INTERNAL_API_KEY) |
 | [`noctrum-settler/settle-loans/config.staging.json`](noctrum-settler/settle-loans/config.staging.json) | CRE staging schedule and API URL |
 | [`noctrum-settler/settle-loans/config.production.json`](noctrum-settler/settle-loans/config.production.json) | CRE production schedule |
@@ -246,18 +286,21 @@ The CRE private key is split across DON nodes via threshold secret sharing. No s
 | [`server/src/index.ts`](server/src/index.ts) | Serves CRE public key at `GET /cre-public-key` |
 | [`server/src/config.ts`](server/src/config.ts) | CRE_PUBLIC_KEY env var, Chainlink ETH/USD feed address, Arbitrum RPC |
 | [`server/src/controllers/internal.controllers.ts`](server/src/controllers/internal.controllers.ts) | Internal routes called by CRE workflows (pending-intents, record-match-proposals, expire-proposals, check-loans, liquidate-loans, pending-transfers, confirm-transfers) |
-| [`server/src/external-api.ts`](server/src/external-api.ts) | Calls Chainlink CPT vault API (private-transfer, balances, withdraw) |
+| [`server/src/external-api.ts`](server/src/external-api.ts) | Calls the Noctrum vault API (private-transfer, balances, withdraw) |
 
-### Compliant Private Transfer Vault
+### Vault and Chainlink ACE
 
 | File | Chainlink Usage |
 |------|-----------------|
-| [`transfer-demo/script/02_DeployPolicyEngine.s.sol`](transfer-demo/script/02_DeployPolicyEngine.s.sol) | Deploys Chainlink ACE PolicyEngine (ERC1967 proxy) |
-| [`transfer-demo/script/05_RegisterVault.s.sol`](transfer-demo/script/05_RegisterVault.s.sol) | Registers token on Chainlink CPT vault |
-| [`transfer-demo/script/SetupAll.s.sol`](transfer-demo/script/SetupAll.s.sol) | Full deployment including PolicyEngine and vault registration |
-| [`transfer-demo/api-scripts/src/common.ts`](transfer-demo/api-scripts/src/common.ts) | HTTP helpers for Chainlink CPT vault API |
-| [`transfer-demo/src/interfaces/INoctrumVault.sol`](transfer-demo/src/interfaces/INoctrumVault.sol) | Vault interface with CRE callback integration |
-| [`transfer-demo/src/interfaces/ICRECallback.sol`](transfer-demo/src/interfaces/ICRECallback.sol) | Interface for CRE triggered on-chain callbacks |
+| [`contracts/src/NoctrumVault.sol`](contracts/src/NoctrumVault.sol) | CPT-compatible vault; runs Chainlink ACE PolicyEngine checks on deposit, withdrawal and private transfer |
+| [`contracts/script/00_DeployVault.s.sol`](contracts/script/00_DeployVault.s.sol) | Deploys NoctrumVault on Monad Testnet |
+| [`contracts/script/02_DeployPolicyEngine.s.sol`](contracts/script/02_DeployPolicyEngine.s.sol) | Deploys Chainlink ACE PolicyEngine (ERC1967 proxy) |
+| [`contracts/script/05_RegisterVault.s.sol`](contracts/script/05_RegisterVault.s.sol) | Registers a token and its PolicyEngine on NoctrumVault |
+| [`contracts/script/SetupAll.s.sol`](contracts/script/SetupAll.s.sol) | Full deployment including PolicyEngine and vault registration |
+| [`contracts/api-scripts/src/common.ts`](contracts/api-scripts/src/common.ts) | HTTP helpers for the Noctrum vault API |
+| [`noctrum-vault-api/src/policy.ts`](noctrum-vault-api/src/policy.ts) | Dry-runs the vault's ACE policy checks before private transfers and withdrawals |
+| [`contracts/src/interfaces/INoctrumVault.sol`](contracts/src/interfaces/INoctrumVault.sol) | Production vault interface with CRE callback integration (design target) |
+| [`contracts/src/interfaces/ICRECallback.sol`](contracts/src/interfaces/ICRECallback.sol) | Interface for CRE triggered on-chain callbacks (design target) |
 
 ### Client Side Rate Encryption
 
@@ -265,9 +308,9 @@ The CRE private key is split across DON nodes via threshold secret sharing. No s
 |------|-----------------|
 | [`client/src/lib/constants.ts`](client/src/lib/constants.ts) | CRE public key for encrypting rates client-side (eciesjs) |
 | [`client/src/lib/noctrum.ts`](client/src/lib/noctrum.ts) | Fetches CRE public key, encrypts rates before submitting |
-| [`noctrum-tg/src/config.ts`](noctrum-tg/src/config.ts) | CRE public key and Chainlink CPT vault API URL |
-| [`noctrum-tg/src/api.ts`](noctrum-tg/src/api.ts) | Encrypts rates with CRE pubkey, calls CPT vault API for transfers |
-| [`e2e-test/src/utils/config.ts`](e2e-test/src/utils/config.ts) | CRE public key and CPT vault API config for tests |
+| [`noctrum-tg/src/config.ts`](noctrum-tg/src/config.ts) | CRE public key and Noctrum vault API URL |
+| [`noctrum-tg/src/api.ts`](noctrum-tg/src/api.ts) | Encrypts rates with CRE pubkey, calls the Noctrum vault API for transfers |
+| [`e2e-test/src/utils/config.ts`](e2e-test/src/utils/config.ts) | CRE public key and Noctrum vault API config for tests |
 | [`e2e-test/src/utils/helpers.ts`](e2e-test/src/utils/helpers.ts) | `encryptRate()` using CRE public key |
 
 ### Tests
@@ -277,11 +320,11 @@ The CRE private key is split across DON nodes via threshold secret sharing. No s
 | [`noctrum-settler/settle-loans/test-ecies.ts`](noctrum-settler/settle-loans/test-ecies.ts) | Tests eciesjs encryption/decryption with CRE keypair |
 | [`noctrum-settler/check-loans/main.test.ts`](noctrum-settler/check-loans/main.test.ts) | Test template for liquidation workflow |
 | [`noctrum-settler/execute-transfers/main.test.ts`](noctrum-settler/execute-transfers/main.test.ts) | Test template for transfer execution workflow |
-| [`server/scripts/e2e-test.ts`](server/scripts/e2e-test.ts) | End to end test using CRE key and CPT vault API |
-| [`server/scripts/real-flow-test.ts`](server/scripts/real-flow-test.ts) | Integration test with CPT vault |
+| [`server/scripts/e2e-test.ts`](server/scripts/e2e-test.ts) | End to end test using CRE key and the Noctrum vault API |
+| [`server/scripts/real-flow-test.ts`](server/scripts/real-flow-test.ts) | Integration test with the Noctrum vault |
 | [`server/scripts/borrow-flow-test.ts`](server/scripts/borrow-flow-test.ts) | Borrow flow test with CRE encryption |
-| [`e2e-test/src/02_vault_deposit_and_lend.ts`](e2e-test/src/02_vault_deposit_and_lend.ts) | Vault deposit and encrypted lend via CPT |
-| [`e2e-test/src/03_vault_deposit_and_borrow.ts`](e2e-test/src/03_vault_deposit_and_borrow.ts) | Collateral deposit and encrypted borrow via CPT |
+| [`e2e-test/src/02_vault_deposit_and_lend.ts`](e2e-test/src/02_vault_deposit_and_lend.ts) | Vault deposit and encrypted lend via the vault API |
+| [`e2e-test/src/03_vault_deposit_and_borrow.ts`](e2e-test/src/03_vault_deposit_and_borrow.ts) | Collateral deposit and encrypted borrow via the vault API |
 | [`e2e-test/src/04_check_final_loan_and_withdraw.ts`](e2e-test/src/04_check_final_loan_and_withdraw.ts) | Loan check and vault withdrawal |
 | [`e2e-test/src/withdraw-now.ts`](e2e-test/src/withdraw-now.ts) | Direct vault withdrawal test |
 

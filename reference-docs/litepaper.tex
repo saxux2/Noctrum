@@ -323,7 +323,7 @@ distinct trust assumptions.
   \toprule
   \textbf{Layer} & \textbf{Component} & \textbf{Responsibilities} \\
   \midrule
-  Layer 1: Custody & Chainlink CPT Vault &
+  Layer 1: Custody & NoctrumVault (CPT-compatible) &
     Shielded addresses, private off-chain transfers, withdrawal tickets,
     ACE compliance checks. NOCTRUM never takes direct custody. \\
   Layer 2: Storage & NOCTRUM API Server (Hono) &
@@ -340,8 +340,9 @@ distinct trust assumptions.
 
 \subsection{Layer 1: Privacy-Preserving Custody}
 
-All fund custody is delegated to a Chainlink Compliant Private Transfer
-vault on Ethereum Sepolia. This layer provides shielded addresses
+All fund custody is delegated to NoctrumVault on Monad Testnet and its
+private ledger service, a self-hosted replacement for Chainlink's
+Compliant Private Token vault. This layer provides shielded addresses
 (unlinkable recipient identifiers), private transfers validated off-chain
 against the ACE PolicyEngine, withdrawal tickets redeemable on-chain within
 a time-bound window, and compliance enforcement without exposing transaction

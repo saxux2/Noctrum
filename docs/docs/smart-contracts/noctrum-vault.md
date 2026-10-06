@@ -5,10 +5,10 @@ title: NoctrumVault Contract
 
 # NoctrumVault Contract
 
-The production architecture replaces the generic Chainlink Compliant Private Transfer vault with a purpose built `NoctrumVault` smart contract. This contract adds protocol specific logic for collateral locking, DON authorized fund movements, and on chain settlement verification.
+The production architecture extends `NoctrumVault` with protocol specific logic for collateral locking, DON authorized fund movements, and on chain settlement verification.
 
 :::note
-The NoctrumVault is the production design target. The current implementation uses Chainlink's generic vault at `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`.
+This page describes the production design target. The `NoctrumVault` deployed today on Monad Testnet at `0x65877F6BFd3f2D293454658BCb290b112397Eeb5` is a drop-in replacement for Chainlink's Compliant Private Token vault: `deposit`, `depositWithPermit`, `withdrawWithTicket` and ACE policy checks, with balances kept off chain by `noctrum-vault-api`. It does not yet implement the locking and report processing below.
 :::
 
 ## Contract Responsibilities
@@ -80,9 +80,9 @@ The production contract defines typed data structures for each protocol action:
 
 These typed data signatures are verified by the contract before forwarding to the CRE via the DON's HTTP proxy.
 
-## Differences from Generic Vault
+## Differences from the Current Vault
 
-| Feature | Generic Vault | NoctrumVault |
+| Feature | Current (CPT-compatible) | Production NoctrumVault |
 |---------|--------------|------------|
 | Collateral locking | Not supported | Native `lockedBalances` |
 | Protocol specific operations | None | Lock, unlock, seize via DON report |

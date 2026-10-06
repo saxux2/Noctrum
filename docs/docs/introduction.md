@@ -27,11 +27,11 @@ NOCTRUM addresses these issues through three mechanisms:
 
 **Discriminatory pricing.** Unlike uniform price auctions where all winners pay the same price, NOCTRUM uses discriminatory pricing where each lender earns their individual bid rate. This eliminates free riding and incentivizes truthful bidding, since underbidding reduces earnings while overbidding risks not being matched.
 
-**Three layer separation.** Fund custody (Chainlink vault), intent storage (NOCTRUM server), and rate settlement (CRE) operate in independent trust domains. Compromising any single layer does not break the privacy or safety guarantees of the other two.
+**Three layer separation.** Fund custody (NoctrumVault + vault API), intent storage (NOCTRUM server), and rate settlement (CRE) operate in independent trust domains. Compromising any single layer does not break the privacy or safety guarantees of the other two.
 
 ## How It Works
 
-1. Lenders deposit funds into the Chainlink Compliant Private Transfer vault and private transfer them to the NOCTRUM pool address
+1. Lenders deposit funds into the NoctrumVault on Monad Testnet and private transfer them to the NOCTRUM pool address through the Noctrum vault API
 2. Lenders submit encrypted rate bids specifying the interest rate they want to earn
 3. Borrowers submit borrow intents specifying the amount needed, collateral offered, and maximum acceptable rate
 4. The CRE decrypts all rates inside the TEE, runs the matching engine, and generates match proposals
@@ -49,20 +49,21 @@ NOCTRUM addresses these issues through three mechanisms:
 | Confidential Compute | Chainlink CRE SDK |
 | Encryption | eciesjs (secp256k1 ECIES) |
 | Authentication | EIP 712 typed data signatures |
-| Chain | Ethereum Sepolia (chain ID 11155111) |
-| Price Feeds | Chainlink Data Streams |
-| Fund Custody | Chainlink Compliant Private Transfer Vault |
+| Chain | Monad Testnet (chain ID 10143) |
+| Price Feeds | Chainlink ETH/USD Price Feed (Arbitrum One) |
+| Fund Custody | NoctrumVault (self-hosted, ABI-compatible with Chainlink's Compliant Private Token vault) |
 
 ## Repository Structure
 
 | Directory | Purpose |
 |-----------|---------|
 | `server/` | NOCTRUM API server (Hono + Bun) |
+| `noctrum-vault-api/` | Private ledger API: shielded balances, private transfers, withdrawal tickets |
 | `noctrum-settler/` | CRE workflow definitions (settle, execute, monitor) |
 | `e2e-test/` | End to end integration test scripts |
 | `frontend/` | Next.js marketing and landing site |
 | `client/` | Next.js application frontend |
 | `noctrum-tg/` | Telegram bot interface |
 | `noctrum-raycast/` | Raycast extension |
-| `transfer-demo/` | Foundry smart contract demos |
+| `contracts/` | Foundry contracts (NoctrumVault, SimpleToken, NoctrumSwapPool) |
 | `reference-docs/` | Architecture documents and litepaper |

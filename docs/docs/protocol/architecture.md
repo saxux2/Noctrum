@@ -9,17 +9,17 @@ NOCTRUM separates concerns across three independent trust domains. Each layer ha
 
 ## Layer 1: Custody Layer
 
-The custody layer is responsible for holding user funds. In the current implementation, this is the Chainlink Compliant Private Transfer vault deployed on Sepolia at `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13`.
+The custody layer is responsible for holding user funds. It has two parts: the `NoctrumVault` contract on Monad Testnet at `0x65877F6BFd3f2D293454658BCb290b112397Eeb5`, which holds the ERC20 tokens, and the Noctrum vault API (`noctrum-vault-api`), which keeps the private ledger. Together they are wire-compatible with Chainlink's Compliant Private Token (CPT) vault and API, which only exist on Ethereum Sepolia.
 
 **Responsibilities:**
 - Accept user deposits (on chain ERC20 transfers)
-- Track shielded balances off chain within the vault
+- Track shielded balances off chain in the vault API ledger
 - Execute private transfers between shielded addresses
-- Process withdrawals back to on chain balances
+- Process withdrawals back to on chain balances (the vault API signs a withdrawal ticket; the user redeems it with `withdrawWithTicket`)
 
-**Key property:** Funds can only move via user initiated actions (deposits, withdrawals) or valid DON signed reports (private transfers). The NOCTRUM server cannot move funds directly.
+**Key property:** Funds can only move via user initiated actions (deposits, withdrawals) or EIP 712 signed private transfer requests from the balance owner. The NOCTRUM server cannot move funds directly.
 
-**Tokens supported:** nUSD (synthetic USD stablecoin) and nETH (synthetic ETH) on Sepolia.
+**Tokens supported:** nUSD (synthetic USD stablecoin) and nETH (synthetic ETH) on Monad Testnet.
 
 ## Layer 2: Blind Storage Layer
 
@@ -67,14 +67,14 @@ The typical lifecycle of a lending operation flows through all three layers:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/noctrum` |
-| `POOL_PRIVATE_KEY` | Pool wallet private key for signing transfers | Required |
+| `POOL_PRIVATE_KEY` | Pool wallet private key for signing transfers | Optional (transfers are signed by CRE) |
 | `TOKEN_ADDRESS` | nUSD token contract address | Required |
 | `CRE_PUBLIC_KEY` | secp256k1 public key for ECIES encryption | Required |
-| `EXTERNAL_API_URL` | Chainlink vault API base URL | `convergence2026-token-api.cldev.cloud` |
-| `EXTERNAL_VAULT_ADDRESS` | Vault contract address | `0xE588...` |
-| `CHAIN_ID` | Target chain ID | `11155111` (Sepolia) |
+| `EXTERNAL_API_URL` | Noctrum vault API base URL | `http://localhost:8081` |
+| `EXTERNAL_VAULT_ADDRESS` | NoctrumVault contract address | `0x65877F6BFd3f2D293454658BCb290b112397Eeb5` |
+| `CHAIN_ID` | Target chain ID | `10143` (Monad Testnet) |
 | `PORT` | Server port | `8080` |
-| `INTERNAL_API_KEY` | Authentication key for CRE internal endpoints | Required |
-| `ARBITRUM_RPC_URL` | Arbitrum RPC for price feed reads | Required |
-| `ETH_USD_FEED` | Chainlink ETH/USD feed address | Required |
-| `NETH_ADDRESS` | Synthetic nETH token address | Required |
+| `INTERNAL_API_KEY` | Authentication key for CRE internal endpoints | Empty (unauthenticated) |
+| `ARBITRUM_RPC_URL` | Arbitrum RPC for price feed reads | `https://arbitrum-one-rpc.publicnode.com` |
+| `ETH_USD_FEED` | Chainlink ETH/USD feed address | `0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612` |
+| `NETH_ADDRESS` | Synthetic nETH token address | `0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A` |

@@ -87,7 +87,7 @@ The CRE reads the ETH/USD price from Chainlink Data Streams on Arbitrum:
 
 ```typescript
 const result = EVMClient.readContract(runtime, {
-  chainName: config.feedChainName,    // "ethereum-testnet-sepolia-arbitrum-1"
+  chainName: config.feedChainName,    // "ethereum-mainnet-arbitrum-1"
   contractAddress: config.ethUsdFeed, // Chainlink feed address
   abi: PriceFeedAggregatorABI,
   functionName: "latestRoundData",

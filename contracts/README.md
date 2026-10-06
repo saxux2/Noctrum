@@ -1,245 +1,122 @@
-# Compliant Private Token Transfer Demo
+# Noctrum Contracts
 
-> This tutorial represents an educational example to use a Chainlink system, product, or service and is provided to demonstrate how to interact with Chainlink’s systems, products, and services to integrate them into your own. This template is provided “AS IS” and “AS AVAILABLE” without warranties of any kind, it has not been audited, and it may be missing key checks or error handling to make the usage of the system, product or service more clear. Do not use the code in this example in a production environment without completing your own audits and application of best practices. Neither Chainlink Labs, the Chainlink Foundation, nor Chainlink node operators are responsible for unintended outputs that are generated due to errors in code.
+> Testnet code. It has not been audited. Do not use it in production without your own audit.
 
-This project demonstrates how to use the [Compliant Private Token Demo](https://convergence2026-token-api.cldev.cloud/) — a privacy-preserving token system powered by [Chainlink ACE (Automated Compliance Engine)](https://chain.link/automated-compliance-engine).
+Foundry project for NOCTRUM on **Monad Testnet (chain 10143)**: the `NoctrumVault` custody contract, the `SimpleToken` ERC20 used for nUSD and nETH, and the `NoctrumSwapPool`.
 
-Users can deposit ERC-20 tokens into an on-chain vault, then transfer them privately off-chain while maintaining regulatory compliance. Withdrawals are handled via signed tickets redeemed on-chain.
+`NoctrumVault` is a self-hosted replacement for Chainlink's [Compliant Private Token](https://convergence2026-token-api.cldev.cloud/) (CPT) demo vault, which only exists on Ethereum Sepolia. It keeps the CPT vault's ABI, events, withdrawal-ticket struct and [Chainlink ACE](https://chain.link/automated-compliance-engine) PolicyEngine checks. The off-chain half (private balances, private transfers, withdrawal tickets) is [`noctrum-vault-api`](../noctrum-vault-api).
+
+Users deposit ERC20 tokens into the vault on-chain, transfer them privately off-chain through the vault API, and withdraw by redeeming a signed ticket on-chain.
 
 ## Architecture Overview
 
 ```
-On-chain (Sepolia)                          Off-chain (API)
+On-chain (Monad Testnet)                    Off-chain (noctrum-vault-api)
 ┌──────────────────────┐                   ┌──────────────────────────┐
-│  ERC20 Token         │                   │  Private Token API       │
+│  ERC20 Token         │                   │  Private ledger API      │
 │  (SimpleToken)       │                   │                          │
 ├──────────────────────┤   deposit event   │  /balances               │
-│  Vault Contract      │ ───────────────>  │  /private-transfer       │
-│  0x615837B3...B12f   │                   │  /shielded-address       │
+│  NoctrumVault        │ ───────────────>  │  /private-transfer       │
+│  0x65877F6B...7Eeb5  │                   │  /shielded-address       │
 ├──────────────────────┤   withdraw ticket │  /withdraw               │
 │  PolicyEngine        │ <───────────────  │  /transactions           │
 │  (Chainlink ACE)     │                   │                          │
 └──────────────────────┘                   └──────────────────────────┘
 ```
 
-- **Vault Contract**: Holds deposited tokens on-chain. Enforces compliance via PolicyEngine on deposit/withdraw.
-- **PolicyEngine**: Chainlink ACE policy engine that validates all operations against configurable rules.
-- **Off-chain API**: Manages private balances, transfers, and withdrawal tickets. All requests are authenticated via EIP-712 signatures.
+- **NoctrumVault**: Holds deposited tokens on-chain. Enforces compliance via the token's PolicyEngine on deposit and withdraw. Redeems withdrawal tickets signed by `ticketSigner`.
+- **PolicyEngine**: Chainlink ACE policy engine (ERC1967 proxy) that validates operations against configurable rules.
+- **noctrum-vault-api**: Manages private balances, transfers and withdrawal tickets. Requests are authenticated with EIP-712 signatures (domain `NoctrumPrivateToken` / `0.0.1` / 10143 / NoctrumVault). It credits deposits once the `Deposit` event is finalized.
+- **NoctrumSwapPool**: nUSD ⇄ nETH swaps at owner-set USD prices.
+
+## Contracts
+
+| File | Description |
+|---|---|
+| `src/NoctrumVault.sol` | CPT-compatible vault: `register`, `deposit`, `depositWithPermit`, `withdrawWithTicket`, ACE policy checks |
+| `src/SimpleToken.sol` | ERC20 + ERC20Permit, owner-mintable (nUSD, nETH) |
+| `src/NoctrumSwapPool.sol` | Multi-token swap pool with owner-managed prices |
+| `src/interfaces/` | Production vault design interfaces (not deployed) |
 
 ## Prerequisites
 
-- [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
-- [Git](https://git-scm.com/) installed (for `forge install`)
-- A wallet with Sepolia ETH for gas fees
-- [MetaMask](https://metamask.io/) or any EIP-712 compatible wallet (for interacting with the API)
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- [Git](https://git-scm.com/) (for `forge install`)
+- A wallet with MON for gas ([faucet](https://faucet.monad.xyz))
 
 ## Setup
 
 ```bash
-# Clone and install dependencies (already done if you cloned this repo)
+# Install dependencies (already done if you cloned this repo)
 forge install
 
-# Compile the project
-forge build --via-ir
+# Compile and test (via_ir is set in foundry.toml)
+forge build
+forge test -vvv
 
 # Set environment variables
 export PRIVATE_KEY=<0xyour_private_key>
-export RPC_URL=<your_eth_sepolia_rpc_url>
+export RPC_URL=https://testnet-rpc.monad.xyz
+export VAULT_ADDRESS=0x65877F6BFd3f2D293454658BCb290b112397Eeb5
 ```
+
+Monad charges gas on the **limit**, so keep forge's gas estimation (no large fixed `--gas-limit`) and pass `--slow` so transactions are sent one at a time.
 
 ## Foundry Scripts
 
-### Option A: All-in-One Setup
+| Script | What it does | Extra env |
+|---|---|---|
+| `00_DeployVault.s.sol:DeployVault` | Deploys NoctrumVault | `TICKET_SIGNER_ADDRESS` |
+| `01_DeployToken.s.sol:DeployToken` | Deploys a SimpleToken | |
+| `02_DeployPolicyEngine.s.sol:DeployPolicyEngine` | Deploys an ACE PolicyEngine behind an ERC1967 proxy | |
+| `03_MintTokens.s.sol:MintTokens` | Mints 100 tokens | `TOKEN_ADDRESS`, optional `MINT_TO` |
+| `04_ApproveVault.s.sol:ApproveVault` | Approves the vault to spend your tokens | `VAULT_ADDRESS`, `TOKEN_ADDRESS` |
+| `05_RegisterVault.s.sol:RegisterVault` | Registers a token and its PolicyEngine on the vault | `VAULT_ADDRESS`, `TOKEN_ADDRESS`, `POLICY_ENGINE_ADDRESS` |
+| `06_DepositToVault.s.sol:DepositToVault` | Deposits 10 tokens into the vault | `VAULT_ADDRESS`, `TOKEN_ADDRESS` |
+| `07_WithdrawWithTicket.s.sol:WithdrawWithTicket` | Redeems a withdrawal ticket (signs with `PRIVATE_KEY_2`) | `VAULT_ADDRESS`, `TOKEN_ADDRESS`, `WITHDRAW_AMOUNT`, `TICKET` |
+| `08_DeploySwapPool.s.sol:DeploySwapPool` | Deploys NoctrumSwapPool (nUSD $1, nETH $2,200) and seeds 10,000 nUSD + 10 nETH | `NUSD_ADDRESS`, `NETH_ADDRESS` |
+| `SetupAll.s.sol:SetupAll` | Runs steps 01–06 in one script | `VAULT_ADDRESS` |
 
-`SetupAll.s.sol` executes all 6 steps in a single script:
+Run any script with:
 
 ```bash
-forge script script/SetupAll.s.sol:SetupAll \
-  --rpc-url $RPC_URL --broadcast --via-ir
+forge script script/<File>.s.sol:<Name> --rpc-url $RPC_URL --broadcast --slow
+```
+
+### Option A: All-in-One Setup
+
+```bash
+forge script script/SetupAll.s.sol:SetupAll --rpc-url $RPC_URL --broadcast --slow
 ```
 
 This will:
 1. Deploy a SimpleToken (ERC20)
 2. Deploy a PolicyEngine (behind an ERC1967 proxy, `defaultAllow = true`)
 3. Mint 100 tokens to your address
-4. Approve the Vault to spend your tokens
-5. Register the token and PolicyEngine on the Vault
-6. Deposit 10 tokens into the Vault
+4. Approve the vault to spend your tokens
+5. Register the token and PolicyEngine on the vault
+6. Deposit 10 tokens into the vault
 
-After the script completes, your private balance will be ready to use via the API.
+Once the deposit block is finalized, `noctrum-vault-api` credits your private balance.
 
 ### Option B: Step-by-Step
 
-Run each script individually. This is useful if you want to inspect the results of each step or customize parameters along the way.
+Run scripts 01–06 from the table in order. Export `TOKEN_ADDRESS` after step 1 and `POLICY_ENGINE_ADDRESS` (the proxy) after step 2. Registration (step 5) must happen before deposits.
 
-#### Step 1 — Deploy ERC20 Token
-
-```bash
-forge script script/01_DeployToken.s.sol:DeployToken \
-  --rpc-url $RPC_URL --broadcast --via-ir
-```
-
-#### Step 2 — Deploy PolicyEngine
+### Verify
 
 ```bash
-forge script script/02_DeployPolicyEngine.s.sol:DeployPolicyEngine \
-  --rpc-url $RPC_URL --broadcast --via-ir
+forge verify-contract <addr> src/NoctrumVault.sol:NoctrumVault --chain 10143 \
+  --verifier sourcify --verifier-url https://sourcify-api-monad.blockvision.org/
 ```
 
-#### Step 3 — Mint 100 Tokens
+## Private Transactions via CLI Scripts
 
-```bash
-export TOKEN_ADDRESS=<deployed_token_address>
-
-forge script script/03_MintTokens.s.sol:MintTokens \
-  --rpc-url $RPC_URL --broadcast --via-ir
-```
-
-#### Step 4 — Approve Vault
-
-```bash
-forge script script/04_ApproveVault.s.sol:ApproveVault \
-  --rpc-url $RPC_URL --broadcast --via-ir
-```
-
-#### Step 5 — Register Token on Vault
-
-Register your token and its PolicyEngine with the Vault contract. This must be done before deposits.
-
-```bash
-export POLICY_ENGINE_ADDRESS=<deployed_policy_engine_proxy_address>
-
-forge script script/05_RegisterVault.s.sol:RegisterVault \
-  --rpc-url $RPC_URL --broadcast --via-ir
-```
-
-#### Step 6 — Deposit Tokens into Vault
-
-```bash
-forge script script/06_DepositToVault.s.sol:DepositToVault \
-  --rpc-url $RPC_URL --broadcast --via-ir
-```
-
-This deposits 10 tokens into the Vault. After the on-chain transaction confirms, the off-chain indexer will detect the `Deposit` event and credit your private balance.
-
-## Using Private Transactions
-
-Once tokens are deposited, you interact with the off-chain API to manage private balances, transfers, and withdrawals. All endpoints have a browser-based UI — just open the URL in your browser and sign with MetaMask.
-
-> **API Base URL**: https://convergence2026-token-api.cldev.cloud  
-> **API Documentation**: https://convergence2026-token-api.cldev.cloud/docs
-
-This walkthrough uses two MetaMask accounts:
-- **Account 1** (sender): The account that deployed and deposited tokens in the on-chain setup.
-- **Account 2** (receiver): A different EOA that will receive a private transfer and withdraw.
-
-### Step 7 — Connect Account 1 and Check Balance
-
-Open https://convergence2026-token-api.cldev.cloud/balances in your browser. Make sure MetaMask is connected with **Account 1**. Sign the request to verify your private balance (should show 10 tokens after deposit).
-
-### Step 8 — Switch to Account 2 and Verify Address
-
-Switch MetaMask to **Account 2**. Refresh the `/balances` page and confirm the displayed address is Account 2's address.
-
-### Step 9 — Check Balance for Account 2
-
-Sign the balance request with Account 2. The balance should be 0 (Account 2 has not received any private tokens yet).
-
-### Step 10 — Generate a Shielded Address for Account 2
-
-Open https://convergence2026-token-api.cldev.cloud/shielded-address with Account 2 still connected. Sign the request to generate a shielded address. **Copy this address** — you will use it in the next step.
-
-A shielded address:
-- Looks like a normal Ethereum address but cannot be linked to Account 2's real address.
-- Can be shared with senders without revealing Account 2's identity.
-- The off-chain service resolves it and credits Account 2's real balance automatically.
-- A user may generate multiple shielded addresses so that different senders cannot detect they are transferring to the same underlying account. 
-
-> **Note to privacy directions:** Shielded addresses protect the **recipient's** identity from sender (i.e., the sender does not learn who they are paying). There is also a complementary feature - `hide-sender` flag - which protects the **sender's** identitiy from the recipient (the transfer itself is never exposeed on-chain, but the recipient normally sees where the token came from in their transaction history). We do not use `hide-sender` in this tutorial, but it can be added as a flag during private transfers.
-
-### Step 11 — Switch Back to Account 1
-
-Switch MetaMask back to **Account 1**.
-
-### Step 12 — Private Transfer 1 Token to the Shielded Address
-
-Open https://convergence2026-token-api.cldev.cloud/private-transfer with Account 1 connected. You will see a JSON file as below and fill shielded address generated in step 10 in the recipient. The field amount represents the amount token to be transferred, the field can be any number(in wei) less than the balance of the account.
-
-```json
-...
-  "message": {
-    "sender": "0xc2204bc9e2f41594c9a662dd157e34539ee0c5d1",
-    "recipient": "<Add_shielded_addr_here>",
-    "token": "<Add_your_token_addr_here>",
-    "amount": "1000000000000000000",
-    "flags": [],
-    "timestamp": "1771250395936"
-  }
-...
-```
-
-Sign and submit. The off-chain service enforces compliance by calling the on-chain PolicyEngine's `checkPrivateTransferAllowed()` function via an off-chain read (`eth_call`), so no transaction information or metadata is exposed on-chain.
-
-### Step 13 — Switch to Account 2 and Verify Transfer
-
-Switch MetaMask to **Account 2**. Open https://convergence2026-token-api.cldev.cloud/balances and sign the balance request. The balance should now show the tokens received from Account 1's private transfer (e.g., 1 token).
-
-
-### Step 14 — Request Withdrawal
-
-Switch MetaMask to **Account 2**. Open https://convergence2026-token-api.cldev.cloud/withdraw and sign a withdrawal request for the token you just received.
-
-**Note**, do not forget fill in the token field in the JSON on the page. 
-```json
-...
-  "message": {
-    "account": "0x93df365bafc36e655cbd30d736a6c5401583d7b2",
-    "token": "<Add_your_token_addr_here>",
-    "amount": "1000000000000000000",
-    "timestamp": "1771251317389"
-  }
-...
-```
-
-The API will return a response as below:
-```json
-{
-  "id": "019c66ce-49dc-756b-bbde-9c98edeff72f",
-  "account": "0x93dF365BAFc36E655cbd30D736A6c5401583D7b2",
-  "token": "0xa82893525C95197Da290a50EE4CA0d81b77bfb5B",
-  "amount": "1000000000000000000",
-  "deadline": 1771254921,
-  "ticket": "0x16fc6a505bffb6ffff41fd8f03f1f1be00000000699334892ac36e7c67074b4e2a33a8bbc2644134e2cdbc58ad5198432fb09177d0c614216c69a72f26f3908149e78244bf7c0e1ccd18bf89e7169546f94c7d30734c73401c"
-}
-```
-
-**Copy the `ticket`, `amount` values** — you will need them for the next step.
-
-### Step 15 — Redeem the Ticket On-chain (Script)
-
-Run the `07_WithdrawWithTicket.s.sol` script using **Account 2's private key**:
-
-```bash
-export PRIVATE_KEY_2=<0xaccount_2_private_key>
-export TOKEN_ADDRESS=<your_token_address>
-export WITHDRAW_AMOUNT=<amount_in_wei_from_api_response>
-export TICKET=<ticket_hex_from_api_response>
-
-forge script script/07_WithdrawWithTicket.s.sol:WithdrawWithTicket \
-  --rpc-url $RPC_URL --broadcast --via-ir
-```
-
-After the transaction confirms, Account 2 will have the tokens in their public ERC20 balance on Sepolia.
-
-> If the ticket is not redeemed within 1 hour, the balance is automatically refunded to Account 2's private balance.
-
-## Using Private Transactions via CLI Scripts
-
-As an alternative to the browser-based UI, you can use the TypeScript CLI scripts in the `api-scripts/` folder. These scripts sign EIP-712 requests with your private key and call the API directly from the command line.
+The TypeScript CLI scripts in `api-scripts/` sign EIP-712 requests with your private key and call `noctrum-vault-api` directly. Set `VAULT_API_URL` to the API (default `http://localhost:8081`; deployed: `https://vault-api-production-30bb.up.railway.app`).
 
 This walkthrough uses two private keys:
-- **`PRIVATE_KEY`** (Account 1 / sender): The account that deployed and deposited tokens in the on-chain setup.
-- **`PRIVATE_KEY_2`** (Account 2 / receiver): A different EOA that will receive a private transfer and withdraw.
+- **`PRIVATE_KEY`** (Account 1 / sender): the account that deposited tokens in the on-chain setup.
+- **`PRIVATE_KEY_2`** (Account 2 / receiver): a different EOA that receives a private transfer and withdraws.
 
 ### Setup
 
@@ -247,88 +124,69 @@ This walkthrough uses two private keys:
 cd api-scripts
 npm install
 
-# Set environment variables
 export PRIVATE_KEY=<0xaccount_1_private_key>
 export PRIVATE_KEY_2=<0xaccount_2_private_key>
+export VAULT_API_URL=http://localhost:8081
 ```
 
 ### Step 7 — Account 1: Check Balance
 
-Use Account 1's private key to query its private balance (should show 10 tokens after deposit).
+Should show 10 tokens after the deposit.
 
 ```bash
 npx tsx src/balances.ts
 ```
 
-### Step 8 & 9 — Account 2: Check Balance
+### Step 8 — Account 2: Check Balance
 
-Check Account 2's balance. Since Account 2 has not received any private tokens yet, the balance should be 0.
-
-> Note: The `balances.ts` script uses `PRIVATE_KEY` by default. To query Account 2's balance, temporarily set `PRIVATE_KEY` to Account 2's key, or use the browser UI.
+Account 2 has not received any private tokens yet, so the balance is 0. `balances.ts` uses `PRIVATE_KEY`, so override it:
 
 ```bash
 PRIVATE_KEY=$PRIVATE_KEY_2 npx tsx src/balances.ts
 ```
 
-### Step 10 — Account 2: Generate a Shielded Address
+### Step 9 — Account 2: Generate a Shielded Address
 
-Generate a shielded address for Account 2. This script uses `PRIVATE_KEY_2`.
+This script uses `PRIVATE_KEY_2`.
 
 ```bash
 npx tsx src/shielded-address.ts
 ```
 
-The response will contain a shielded address. **Copy this address** — you will use it in the next step.
+**Copy the returned shielded address** for the next step.
 
 A shielded address:
 - Looks like a normal Ethereum address but cannot be linked to Account 2's real address.
 - Can be shared with senders without revealing Account 2's identity.
-- The off-chain service resolves it and credits Account 2's real balance automatically.
-- A user may generate multiple shielded addresses so that different senders cannot detect they are transferring to the same underlying account.
+- Is resolved by the vault API, which credits Account 2's real balance.
+- Can be generated many times, so different senders cannot tell they pay the same account.
 
-> **Note on privacy directions:** Shielded addresses protect the **recipient's** identity from the sender (i.e., the sender does not learn who they are paying). There is also a complementary feature — the `hide-sender` flag — which protects the **sender's** identity from the recipient (the transfer itself is never exposed on-chain, but the recipient normally sees where the tokens came from in their transaction history). We do not use `hide-sender` in this tutorial, but it can be added as a flag during private transfers.
+> **Privacy directions:** shielded addresses hide the **recipient** from the sender. The `hide-sender` flag hides the **sender** from the recipient's transaction history. The transfer itself is never on-chain either way.
 
-### Step 11 & 12 — Account 1: Private Transfer to the Shielded Address
+### Step 10 — Account 1: Private Transfer to the Shielded Address
 
-Transfer tokens from Account 1 to Account 2's shielded address. This script uses `PRIVATE_KEY` (Account 1).
+This script uses `PRIVATE_KEY` (Account 1).
 
 ```bash
 npx tsx src/private-transfer.ts <shielded_address> <token_address> <amount_in_wei>
-```
 
-Example (transfer 1 token):
-
-```bash
-npx tsx src/private-transfer.ts 0xShieldedAddress 0xTokenAddress 1000000000000000000
-```
-
-To hide the sender's address from the recipient, add the `hide-sender` flag:
-
-```bash
+# Example: 1 token, hiding the sender
 npx tsx src/private-transfer.ts 0xShieldedAddress 0xTokenAddress 1000000000000000000 hide-sender
 ```
 
-The off-chain service enforces compliance by calling the on-chain PolicyEngine's `checkPrivateTransferAllowed()` function via an off-chain read (`eth_call`), so no transaction information or metadata is exposed on-chain.
+The vault API enforces compliance by calling the vault's `checkPrivateTransferAllowed()` with an `eth_call`, so nothing about the transfer is exposed on-chain.
 
-### Step 13 — Account 2: Request Withdrawal
+### Step 11 — Account 2: Request Withdrawal
 
-Request a withdrawal ticket for Account 2. This script uses `PRIVATE_KEY_2`.
+This script uses `PRIVATE_KEY_2`.
 
 ```bash
 npx tsx src/withdraw.ts <token_address> <amount_in_wei>
 ```
 
-Example (withdraw 1 token):
+The response contains `ticket`, `amount` and `deadline`. **Copy `ticket` and `amount`.**
 
-```bash
-npx tsx src/withdraw.ts 0xTokenAddress 1000000000000000000
-```
-
-The API will return a response containing `ticket`, `amount`, and `deadline`. **Copy the `ticket` and `amount` values** — you will need them for the next step.
-
-### Step 14 — Account 2: Redeem the Ticket On-chain
-
-Run the `07_WithdrawWithTicket.s.sol` script using **Account 2's private key**:
+### Step 12 — Account 2: Redeem the Ticket On-chain
 
 ```bash
 export TOKEN_ADDRESS=<your_token_address>
@@ -336,33 +194,25 @@ export WITHDRAW_AMOUNT=<amount_in_wei_from_api_response>
 export TICKET=<ticket_hex_from_api_response>
 
 forge script script/07_WithdrawWithTicket.s.sol:WithdrawWithTicket \
-  --rpc-url $RPC_URL --broadcast --via-ir
+  --rpc-url $RPC_URL --broadcast --slow
 ```
 
-After the transaction confirms, Account 2 will have the tokens in their public ERC20 balance on Sepolia.
+Account 2 now holds the tokens in its public ERC20 balance on Monad Testnet.
 
-> If the ticket is not redeemed within 1 hour, the balance is automatically refunded to Account 2's private balance.
+> If the ticket is not redeemed within 1 hour, the vault API refunds the amount to Account 2's private balance.
 
-### Bonus — List Transaction History
-
-You can view your transaction history at any time:
+### Bonus — Transaction History
 
 ```bash
-# Account 1's transactions (default limit=10)
-npx tsx src/transactions.ts
-
-# Account 2's transactions
-PRIVATE_KEY=$PRIVATE_KEY_2 npx tsx src/transactions.ts
-
-# With custom limit and pagination cursor
-npx tsx src/transactions.ts 20
+npx tsx src/transactions.ts                              # Account 1, limit 10
+PRIVATE_KEY=$PRIVATE_KEY_2 npx tsx src/transactions.ts   # Account 2
 npx tsx src/transactions.ts 10 <cursor_from_previous_response>
 ```
 
 ## Complete End-to-End Flow
 
 ```
-On-chain setup (Option A: SetupAll.s.sol, or Option B: steps 1–6)
+On-chain setup (SetupAll.s.sol, or scripts 01–06)
   1. Deploy ERC20 Token               (01_DeployToken.s.sol)
   2. Deploy PolicyEngine              (02_DeployPolicyEngine.s.sol)
   3. Mint 100 tokens                  (03_MintTokens.s.sol)
@@ -370,25 +220,31 @@ On-chain setup (Option A: SetupAll.s.sol, or Option B: steps 1–6)
   5. Register on Vault                (05_RegisterVault.s.sol)
   6. Deposit 10 tokens                (06_DepositToVault.s.sol)
 
-Off-chain private transactions (Browser UI or CLI scripts)
-  7. Account 1: check balance         (Browser: /balances       | CLI: npx tsx src/balances.ts)
-  8. Switch to Account 2              (Browser: MetaMask switch  | CLI: use PRIVATE_KEY_2)
-  9. Account 2: check balance         (Browser: /balances       | CLI: PRIVATE_KEY=$PRIVATE_KEY_2 npx tsx src/balances.ts)
- 10. Account 2: generate shielded addr(Browser: /shielded-address| CLI: npx tsx src/shielded-address.ts)
- 11. Switch back to Account 1         (Browser: MetaMask switch  | CLI: uses PRIVATE_KEY by default)
- 12. Account 1: transfer to shielded  (Browser: /private-transfer| CLI: npx tsx src/private-transfer.ts ...)
- 13. Account 2: request withdraw      (Browser: /withdraw       | CLI: npx tsx src/withdraw.ts ...)
- 14. Account 2: redeem ticket on-chain(07_WithdrawWithTicket.s.sol)
+Off-chain private transactions (api-scripts, against noctrum-vault-api)
+  7. Account 1: check balance         npx tsx src/balances.ts
+  8. Account 2: check balance         PRIVATE_KEY=$PRIVATE_KEY_2 npx tsx src/balances.ts
+  9. Account 2: shielded address      npx tsx src/shielded-address.ts
+ 10. Account 1: transfer to shielded  npx tsx src/private-transfer.ts ...
+ 11. Account 2: request withdrawal    npx tsx src/withdraw.ts ...
+ 12. Account 2: redeem ticket         07_WithdrawWithTicket.s.sol
 ```
 
-## Key Addresses
+## Key Addresses (Monad Testnet)
 
-| Contract | Address | Network |
-|---|---|---|
-| Vault | `0xE588a6c73933BFD66Af9b4A07d48bcE59c0D2d13` | Ethereum Sepolia |
+| Contract | Address |
+|---|---|
+| NoctrumVault | `0x65877F6BFd3f2D293454658BCb290b112397Eeb5` |
+| nUSD | `0x339a948f3667d222FAD43d313b3b8c3BE1415ad5` |
+| nETH | `0x39AD31E31b8b202E6Fa7BD8682E68aC4e66cE92A` |
+| PolicyEngine (nUSD, proxy) | `0x60B04476b481B10Ea26877C2cb144d6599b3d3C3` |
+| PolicyEngine (nETH, proxy) | `0x1cb5Ac8d2C8d003009d62Eedd9ce06462a2D1d82` |
+| NoctrumSwapPool | `0x404483376395A8F56B7e0C6Fe9B17F55d9046B71` |
+
+Full list: [`../deployments/monad-testnet.json`](../deployments/monad-testnet.json). Explorer: [testnet.monadvision.com](https://testnet.monadvision.com).
 
 ## References
 
-- [API Documentation](https://convergence2026-token-api.cldev.cloud/docs)
+- [Chainlink CPT API documentation](https://convergence2026-token-api.cldev.cloud/docs) (the API `noctrum-vault-api` is compatible with)
 - [Chainlink ACE GitHub](https://github.com/smartcontractkit/chainlink-ace)
 - [Chainlink ACE Getting Started Guide](https://github.com/smartcontractkit/chainlink-ace/blob/main/getting_started/GETTING_STARTED.md)
+- [Monad: verify a contract with Foundry](https://docs.monad.xyz/guides/verify-smart-contract/foundry.md)

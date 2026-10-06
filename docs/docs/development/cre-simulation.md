@@ -9,11 +9,7 @@ Chainlink's CRE CLI provides a local simulation environment for testing NOCTRUM'
 
 ## Prerequisites
 
-Install the CRE CLI:
-
-```bash
-npm install -g @chainlink/cre-cli
-```
+Install the CRE CLI from the [official installation guide](https://docs.chain.link/cre/getting-started/cli-installation) or the [GitHub releases](https://github.com/smartcontractkit/cre-cli/releases). It is not published on npm.
 
 Verify installation:
 

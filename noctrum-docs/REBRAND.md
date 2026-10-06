@@ -112,6 +112,10 @@ Logo set (`logo.png`, `logo-2.png`, `logo-dark.png`, `logo-new.png`, `ghost-logo
 - `client/src/components/ui/badge.tsx` variant `ghost` (and any shadcn button variant)
 - `noctrum-docs/*` (this folder references Ghost as the source)
 - Lockfiles referencing third-party packages, if any
+- Root `CLAUDE.md` (names Ghost as the reference source, like `noctrum-docs/`)
+- Vendored third-party code and gitignored build output: `contracts/lib/` (OpenZeppelin `fv/specs` ghost variables), `contracts/out/`, `client/.next/`, `docs/build/` (CSS color `GhostWhite`, BIP-39 word `ghost`)
+
+T8.1 (2026-10-07): the check below returns only these entries.
 
 Check command:
 ```bash

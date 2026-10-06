@@ -121,8 +121,8 @@ Returns an array of the lender's deposit slots, lend intents, and any active pro
 
 | Step | Action | Endpoint |
 |------|--------|----------|
-| 1 | Deposit tokens into vault | External vault API |
-| 2 | Private transfer to pool | External vault API |
+| 1 | Deposit tokens into vault | `NoctrumVault.deposit()` (on chain) |
+| 2 | Private transfer to pool | Noctrum vault API `POST /private-transfer` |
 | 3 | Initialize deposit slot | `POST /deposit-lend/init` |
 | 4 | Confirm with encrypted rate | `POST /deposit-lend/confirm` |
 | 5 | Wait for matching (automatic) | CRE handles |
