@@ -179,6 +179,10 @@ Flags: `hide-sender` / `hideSender` / `hide_sender`.
   
   The pool address is a normal account.
 - **Shielded address**: random 20-byte address mapped to the account (unique). Multiple per account are allowed.
+- **Choices where CPT docs are silent (T5.3b):**
+  - `/private-transfer`: policy `TokenNotRegistered` → `bad_request`; any other revert → `operation_denied_by_policy`. Unknown flags, `amount ≤ 0` and a non-array `flags` → `bad_request`. Zero address or malformed recipient → `invalid_recipient`.
+  - History stores the resolved owner (for lookups) and the address the sender used. Responses only ever show the address the sender used, so a sender never learns who owns a shielded address. With hide-sender, `sender` is left out of the recipient's view.
+  - `/transactions`: newest first by UUID v7 id; `cursor` = last id seen (exclusive). `limit` defaults to 10 when absent (signed as 10) and is capped at 100. `next_cursor` is `null` when `has_more` is false.
 - **Withdraw**:
   1. Verify, then debit the balance.
   2. `nonce = random uint128`, `deadline = now + 3600`.

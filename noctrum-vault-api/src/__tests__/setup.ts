@@ -22,6 +22,9 @@ beforeAll(async () => {
 }, 600_000);
 
 beforeEach(async () => {
+  // Dynamic import: a static one would load ../config before the env above is set.
+  const { setPolicyCheck } = await import("../policy");
+  setPolicyCheck(async () => {}); // allow-all; tests override per case, never hit the RPC
   const collections = Object.values(mongoose.connection.collections);
   await Promise.all(collections.map((c) => c.deleteMany({})));
 });
