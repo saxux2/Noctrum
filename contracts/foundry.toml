@@ -14,3 +14,6 @@ chain_id = 10143
 # The guide's `metadata`/`metadata_hash` keys are not Foundry keys (ignored by forge 1.8.3);
 # Foundry defaults (cbor_metadata = true, bytecode_hash = "ipfs") give Sourcify a full match.
 use_literal_content = true
+
+# MonadForkTest reads the shared deployment registry
+fs_permissions = [{ access = "read", path = "../deployments" }]

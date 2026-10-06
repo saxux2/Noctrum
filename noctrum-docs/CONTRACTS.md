@@ -203,6 +203,11 @@ Ghost hard-codes `address constant VAULT = 0xE588…` in scripts 04/05/06/07/Set
 7. Verify every contract (MonadVision/Sourcify and Monadscan; see MONAD_MIGRATION §4).
 8. Write the addresses to `deployments/monad-testnet.json` and propagate them (ENV_AND_CONFIG).
 
+✅ **Deployed 2026-10-06 (T3.1)**, from block 68685729. Addresses are in `deployments/monad-testnet.json`. All 8 contracts are Sourcify-verified on MonadVision (`runtimeMatch: match`). Monadscan verification was skipped because no `MONADSCAN_API_KEY` was set (D-14: MonadVision).
+- `SetupAll` deploys its own PolicyEngine for nETH (Ghost parity), so nUSD and nETH use different engines. Both are recorded (`PolicyEngineProxy` for nUSD, `nETHPolicyEngineProxy` for nETH).
+- Total cost was about 1.57 MON, since Monad charges gas on the limit.
+- Fork smoke test: `forge test --match-contract MonadForkTest --fork-url https://testnet-rpc.monad.xyz`. It is skipped without a fork.
+
 ## 8. Monad-specific notes for contracts
 
 - Contract size limit is 128 KB, so via-IR builds fit easily.
