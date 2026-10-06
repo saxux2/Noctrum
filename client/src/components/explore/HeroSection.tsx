@@ -32,7 +32,7 @@ const HeroSection = () => {
 
       <div className="relative z-10 space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">
-          Explore GHOST Pools
+          Explore NOCTRUM Pools
         </h1>
         <p className="max-w-lg text-base text-white/80">
           Browse private lending and borrowing pools. Rates are sealed and

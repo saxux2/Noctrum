@@ -2,7 +2,7 @@
 
 const stats = [
   { value: "Private", label: "Sealed-Rate Lending" },
-  { value: "Sepolia", label: "Testnet Live" },
+  { value: "Monad", label: "Testnet Live" },
   { value: "CRE", label: "Chainlink Powered" },
 ];
 
@@ -20,7 +20,7 @@ const InfinityHero = () => {
         {/* Badge */}
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-          <span className="text-sm font-medium text-muted-foreground">Ghost Protocol</span>
+          <span className="text-sm font-medium text-muted-foreground">Noctrum Protocol</span>
         </div>
 
         {/* Title */}

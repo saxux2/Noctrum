@@ -5,7 +5,7 @@ import { CircleHelp, Plus } from "lucide-react";
 import TokenInput from "../TokenInput";
 import ConnectWalletButton from "@/components/shared/ConnectWalletButton";
 
-const GUSDIcon = () => (
+const NUSDIcon = () => (
   <div className="w-5 h-5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" />
 );
 
@@ -29,7 +29,7 @@ const SwapTab = () => {
           <TokenInput
             label="You're borrowing"
             token="nUSD"
-            tokenIcon={<GUSDIcon />}
+            tokenIcon={<NUSDIcon />}
             value={borrowAmount}
             usdValue="0"
             onChange={setBorrowAmount}

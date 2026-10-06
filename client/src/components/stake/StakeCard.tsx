@@ -5,7 +5,7 @@ import TokenInput from "./TokenInput";
 import StakeMethodSelector from "./StakeMethodSelector";
 import ConnectWalletButton from "@/components/shared/ConnectWalletButton";
 
-const GUSDIcon = () => (
+const NUSDIcon = () => (
   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400" />
 );
 
@@ -24,7 +24,7 @@ const StakeCard = () => {
         <TokenInput
           label="You're lending"
           token="nUSD"
-          tokenIcon={<GUSDIcon />}
+          tokenIcon={<NUSDIcon />}
           value={depositAmount}
           usdValue="0"
           onChange={setDepositAmount}

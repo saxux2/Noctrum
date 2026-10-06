@@ -25,8 +25,8 @@ import {
 } from "@/lib/wormhole";
 
 const NOCTRUM_TOKENS = [
-  { symbol: "nUSD", name: "Ghost USD", address: nUSD, icon: "/nusd.png" },
-  { symbol: "nETH", name: "Ghost ETH", address: nETH, icon: "/neth.png" },
+  { symbol: "nUSD", name: "Noctrum USD", address: nUSD, icon: "/nusd.png" },
+  { symbol: "nETH", name: "Noctrum ETH", address: nETH, icon: "/neth.png" },
 ];
 
 type Status =
@@ -435,7 +435,7 @@ const SwapTab = () => {
               rel="noopener noreferrer"
               className="block text-xs text-emerald-400/70 hover:text-emerald-300 underline underline-offset-2 truncate"
             >
-              View on Etherscan: {txHash.slice(0, 10)}...{txHash.slice(-8)}
+              View on MonadVision: {txHash.slice(0, 10)}...{txHash.slice(-8)}
             </a>
           )}
           {bridgeSrcHash && (

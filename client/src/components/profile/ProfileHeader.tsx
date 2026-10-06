@@ -99,7 +99,7 @@ const ProfileHeader = ({ address, tier, multiplier, loansRepaid, loansDefaulted 
               <h1 className="text-2xl font-bold text-foreground font-mono">
                 {displayName}
               </h1>
-              <Badge variant="outline" className="text-[10px]">Sepolia</Badge>
+              <Badge variant="outline" className="text-[10px]">Monad Testnet</Badge>
               <Badge variant="outline" className={config.badge}>
                 {tier.charAt(0).toUpperCase() + tier.slice(1)}
               </Badge>
@@ -124,7 +124,7 @@ const ProfileHeader = ({ address, tier, multiplier, loansRepaid, loansDefaulted 
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ExternalLink className="w-3 h-3" />
-                Etherscan
+                MonadVision
               </a>
             </div>
           </div>

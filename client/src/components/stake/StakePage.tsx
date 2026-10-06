@@ -14,7 +14,7 @@ const headings: Record<string, { title: string; desc: string }> = {
     desc: "Submit a private borrow intent. Your max rate is encrypted and only revealed inside the CRE settlement engine.",
   },
   Lend: {
-    title: "Lend privately on GHOST",
+    title: "Lend privately on NOCTRUM",
     desc: "Set your rate, deposit funds. Rates are sealed \u2014 only matched inside CRE confidential compute.",
   },
   Swap: {

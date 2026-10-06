@@ -12,10 +12,10 @@ const YieldSourcesSection = () => {
       <div className="text-center space-y-3">
         <span className="text-sm font-semibold text-emerald-400">Architecture</span>
         <h2 className="text-3xl font-semibold text-foreground">
-          How Ghost Keeps Lending Private
+          How Noctrum Keeps Lending Private
         </h2>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Four layers of privacy and fairness power every Ghost loan.
+          Four layers of privacy and fairness power every Noctrum loan.
         </p>
       </div>
 

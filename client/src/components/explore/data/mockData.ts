@@ -14,6 +14,6 @@ export interface PoolRow {
 }
 
 export const featuredPools: FeaturedPool[] = [
-  { name: "Ghost USD", ticker: "nUSD", iconSrc: "/nusd.png" },
-  { name: "Ghost ETH", ticker: "nETH", iconSrc: "/neth.png" },
+  { name: "Noctrum USD", ticker: "nUSD", iconSrc: "/nusd.png" },
+  { name: "Noctrum ETH", ticker: "nETH", iconSrc: "/neth.png" },
 ];

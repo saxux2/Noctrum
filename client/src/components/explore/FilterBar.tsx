@@ -15,7 +15,7 @@ interface FilterBarProps {
 }
 
 const tokenOptions = ["All Tokens", "nUSD", "nETH"];
-const networkOptions = ["All Networks", "Sepolia"];
+const networkOptions = ["All Networks", "Monad Testnet"];
 const statusOptions = ["All Status", "Active"];
 
 interface DropdownProps {

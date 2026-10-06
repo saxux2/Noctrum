@@ -5,7 +5,7 @@ import { Plus, Zap } from "lucide-react";
 import TokenInput from "../TokenInput";
 import ConnectWalletButton from "@/components/shared/ConnectWalletButton";
 
-const GUSDIcon = () => (
+const NUSDIcon = () => (
   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400" />
 );
 
@@ -35,7 +35,7 @@ const UnstakeTab = () => {
           <TokenInput
             label="You're repaying"
             token="nUSD"
-            tokenIcon={<GUSDIcon />}
+            tokenIcon={<NUSDIcon />}
             value={repayAmount}
             usdValue="0"
             onChange={setRepayAmount}

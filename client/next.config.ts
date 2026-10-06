@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// D-15: rewrite targets come from env so the app can be deployed (Ghost hard-coded localhost:3000).
+// D-15: rewrite targets come from env so the app can be deployed (the original hard-coded localhost:3000).
 const NOCTRUM_API_ORIGIN =
   process.env.NOCTRUM_API_ORIGIN || "http://localhost:8080";
 const NOCTRUM_VAULT_API_URL =

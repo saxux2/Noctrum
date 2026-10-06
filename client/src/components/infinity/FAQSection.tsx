@@ -5,8 +5,8 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    q: "What is Ghost Protocol?",
-    a: "Ghost is a private peer-to-peer lending protocol where interest rates are sealed (encrypted) and matched by Chainlink CRE inside confidential compute. No one — not even the server — can see your rate bid.",
+    q: "What is Noctrum Protocol?",
+    a: "Noctrum is a private peer-to-peer lending protocol where interest rates are sealed (encrypted) and matched by Chainlink CRE inside confidential compute. No one — not even the server — can see your rate bid.",
   },
   {
     q: "How do sealed-rate auctions work?",
@@ -17,8 +17,8 @@ const faqs = [
     a: "Unlike uniform-price auctions, each lender earns the rate they actually bid — not a single clearing rate. This means there's no incentive to game or front-run rates.",
   },
   {
-    q: "What tokens does Ghost support?",
-    a: "Ghost currently supports nUSD (Ghost USD) for lending and nETH (Ghost ETH) as collateral, both on Sepolia testnet.",
+    q: "What tokens does Noctrum support?",
+    a: "Noctrum currently supports nUSD (Noctrum USD) for lending and nETH (Noctrum ETH) as collateral, both on Monad Testnet.",
   },
   {
     q: "How does the credit tier system work?",
@@ -34,15 +34,15 @@ const faqs = [
   },
   {
     q: "What is Chainlink CRE?",
-    a: "Chainlink Confidential Compute Runtime Environment (CRE) is a WASM-based confidential compute platform. Ghost uses CRE workflows to decrypt rates, run the matching engine, and execute loan settlements — all inside a trusted execution environment.",
+    a: "Chainlink Confidential Compute Runtime Environment (CRE) is a WASM-based confidential compute platform. Noctrum uses CRE workflows to decrypt rates, run the matching engine, and execute loan settlements — all inside a trusted execution environment.",
   },
   {
     q: "How are funds transferred privately?",
     a: "All fund movements (disbursements, collateral returns, liquidations) go through a pool wallet that calls the external vault's private-transfer endpoint. The server queues transfers, and CRE workflows execute and confirm them.",
   },
   {
-    q: "Is Ghost available on mainnet?",
-    a: "Ghost is currently live on Sepolia testnet. Mainnet deployment is planned after further testing and audits.",
+    q: "Is Noctrum available on mainnet?",
+    a: "Noctrum is currently live on Monad Testnet. Mainnet deployment is planned after further testing and audits.",
   },
 ];
 

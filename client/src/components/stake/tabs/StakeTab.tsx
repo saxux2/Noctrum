@@ -7,7 +7,7 @@ const StakeTab = () => {
     <div className="space-y-6">
       <div className="space-y-6">
         <h1 className="text-2xl font-medium text-foreground">
-          Lend privately on GHOST
+          Lend privately on NOCTRUM
         </h1>
         <StatsDisplay liquidity="0" intents={0} />
       </div>

@@ -10,7 +10,7 @@ const ProvenSection = () => {
           How the Matching Engine Works
         </h2>
         <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-          Ghost uses a tick-based order book for rate discovery. Lenders deposit
+          Noctrum uses a tick-based order book for rate discovery. Lenders deposit
           at encrypted rates; Chainlink CRE decrypts, sorts, and fills borrow
           requests at the best available rates.
         </p>
@@ -52,7 +52,7 @@ const ProvenSection = () => {
         <div className="relative h-48 w-full overflow-hidden rounded-xl">
           <svg viewBox="0 0 600 200" className="h-full w-full" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="ghostGrad" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="noctrumGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgb(99, 102, 241)" stopOpacity="0.3" />
                 <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity="0" />
               </linearGradient>
@@ -78,7 +78,7 @@ const ProvenSection = () => {
             {/* Settlement area */}
             <path
               d="M300,95 C350,75 400,60 450,50 C500,40 550,32 600,30 L600,200 L300,200 Z"
-              fill="url(#ghostGrad)"
+              fill="url(#noctrumGrad)"
             />
           </svg>
         </div>

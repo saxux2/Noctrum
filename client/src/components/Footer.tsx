@@ -6,9 +6,9 @@ import { Plus } from "lucide-react";
 
 const faqItems = [
   {
-    question: "What is GHOST Protocol?",
+    question: "What is NOCTRUM Protocol?",
     answer:
-      "GHOST is a private peer-to-peer lending protocol built on Chainlink CRE. Lenders and borrowers submit sealed rate bids that are encrypted and only decrypted inside confidential compute — no one, not even the server, can see your rates.",
+      "NOCTRUM is a private peer-to-peer lending protocol built on Chainlink CRE. Lenders and borrowers submit sealed rate bids that are encrypted and only decrypted inside confidential compute — no one, not even the server, can see your rates.",
   },
   {
     question: "How are lending rates determined?",
@@ -18,7 +18,7 @@ const faqItems = [
   {
     question: "What happens to my funds when I deposit?",
     answer:
-      "Funds are deposited into the Chainlink Compliant Private Transfer vault and then privately transferred to the GHOST pool. All movements use shielded addresses — amounts and participants are hidden on-chain.",
+      "Funds are deposited into the Noctrum private vault and then privately transferred to the NOCTRUM pool. All movements use shielded addresses — amounts and participants are hidden on-chain.",
   },
   {
     question: "How does collateral and liquidation work?",
@@ -28,12 +28,12 @@ const faqItems = [
   {
     question: "What tokens are supported?",
     answer:
-      "GHOST currently supports nUSD for lending/borrowing and nETH as collateral, operating on Sepolia testnet via the Chainlink Compliant Private Transfer vault.",
+      "NOCTRUM currently supports nUSD for lending/borrowing and nETH as collateral, operating on Monad Testnet via the Noctrum private vault.",
   },
   {
-    question: "Is GHOST safe?",
+    question: "Is NOCTRUM safe?",
     answer:
-      "GHOST leverages Chainlink CRE (Confidential Compute) so that rate logic runs inside a trusted execution environment. The server is 'dumb storage' — it cannot read rates or manipulate matching. All fund movements go through the Chainlink vault with EIP-712 signature auth.",
+      "NOCTRUM leverages Chainlink CRE (Confidential Compute) so that rate logic runs inside a trusted execution environment. The server is 'dumb storage' — it cannot read rates or manipulate matching. All fund movements go through the Noctrum private vault with EIP-712 signature auth.",
   },
 ];
 

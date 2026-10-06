@@ -16,7 +16,7 @@ const StakeCard = () => {
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Network</span>
-          <span className="font-medium text-foreground">Sepolia Testnet</span>
+          <span className="font-medium text-foreground">Monad Testnet</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Rate Model</span>

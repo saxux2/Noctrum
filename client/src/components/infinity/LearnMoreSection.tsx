@@ -1,6 +1,6 @@
 const articles = [
   {
-    title: "Ghost Protocol: Private P2P Lending Explained",
+    title: "Noctrum Protocol: Private P2P Lending Explained",
     description: "How sealed-rate auctions and Chainlink CRE enable trustless, private lending.",
    
   },
@@ -15,7 +15,7 @@ const LearnMoreSection = () => {
     <section className="w-full py-16">
       <div className="flex flex-col lg:flex-row gap-10 items-start">
         <h2 className="text-3xl font-semibold text-foreground leading-tight flex-shrink-0">
-          Learn more about Ghost
+          Learn more about Noctrum
         </h2>
 
         <div className="flex-1 space-y-4">

@@ -40,7 +40,7 @@ const PoolHeader = ({ name, ticker, iconSrc, contractAddress }: PoolHeaderProps)
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-foreground">{name}</h1>
-            <Badge variant="outline">Sepolia</Badge>
+            <Badge variant="outline">Monad Testnet</Badge>
           </div>
           <button
             onClick={copyAddress}

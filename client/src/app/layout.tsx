@@ -12,8 +12,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Ghost Finance",
-  description: "GHOST Protocol — Private P2P Lending on Chainlink CRE",
+  title: "Noctrum Finance",
+  description: "NOCTRUM Protocol — Private P2P Lending on Chainlink CRE",
 };
 
 export default function RootLayout({

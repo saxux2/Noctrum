@@ -23,24 +23,24 @@ const ExplorePage = () => {
         const lendIntents = data.lendIntents ?? [];
         const borrowIntents = data.borrowIntents ?? [];
 
-        const gusdLends = lendIntents.filter(
+        const nusdLends = lendIntents.filter(
           (i: any) => i.token?.toLowerCase() === nUSD.toLowerCase()
         ).length;
-        const gusdBorrows = borrowIntents.filter(
+        const nusdBorrows = borrowIntents.filter(
           (i: any) => i.token?.toLowerCase() === nUSD.toLowerCase()
         ).length;
-        const gethBorrows = borrowIntents.filter(
+        const nethBorrows = borrowIntents.filter(
           (i: any) => i.token?.toLowerCase() === nETH.toLowerCase()
         ).length;
 
         setRows([
-          { rank: 1, name: "Ghost USD", ticker: "nUSD", iconSrc: "/nusd.png", lendIntents: gusdLends, borrowIntents: gusdBorrows },
-          { rank: 2, name: "Ghost ETH", ticker: "nETH", iconSrc: "/neth.png", lendIntents: 0, borrowIntents: gethBorrows },
+          { rank: 1, name: "Noctrum USD", ticker: "nUSD", iconSrc: "/nusd.png", lendIntents: nusdLends, borrowIntents: nusdBorrows },
+          { rank: 2, name: "Noctrum ETH", ticker: "nETH", iconSrc: "/neth.png", lendIntents: 0, borrowIntents: nethBorrows },
         ]);
       } catch {
         setRows([
-          { rank: 1, name: "Ghost USD", ticker: "nUSD", iconSrc: "/nusd.png", lendIntents: 0, borrowIntents: 0 },
-          { rank: 2, name: "Ghost ETH", ticker: "nETH", iconSrc: "/neth.png", lendIntents: 0, borrowIntents: 0 },
+          { rank: 1, name: "Noctrum USD", ticker: "nUSD", iconSrc: "/nusd.png", lendIntents: 0, borrowIntents: 0 },
+          { rank: 2, name: "Noctrum ETH", ticker: "nETH", iconSrc: "/neth.png", lendIntents: 0, borrowIntents: 0 },
         ]);
       }
     };
@@ -50,8 +50,8 @@ const ExplorePage = () => {
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
       if (tokenFilter !== "All Tokens" && row.ticker !== tokenFilter) return false;
-      // Network filter: all pools are Sepolia, so "Sepolia" shows all
-      if (networkFilter !== "All Networks" && networkFilter !== "Sepolia") return false;
+      // Network filter: all pools are on Monad Testnet, so "Monad Testnet" shows all
+      if (networkFilter !== "All Networks" && networkFilter !== "Monad Testnet") return false;
       // Status filter: all pools are active
       if (statusFilter !== "All Status" && statusFilter !== "Active") return false;
       if (search) {

@@ -7,7 +7,7 @@ const features = [
   ["Chainlink CRE Matching", "On-Chain Settlement"],
 ];
 
-const partners = ["Chainlink", "Sepolia", "EIP-712", "eciesjs"];
+const partners = ["Chainlink", "Monad", "EIP-712", "eciesjs"];
 
 const UpgradedSection = () => {
   return (
@@ -20,7 +20,7 @@ const UpgradedSection = () => {
             Borrow privately.<br />Lend at your rate.
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Ghost Protocol uses sealed-rate auctions where lenders submit encrypted
+            Noctrum Protocol uses sealed-rate auctions where lenders submit encrypted
             interest rates. Chainlink CRE decrypts and matches them inside confidential
             compute — no one can front-run or game the rates.
           </p>

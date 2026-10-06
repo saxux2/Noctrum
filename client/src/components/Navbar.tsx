@@ -20,7 +20,7 @@ const moreLinks = [
   { label: "Research", href: "#", external: true },
   { label: "Litepaper", href: "#", external: true },
   { label: "Docs", href: "#", external: true },
-  { label: "Careers", href: "https://tattered-elm-7ca.notion.site/Careers-at-Ghost-Finance-31c9eec45dff80b8989fdf81a7373b12", external: true },
+  { label: "Careers", href: "#", external: true },
   { label: "Dark Dimension", href: "#", external: false, comingSoon: true },
 ];
 
@@ -55,10 +55,10 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center gap-2 mr-4">
             <Image
-              src="/ghost-logo1.png"
-              alt="Ghost"
-              width={70}
-              height={28}
+              src="/noctrum-logo1.png"
+              alt="Noctrum"
+              width={32}
+              height={32}
 
             />
           </div>

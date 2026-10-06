@@ -35,8 +35,8 @@ function makeId() {
 }
 
 const POLL_INTERVAL = 10_000;
-const STORAGE_KEY = "ghost_notifications";
-const NOTIF_EVENT = "ghost:notification";
+const STORAGE_KEY = "noctrum_notifications";
+const NOTIF_EVENT = "noctrum:notification";
 
 export interface NotifPayload {
   title: string;

@@ -25,7 +25,7 @@ const FeaturedCard = ({ pool }: { pool: FeaturedPool }) => {
         <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400">
           Active Pool
         </span>
-        <span className="text-xs text-muted-foreground">Sepolia</span>
+        <span className="text-xs text-muted-foreground">Monad Testnet</span>
       </div>
     </Link>
   );

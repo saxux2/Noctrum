@@ -30,7 +30,7 @@ const RateModelPanel = () => {
       </CardHeader>
       <CardContent className="space-y-5">
         <p className="text-sm text-muted-foreground">
-          GHOST uses a sealed-bid tick auction for rate discovery, powered by
+          NOCTRUM uses a sealed-bid tick auction for rate discovery, powered by
           Chainlink CRE confidential compute.
         </p>
         <div className="grid gap-4 sm:grid-cols-3">

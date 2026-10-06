@@ -241,7 +241,7 @@ const BorrowCard = () => {
       setError("");
       setIntentId("");
 
-      // Ensure wallet is on Sepolia
+      // Ensure wallet is on Monad Testnet
       await wallet.switchChain(CHAIN_ID);
 
       const ethereumProvider = await wallet.getEthereumProvider();

@@ -40,7 +40,7 @@ const PoolTableRow = ({ row }: { row: PoolRow }) => {
         {row.borrowIntents}
       </td>
       <td className="py-4 px-4 text-sm text-foreground">
-        Sepolia
+        Monad Testnet
       </td>
       <td className="py-4 px-4 text-xs text-muted-foreground font-mono">
         {address.slice(0, 6)}...{address.slice(-4)}
