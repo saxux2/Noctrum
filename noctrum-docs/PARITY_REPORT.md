@@ -37,9 +37,10 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
 - [ ] Bridge: Sepolia/Base Sepolia → Monad Testnet completes (attest ≤ 10 min); first test of Wormhole `MonadTestnet` (6.1.4)
 - [ ] Status: repay, claim excess, cancel
   - 2026-10-07: Status tab renders "Your Positions" / "No active intents or loans found." after both cancels. Repay / claim excess need a matched loan (CRE not deployed).
-- [ ] Profile: tier, stats, explorer link opens testnet.monadvision.com; Withdraw presets; ticket redeem
+- [x] Profile: tier, stats, explorer link opens testnet.monadvision.com; Withdraw presets; ticket redeem
   - 2026-10-07: `/profile` returns 200; `EXPLORER_URL = https://testnet.monadvision.com` (`lib/constants.ts`). Wallet-dependent parts pending.
   - 2026-10-07 (wallet `0xB7fD…1a83`): Bronze / 2x / "0% to Silver", stats 0, MonadVision link to `testnet.monadvision.com/address/0xB7fD…`; Private Wallet → Fetch Balances (signature) → nUSD 0 / nETH 0; Withdraw presets 25 / 50 / 75 / Max and "Withdraw to Wallet" shown. Ticket redeem not run: private balance is 0 until CRE execute-transfers pays the two cancel refunds (10 nUSD, 0.01584 nETH).
+  - ✅ 2026-10-07 ticket redeem: CRE execute-transfers simulated against Railway (`staging-settings`, `-e` temp env with the Railway `INTERNAL_API_KEY`): `executed=3`, `executed=1`, then `no-pending`. Fetch Balances → nUSD 10 / nETH 0.01584 (both cancel refunds). Max → Withdraw to Wallet → "Requesting ticket…" → "Withdrawn" with tx hash; wallet 890 → 900 nUSD on-chain, private nUSD 0, vault nUSD unchanged at 2619.2 (ledger in step). Bell received a payout notification (7 → 8).
   - Dev-only hydration warning on the bell badge (unread count from localStorage); Navbar + `useNotifications` identical to Ghost.
 - [x] Explore + pool detail render counts
   - ❌ 2026-10-07 (client dev → Railway): `/explore`, `/explore/[ticker]` return 200 but `GET /api/v1/internal/pending-intents` returns **401 Unauthorized** (Railway has `INTERNAL_API_KEY` set; the client sends no key), so no counts can render. This is the RISKS "Internal endpoint exposure" item, now live. Needs a decision before re-test.
