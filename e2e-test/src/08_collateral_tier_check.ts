@@ -6,8 +6,8 @@
  * - Then submits with sufficient collateral computed from live price
  */
 import { ethers } from "ethers";
-import { borrower } from "./utils";
-import { nUSD, nETH, post, get, ts, toWei, encryptRate, NOCTRUM_DOMAIN, SERVER } from "./utils";
+import { borrower, deployer, pool } from "./utils";
+import { nUSD, nETH, post, get, ts, toWei, encryptRate, NOCTRUM_DOMAIN, SERVER, sendCollateralToPool } from "./utils";
 
 async function main() {
   console.log("=== Step 8: Collateral Tier Check (Price-Based) ===\n");
@@ -76,6 +76,9 @@ async function main() {
   const safeEth = requiredEth * 1.1; // 10% buffer
   const highCollateral = ethers.parseEther(safeEth.toFixed(6)).toString();
   console.log(`\nTest 2: Submit with sufficient collateral (${safeEth.toFixed(4)} nETH ≈ $${(safeEth * score.ethPrice).toFixed(2)})...`);
+
+  // The collateral check runs before the payment check, so Test 1 needs no transfer; Test 2 does.
+  await sendCollateralToPool(deployer, borrower, pool.address, highCollateral);
 
   const timestamp2 = ts();
   const borrowMsg2 = {

@@ -8,8 +8,8 @@
  * using internal endpoints, so no on-chain interaction needed.
  */
 import { ethers } from "ethers";
-import { borrower, lenderA, lenderB, pool } from "./utils";
-import { nUSD, nETH, post, get, ts, toWei, encryptRate, NOCTRUM_DOMAIN } from "./utils";
+import { borrower, lenderA, lenderB, pool, deployer } from "./utils";
+import { nUSD, nETH, post, get, ts, toWei, encryptRate, NOCTRUM_DOMAIN, sendCollateralToPool } from "./utils";
 
 async function main() {
   console.log("=== Step 7: Liquidation Flow ===\n");
@@ -29,6 +29,8 @@ async function main() {
   console.log(`ETH/USD: $${ethPrice.toFixed(2)}, using ${safeEth.toFixed(4)} nETH as collateral`);
 
   // Step A: Submit a fresh borrow intent
+  console.log("Sending collateral to pool (required before the borrow intent)...");
+  await sendCollateralToPool(deployer, borrower, pool.address, collateral);
   console.log("Submitting borrow intent for liquidation test...");
   const encrypted = encryptRate("0.10");
   const timestamp = ts();

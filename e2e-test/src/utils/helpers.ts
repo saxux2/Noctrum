@@ -120,6 +120,18 @@ export async function waitForVaultBalance(wallet: ethers.Wallet, token: string, 
   }
 }
 
+// The server only accepts a borrow intent once the collateral has reached the pool:
+// mint (deployer), deposit into the vault, wait for indexing, private-transfer to the pool.
+export async function sendCollateralToPool(minter: ethers.Wallet, from: ethers.Wallet, poolAddress: string, amount: string) {
+  const token = new ethers.Contract(nETH, [...MINT_ABI, ...ERC20_ABI], minter);
+  await (await token.mint(from.address, amount)).wait();
+  await (await new ethers.Contract(nETH, ERC20_ABI, from).approve(VAULT_ADDRESS, amount)).wait();
+  const before = BigInt((await getVaultBalances(from)).nETH);
+  await (await new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, from).deposit(nETH, amount)).wait();
+  await waitForVaultBalance(from, nETH, before + BigInt(amount));
+  await privateTransfer(from, poolAddress, nETH, amount);
+}
+
 export async function requestWithdrawTicket(wallet: ethers.Wallet, token: string, amount: string) {
   const timestamp = ts();
   const message = { account: wallet.address, token, amount, timestamp };

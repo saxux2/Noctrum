@@ -13,7 +13,7 @@ import { ethers } from "ethers";
 import { borrower, lenderA, lenderB, deployer, pool } from "./utils";
 import {
   nUSD, nETH, VAULT_ADDRESS, ERC20_ABI, VAULT_ABI, MINT_ABI,
-  post, get, ts, toWei, encryptRate, privateTransfer, getVaultBalances, waitForVaultBalance,
+  post, get, ts, toWei, encryptRate, privateTransfer, getVaultBalances, waitForVaultBalance, sendCollateralToPool,
   NOCTRUM_DOMAIN,
 } from "./utils";
 
@@ -27,6 +27,13 @@ async function main() {
   // ── Create a loan via internal endpoints ──────────────
   console.log("\nCreating loan via internal endpoints...");
 
+  // Collateral for 100 nUSD at the current tier, +20 %; the server needs it in the pool first.
+  const collateral = ethers.parseEther(
+    ((100 * scoreBefore.collateralMultiplier) / scoreBefore.ethPrice * 1.2).toFixed(6),
+  ).toString();
+  console.log(`  Sending ${ethers.formatEther(collateral)} nETH collateral to pool...`);
+  await sendCollateralToPool(deployer, borrower, pool.address, collateral);
+
   const encrypted = encryptRate("0.10");
   const timestamp = ts();
   const borrowMsg = {
@@ -34,7 +41,7 @@ async function main() {
     token: nUSD,
     amount: toWei(100),
     collateralToken: nETH,
-    collateralAmount: toWei(200),
+    collateralAmount: collateral,
     encryptedMaxRate: encrypted,
     timestamp,
   };
@@ -65,7 +72,7 @@ async function main() {
     ],
     effectiveBorrowerRate: 0.062,
     collateralToken: nETH,
-    collateralAmount: toWei(200),
+    collateralAmount: collateral,
   };
   await post("/api/v1/internal/record-match-proposals", { proposals: [proposal] });
 
