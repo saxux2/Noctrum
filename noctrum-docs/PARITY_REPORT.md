@@ -27,7 +27,8 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
 
 ### Web (`client/`)
 - [ ] Connect via Privy; wallet switches to 10143
-- [ ] Lend flow: 5 status labels appear in order; intent listed; Cancel works
+- [x] Lend flow: 5 status labels appear in order; intent listed; Cancel works
+  - ✅ 2026-10-07 (Brave + Claude in Chrome, client dev → Railway, wallet `0xB7fD…1a83`): 10 nUSD @ 5 % / 30 d; Expected Return 10.50000 nUSD; "Approving token spend…" shown, approve + deposit confirmed on-chain (nonce 2, wallet 1000 → 990 nUSD); "Lend intent published!" with intent id; listed as active; Cancel → "Cancelling…" → removed (server public intents back to 4). Refund waits for CRE execute-transfers (not deployed). Intermediate labels after the first were not captured (wallet pop-ups held the flow).
 - [ ] Borrow: quote auto-fills (×1.02 buffer); tier/ratio/ETH price rows; submit; listed; cancel
 - [ ] Swap: quote and rate label; 1% slippage; tx hash shown; notification
 - [ ] Bridge: Sepolia/Base Sepolia → Monad Testnet completes (attest ≤ 10 min); first test of Wormhole `MonadTestnet` (6.1.4)
