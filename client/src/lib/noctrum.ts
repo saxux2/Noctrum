@@ -8,6 +8,9 @@ import {
   PRIVATE_TRANSFER_TYPES,
   BALANCE_TYPES,
   WITHDRAW_TYPES,
+  NOCTRUM_DOMAIN,
+  REPAY_LOAN_TYPES,
+  fetchPoolAddress,
 } from "./constants";
 
 export const ts = () => Math.floor(Date.now() / 1000);
@@ -118,4 +121,49 @@ export async function requestWithdrawTicket(
   const data = await res.json();
   if (!res.ok) throw new Error(`Withdraw failed: ${JSON.stringify(data)}`);
   return data;
+}
+
+// Remembers which steps of a multi-step money flow (lend, borrow, repay) already succeeded,
+// so a retry after a later failure resumes instead of depositing or transferring funds again.
+export interface FlowProgress {
+  step: number;
+  data: Record<string, string>;
+}
+
+const PROGRESS_PREFIX = "noctrum-progress:";
+
+export function loadProgress(key: string): FlowProgress {
+  try {
+    const raw = localStorage.getItem(PROGRESS_PREFIX + key);
+    if (raw) return JSON.parse(raw) as FlowProgress;
+  } catch {}
+  return { step: 0, data: {} };
+}
+
+export function saveProgress(key: string, progress: FlowProgress) {
+  try {
+    localStorage.setItem(PROGRESS_PREFIX + key, JSON.stringify(progress));
+  } catch {}
+}
+
+export function clearProgress(key: string) {
+  try {
+    localStorage.removeItem(PROGRESS_PREFIX + key);
+  } catch {}
+}
+
+// Repay = private transfer of totalDue to the pool, then the signed repay request.
+// The transfer is recorded per loan, so retrying after a failed request does not pay twice.
+export async function repayLoan(signer: ethers.Signer, loanId: string, token: string, totalDue: string) {
+  const account = await signer.getAddress();
+  const key = `repay:${account.toLowerCase()}:${loanId}`;
+  if (loadProgress(key).step < 1) {
+    await privateTransfer(signer, await fetchPoolAddress(), token, totalDue);
+    saveProgress(key, { step: 1, data: {} });
+  }
+  const message = { account, loanId, amount: totalDue, timestamp: ts() };
+  const auth = await signer.signTypedData(NOCTRUM_DOMAIN, REPAY_LOAN_TYPES, message);
+  const result = await post("/api/v1/repay", { ...message, auth });
+  clearProgress(key);
+  return result;
 }

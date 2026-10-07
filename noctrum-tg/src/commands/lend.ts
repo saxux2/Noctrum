@@ -9,6 +9,7 @@ import {
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
+import { loadProgress, saveProgress, clearProgress } from "../progress";
 
 const composer = new Composer();
 
@@ -53,7 +54,12 @@ composer.command("lend", async (ctx) => {
     const prov = getProvider();
     await ensureGasBalance(wallet.address, prov);
     const amountWei = toWei(amount);
-    await ensureTokenBalance(wallet.address, token, amountWei, prov);
+    // Completed steps are remembered, so a retry after a failure does not deposit or transfer again.
+    const progressKey = `lend:${wallet.address.toLowerCase()}:${token}:${amountWei}`;
+    const progress = loadProgress(progressKey);
+    let slotId = progress.data.slotId;
+    const save = (step: number) => saveProgress(progressKey, { step, data: slotId ? { slotId } : {} });
+    if (progress.step < 2) await ensureTokenBalance(wallet.address, token, amountWei, prov);
     const rateDecimal = (rate / 100).toString();
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
@@ -62,30 +68,43 @@ composer.command("lend", async (ctx) => {
     );
 
     // Step 1: Approve
-    const tokenContract = new ethers.Contract(token, ERC20_ABI, wallet);
-    const approveTx = await tokenContract.approve(VAULT_ADDRESS, ethers.MaxUint256);
-    await approveTx.wait();
+    if (progress.step < 1) {
+      const tokenContract = new ethers.Contract(token, ERC20_ABI, wallet);
+      const approveTx = await tokenContract.approve(VAULT_ADDRESS, ethers.MaxUint256);
+      await approveTx.wait();
+      save(1);
+    }
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Lend Flow</b>\n\n\u{2705} Step 1/4: Approved\nStep 2/4: Depositing into vault...`,
     );
 
     // Step 2: Deposit
-    const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
-    const depositTx = await vault.deposit(token, amountWei);
-    await depositTx.wait();
+    if (progress.step < 2) {
+      const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
+      const depositTx = await vault.deposit(token, amountWei);
+      await depositTx.wait();
+      save(2);
+    }
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Lend Flow</b>\n\n\u{2705} Step 1/4: Approved\n\u{2705} Step 2/4: Deposited\nStep 3/4: Transferring to pool...`,
     );
 
     // Step 3: Init + Private transfer
-    const init = await noctrumPost("/api/v1/deposit-lend/init", {
-      account: wallet.address,
-      token,
-      amount: amountWei,
-    });
+    if (progress.step < 3) {
+      const init = await noctrumPost("/api/v1/deposit-lend/init", {
+        account: wallet.address,
+        token,
+        amount: amountWei,
+      });
+      slotId = init.slotId;
+      save(3);
+    }
 
-    const poolAddr = await getPoolAddress();
-    await privateTransfer(wallet, poolAddr, token, amountWei);
+    if (progress.step < 4) {
+      const poolAddr = await getPoolAddress();
+      await privateTransfer(wallet, poolAddr, token, amountWei);
+      save(4);
+    }
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Lend Flow</b>\n\n\u{2705} Step 1/4: Approved\n\u{2705} Step 2/4: Deposited\n\u{2705} Step 3/4: Transferred\nStep 4/4: Confirming with encrypted rate...`,
     );
@@ -93,9 +112,10 @@ composer.command("lend", async (ctx) => {
     // Step 4: Confirm
     const encrypted = encryptRate(rateDecimal);
     const timestamp = ts();
-    const confirmMsg = { account: wallet.address, slotId: init.slotId, encryptedRate: encrypted, timestamp };
+    const confirmMsg = { account: wallet.address, slotId, encryptedRate: encrypted, timestamp };
     const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, CONFIRM_DEPOSIT_TYPES, confirmMsg);
     const result = await noctrumPost("/api/v1/deposit-lend/confirm", { ...confirmMsg, auth });
+    clearProgress(progressKey);
 
     const kb = new InlineKeyboard()
       .text("\u{1F4CA} Lender Status", "action_lender_status")
@@ -106,9 +126,9 @@ composer.command("lend", async (ctx) => {
       `\u{1FA99} Amount: <code>${amount} ${tokenSymbol(token)}</code>\n` +
       `\u{1F512} Rate: <code>${rate}%</code> (encrypted)\n` +
       `\u{1F4CB} Intent ID: <code>${result.intentId}</code>\n` +
-      `\u{1F4CB} Slot ID: <code>${init.slotId}</code>\n\n` +
+      `\u{1F4CB} Slot ID: <code>${slotId}</code>\n\n` +
       `Your funds are now in the lending pool.\n` +
-      `Cancel with: <code>/cancel_lend ${init.slotId}</code>`,
+      `Cancel with: <code>/cancel_lend ${slotId}</code>`,
       { parse_mode: "HTML", reply_markup: kb },
     );
   } catch (err: any) {

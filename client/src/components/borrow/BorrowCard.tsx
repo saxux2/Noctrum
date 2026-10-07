@@ -20,7 +20,17 @@ import {
   nETH,
   type Coin,
 } from "@/lib/constants";
-import { encryptRate, get, post, privateTransfer, toWei, ts } from "@/lib/noctrum";
+import {
+  encryptRate,
+  get,
+  post,
+  privateTransfer,
+  toWei,
+  ts,
+  loadProgress,
+  saveProgress,
+  clearProgress,
+} from "@/lib/noctrum";
 import { RollingNumber, RollingText } from "@/components/ui/rolling-text";
 
 type Status = "idle" | "approving" | "depositing" | "transferring" | "submitting" | "done" | "error";
@@ -168,6 +178,8 @@ const BorrowCard = () => {
       return;
     }
 
+    // Late responses for older inputs are ignored, so a stale quote never overwrites a newer one.
+    let cancelled = false;
     setQuoteLoading(true);
     debounceRef.current = setTimeout(async () => {
       try {
@@ -179,6 +191,7 @@ const BorrowCard = () => {
           collateralToken: collateralCoin.address,
         });
         const data = await get(`/api/v1/collateral-quote?${params}`);
+        if (cancelled) return;
         if (data.error) throw new Error(data.error);
         const requiredWei = BigInt(data.requiredCollateral);
         const formatted = parseFloat(ethers.formatEther(requiredWei)).toFixed(5);
@@ -187,11 +200,12 @@ const BorrowCard = () => {
       } catch {
         // silently fail, user can still enter manually
       } finally {
-        setQuoteLoading(false);
+        if (!cancelled) setQuoteLoading(false);
       }
     }, 500);
 
     return () => {
+      cancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [borrowAmount, borrowCoin.address, collateralCoin.address, walletAddress]);
@@ -220,6 +234,12 @@ const BorrowCard = () => {
   const handleBorrow = async () => {
     if (!authenticated) {
       login();
+      return;
+    }
+
+    if (quoteLoading) {
+      setError("Wait for the collateral quote to update");
+      setStatus("error");
       return;
     }
 
@@ -253,22 +273,36 @@ const BorrowCard = () => {
       const collateralAmtWei = toWei(parseFloat(collateralAmount));
       const rateDecimal = (parseFloat(maxRate) / 100).toFixed(2);
 
+      // Completed steps are remembered, so a retry after a failure does not deposit or transfer again.
+      const progressKey = `borrow:${account.toLowerCase()}:${borrowCoin.address}:${borrowAmtWei}:${collateralCoin.address}:${collateralAmtWei}`;
+      const progress = loadProgress(progressKey);
+      const save = (step: number) => saveProgress(progressKey, { step, data: {} });
+
       // Step 1: Approve collateral token to vault
-      setStatus("approving");
-      const token = new ethers.Contract(collateralCoin.address, ERC20_ABI, signer);
-      const approveTx = await token.approve(VAULT_ADDRESS, ethers.MaxUint256);
-      await approveTx.wait();
+      if (progress.step < 1) {
+        setStatus("approving");
+        const token = new ethers.Contract(collateralCoin.address, ERC20_ABI, signer);
+        const approveTx = await token.approve(VAULT_ADDRESS, ethers.MaxUint256);
+        await approveTx.wait();
+        save(1);
+      }
 
       // Step 2: Deposit collateral into vault
-      setStatus("depositing");
-      const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
-      const depositTx = await vault.deposit(collateralCoin.address, collateralAmtWei);
-      await depositTx.wait();
+      if (progress.step < 2) {
+        setStatus("depositing");
+        const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
+        const depositTx = await vault.deposit(collateralCoin.address, collateralAmtWei);
+        await depositTx.wait();
+        save(2);
+      }
 
       // Step 3: Private transfer collateral to pool
-      setStatus("transferring");
-      const poolAddr = await fetchPoolAddress();
-      await privateTransfer(signer, poolAddr, collateralCoin.address, collateralAmtWei);
+      if (progress.step < 3) {
+        setStatus("transferring");
+        const poolAddr = await fetchPoolAddress();
+        await privateTransfer(signer, poolAddr, collateralCoin.address, collateralAmtWei);
+        save(3);
+      }
 
       // Step 4: Submit borrow intent
       setStatus("submitting");
@@ -287,6 +321,7 @@ const BorrowCard = () => {
 
       const auth = await signer.signTypedData(NOCTRUM_DOMAIN, BORROW_TYPES, borrowMsg);
       const result = await post("/api/v1/borrow-intent", { ...borrowMsg, auth });
+      clearProgress(progressKey);
 
       setIntentId(result.intentId);
       setStatus("done");

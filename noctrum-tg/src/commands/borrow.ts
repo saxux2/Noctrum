@@ -13,6 +13,7 @@ import {
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
+import { loadProgress, saveProgress, clearProgress } from "../progress";
 
 const composer = new Composer();
 
@@ -63,7 +64,11 @@ composer.command("borrow", async (ctx) => {
     await ensureGasBalance(wallet.address, prov);
     const borrowWei = toWei(borrowAmt);
     const collateralWei = toWei(collateralAmt);
-    await ensureTokenBalance(wallet.address, collateralToken, collateralWei, prov);
+    // Completed steps are remembered, so a retry after a failure does not deposit or transfer again.
+    const progressKey = `borrow:${wallet.address.toLowerCase()}:${borrowToken}:${borrowWei}:${collateralToken}:${collateralWei}`;
+    const progress = loadProgress(progressKey);
+    const save = (step: number) => saveProgress(progressKey, { step, data: {} });
+    if (progress.step < 2) await ensureTokenBalance(wallet.address, collateralToken, collateralWei, prov);
     const rateDecimal = (maxRate / 100).toFixed(2);
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
@@ -71,24 +76,33 @@ composer.command("borrow", async (ctx) => {
     );
 
     // Step 1: Approve collateral
-    const tokenContract = new ethers.Contract(collateralToken, ERC20_ABI, wallet);
-    const approveTx = await tokenContract.approve(VAULT_ADDRESS, ethers.MaxUint256);
-    await approveTx.wait();
+    if (progress.step < 1) {
+      const tokenContract = new ethers.Contract(collateralToken, ERC20_ABI, wallet);
+      const approveTx = await tokenContract.approve(VAULT_ADDRESS, ethers.MaxUint256);
+      await approveTx.wait();
+      save(1);
+    }
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Borrow Flow</b>\n\n\u{2705} Step 1/4: Approved\nStep 2/4: Depositing collateral...`,
     );
 
     // Step 2: Deposit collateral
-    const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
-    const depositTx = await vault.deposit(collateralToken, collateralWei);
-    await depositTx.wait();
+    if (progress.step < 2) {
+      const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
+      const depositTx = await vault.deposit(collateralToken, collateralWei);
+      await depositTx.wait();
+      save(2);
+    }
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Borrow Flow</b>\n\n\u{2705} Step 1/4: Approved\n\u{2705} Step 2/4: Deposited\nStep 3/4: Transferring collateral to pool...`,
     );
 
     // Step 3: Private transfer to pool
-    const poolAddr = await getPoolAddress();
-    await privateTransfer(wallet, poolAddr, collateralToken, collateralWei);
+    if (progress.step < 3) {
+      const poolAddr = await getPoolAddress();
+      await privateTransfer(wallet, poolAddr, collateralToken, collateralWei);
+      save(3);
+    }
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Borrow Flow</b>\n\n\u{2705} Step 1/4: Approved\n\u{2705} Step 2/4: Deposited\n\u{2705} Step 3/4: Transferred\nStep 4/4: Submitting borrow intent...`,
     );
@@ -107,6 +121,7 @@ composer.command("borrow", async (ctx) => {
     };
     const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, BORROW_TYPES, borrowMsg);
     const result = await noctrumPost("/api/v1/borrow-intent", { ...borrowMsg, auth });
+    clearProgress(progressKey);
 
     const kb = new InlineKeyboard()
       .text("\u{1F4CA} Borrower Status", "action_borrower_status")

@@ -10,12 +10,10 @@ import {
   CANCEL_BORROW_TYPES,
   CANCEL_LEND_TYPES,
   CLAIM_EXCESS_COLLATERAL_TYPES,
-  REPAY_LOAN_TYPES,
   nUSD,
   nETH,
-  fetchPoolAddress,
 } from "@/lib/constants";
-import { get, post, privateTransfer, ts } from "@/lib/noctrum";
+import { get, post, repayLoan, ts } from "@/lib/noctrum";
 
 interface BorrowIntent {
   intentId: string;
@@ -217,17 +215,7 @@ const StatusTab = () => {
       const ethereumProvider = await wallet.getEthereumProvider();
       const provider = new ethers.BrowserProvider(ethereumProvider);
       const signer = await provider.getSigner();
-      const account = await signer.getAddress();
-      await privateTransfer(signer, await fetchPoolAddress(), loan.token, loan.totalDue);
-      const timestamp = ts();
-
-      const message = { account, loanId: loan.loanId, amount: loan.totalDue, timestamp };
-      const auth = await signer.signTypedData(
-        NOCTRUM_DOMAIN,
-        REPAY_LOAN_TYPES,
-        message,
-      );
-      await post("/api/v1/repay", { ...message, auth });
+      await repayLoan(signer, loan.loanId, loan.token, loan.totalDue);
       await loadStatus();
     } catch (err: unknown) {
       setError(friendlyError(err));

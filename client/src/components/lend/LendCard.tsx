@@ -20,7 +20,17 @@ import {
   fetchPoolAddress,
   type Coin,
 } from "@/lib/constants";
-import { encryptRate, get, post, privateTransfer, toWei, ts } from "@/lib/noctrum";
+import {
+  encryptRate,
+  get,
+  post,
+  privateTransfer,
+  toWei,
+  ts,
+  loadProgress,
+  saveProgress,
+  clearProgress,
+} from "@/lib/noctrum";
 
 type Status =
   | "idle"
@@ -166,32 +176,49 @@ const LendCard = () => {
       const rateDecimal = (parseFloat(rate) / 100).toString();
 
       const tokenAddr = lendCoin.address;
+      // Completed steps are remembered, so a retry after a failure does not deposit or transfer again.
+      const progressKey = `lend:${account.toLowerCase()}:${tokenAddr}:${amountWei}`;
+      const progress = loadProgress(progressKey);
+      let slotId = progress.data.slotId;
+      const save = (step: number) => saveProgress(progressKey, { step, data: slotId ? { slotId } : {} });
 
       // Step 1: Approve token to vault
-      setStatus("approving");
-      const token = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
-      const approveTx = await token.approve(VAULT_ADDRESS, ethers.MaxUint256);
-      await approveTx.wait();
+      if (progress.step < 1) {
+        setStatus("approving");
+        const token = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
+        const approveTx = await token.approve(VAULT_ADDRESS, ethers.MaxUint256);
+        await approveTx.wait();
+        save(1);
+      }
 
       // Step 2: Deposit token into vault
-      setStatus("depositing");
-      const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
-      const depositTx = await vault.deposit(tokenAddr, amountWei);
-      await depositTx.wait();
+      if (progress.step < 2) {
+        setStatus("depositing");
+        const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, signer);
+        const depositTx = await vault.deposit(tokenAddr, amountWei);
+        await depositTx.wait();
+        save(2);
+      }
 
       // Step 3: Init deposit-lend on server
-      setStatus("initializing");
-      const init: any = await post("/api/v1/deposit-lend/init", {
-        account,
-        token: tokenAddr,
-        amount: amountWei,
-      });
-      const slotId = init.slotId;
+      if (progress.step < 3) {
+        setStatus("initializing");
+        const init: any = await post("/api/v1/deposit-lend/init", {
+          account,
+          token: tokenAddr,
+          amount: amountWei,
+        });
+        slotId = init.slotId;
+        save(3);
+      }
 
       // Step 4: Private transfer to pool
-      setStatus("transferring");
-      const poolAddr = await fetchPoolAddress();
-      await privateTransfer(signer, poolAddr, tokenAddr, amountWei);
+      if (progress.step < 4) {
+        setStatus("transferring");
+        const poolAddr = await fetchPoolAddress();
+        await privateTransfer(signer, poolAddr, tokenAddr, amountWei);
+        save(4);
+      }
 
       // Step 5: Confirm with encrypted rate
       setStatus("confirming");
@@ -200,6 +227,7 @@ const LendCard = () => {
       const confirmMsg = { account, slotId, encryptedRate: encrypted, timestamp };
       const auth = await signer.signTypedData(NOCTRUM_DOMAIN, CONFIRM_DEPOSIT_TYPES, confirmMsg);
       const result: any = await post("/api/v1/deposit-lend/confirm", { ...confirmMsg, auth });
+      clearProgress(progressKey);
 
       setResultIntentId(result.intentId);
       setStatus("done");

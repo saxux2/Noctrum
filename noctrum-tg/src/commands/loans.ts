@@ -6,6 +6,7 @@ import { noctrumPost, noctrumGet, privateTransfer, getPoolAddress, ensureGasBala
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
+import { loadProgress, saveProgress, clearProgress } from "../progress";
 
 const composer = new Composer();
 
@@ -78,7 +79,11 @@ composer.command("repay", async (ctx) => {
     if (!loan) throw new Error("Loan not found or not active.");
 
     const { totalDue, token } = loan;
-    await ensureTokenBalance(wallet.address, token, totalDue, prov);
+    // Completed steps are remembered per loan, so retrying after a failed request does not pay twice.
+    const progressKey = `repay:${wallet.address.toLowerCase()}:${loanId}`;
+    const progress = loadProgress(progressKey);
+    const save = (step: number) => saveProgress(progressKey, { step, data: {} });
+    if (progress.step < 1) await ensureTokenBalance(wallet.address, token, totalDue, prov);
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Repaying Loan</b>\n\n` +
@@ -87,20 +92,26 @@ composer.command("repay", async (ctx) => {
     );
 
     // Step 1: Approve + deposit
-    const tokenContract = new ethers.Contract(token, ERC20_ABI, wallet);
-    const approveTx = await tokenContract.approve(VAULT_ADDRESS, totalDue);
-    await approveTx.wait();
-    const vaultContract = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
-    const depositTx = await vaultContract.deposit(token, totalDue);
-    await depositTx.wait();
+    if (progress.step < 1) {
+      const tokenContract = new ethers.Contract(token, ERC20_ABI, wallet);
+      const approveTx = await tokenContract.approve(VAULT_ADDRESS, totalDue);
+      await approveTx.wait();
+      const vaultContract = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, wallet);
+      const depositTx = await vaultContract.deposit(token, totalDue);
+      await depositTx.wait();
+      save(1);
+    }
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Repaying Loan</b>\n\n\u{2705} Step 1/3: Deposited\nStep 2/3: Transferring to pool...`,
     );
 
     // Step 2: Private transfer to pool
-    const poolAddr = await getPoolAddress();
-    await privateTransfer(wallet, poolAddr, token, totalDue);
+    if (progress.step < 2) {
+      const poolAddr = await getPoolAddress();
+      await privateTransfer(wallet, poolAddr, token, totalDue);
+      save(2);
+    }
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{23F3} <b>Repaying Loan</b>\n\n\u{2705} Step 1/3: Deposited\n\u{2705} Step 2/3: Transferred\nStep 3/3: Submitting repayment...`,
@@ -111,6 +122,7 @@ composer.command("repay", async (ctx) => {
     const repayMsg = { account: wallet.address, loanId, amount: totalDue, timestamp };
     const auth = await wallet.signTypedData(NOCTRUM_DOMAIN, REPAY_LOAN_TYPES, repayMsg);
     const result = await noctrumPost("/api/v1/repay", { ...repayMsg, auth });
+    clearProgress(progressKey);
 
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{2705} <b>Loan Repaid!</b>\n\n` +
