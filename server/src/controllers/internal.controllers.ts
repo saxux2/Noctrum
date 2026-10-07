@@ -16,7 +16,7 @@ import {
   downgradeTier,
 } from "../state";
 
-export const getPendingIntents = async (c: Context) => {
+const loadPendingIntents = async () => {
   const pendingProposals = await MatchProposalModel.find({ status: "pending" }).lean();
   const lockedLendIds = new Set<string>();
   for (const proposal of pendingProposals) {
@@ -51,7 +51,17 @@ export const getPendingIntents = async (c: Context) => {
     createdAt: b.createdAt,
   }));
 
-  return c.json({ lendIntents, borrowIntents: mappedBorrows });
+  return { lendIntents, borrowIntents: mappedBorrows };
+};
+
+export const getPendingIntents = async (c: Context) =>
+  c.json(await loadPendingIntents());
+
+// Public view for Explore / pool stats: token and amount only (no users, no encrypted rates)
+export const getPublicPendingIntents = async (c: Context) => {
+  const { lendIntents, borrowIntents } = await loadPendingIntents();
+  const strip = (i: { token?: unknown; amount?: unknown }) => ({ token: i.token, amount: i.amount });
+  return c.json({ lendIntents: lendIntents.map(strip), borrowIntents: borrowIntents.map(strip) });
 };
 
 export const recordMatchProposals = async (c: Context) => {

@@ -19,7 +19,7 @@ const ExplorePage = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await get("/api/v1/internal/pending-intents");
+        const data = await get("/api/v1/pending-intents");
         const lendIntents = data.lendIntents ?? [];
         const borrowIntents = data.borrowIntents ?? [];
 

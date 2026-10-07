@@ -123,7 +123,7 @@ composer.command("pool_status", async (ctx) => {
   try {
     const [health, intents] = await Promise.all([
       noctrumGet("/health"),
-      noctrumGet("/api/v1/internal/pending-intents"),
+      noctrumGet("/api/v1/pending-intents"),
     ]);
 
     const lendCount = intents.lendIntents?.length ?? 0;
@@ -283,7 +283,7 @@ composer.callbackQuery("action_pool_status", async (ctx) => {
   try {
     const [health, intents] = await Promise.all([
       noctrumGet("/health"),
-      noctrumGet("/api/v1/internal/pending-intents"),
+      noctrumGet("/api/v1/pending-intents"),
     ]);
     const lendCount = intents.lendIntents?.length ?? 0;
     const borrowCount = intents.borrowIntents?.length ?? 0;

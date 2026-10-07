@@ -13,6 +13,7 @@ import {
 } from "../controllers/borrow.controllers";
 import {
   getPendingIntents,
+  getPublicPendingIntents,
   recordMatchProposals,
   expireProposals,
   checkLoans,
@@ -66,6 +67,7 @@ noctrumRoute.post("/internal/confirm-transfers", internalAuth, confirmTransfers)
 noctrumRoute.post("/internal/liquidate-loans", internalAuth, liquidateLoans);
 
 // Public
+noctrumRoute.get("/pending-intents", getPublicPendingIntents);
 noctrumRoute.get("/collateral-quote", async (c: Context) => {
   const account = c.req.query("account");
   const token = c.req.query("token");

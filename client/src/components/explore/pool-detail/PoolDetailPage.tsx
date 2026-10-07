@@ -39,7 +39,7 @@ const PoolDetailPage = ({ ticker }: PoolDetailPageProps) => {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await get("/api/v1/internal/pending-intents");
+        const data = await get("/api/v1/pending-intents");
         const poolStats = computePoolStats(
           data.lendIntents ?? [],
           data.borrowIntents ?? [],

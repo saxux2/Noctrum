@@ -9,7 +9,7 @@ const HeroSection = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await get("/api/v1/internal/pending-intents");
+        const data = await get("/api/v1/pending-intents");
         setStats({
           lends: data.lendIntents?.length ?? 0,
           borrows: data.borrowIntents?.length ?? 0,

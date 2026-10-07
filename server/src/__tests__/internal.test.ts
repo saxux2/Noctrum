@@ -55,6 +55,25 @@ describe("GET /internal/pending-intents", () => {
   });
 });
 
+describe("GET /pending-intents (public)", () => {
+  it("works without x-api-key and returns token + amount only", async () => {
+    config.INTERNAL_API_KEY = "secret";
+    try {
+      await seedLendIntent("li-pub", lenderA, wei(7));
+      await seedBorrowIntent("bi-pub", borrower);
+      expect((await get("/internal/pending-intents")).status).toBe(401);
+      const res = await get("/pending-intents");
+      expect(res.status).toBe(200);
+      const data: any = await res.json();
+      expect(data.lendIntents).toEqual([{ token: NUSD, amount: wei(7) }]);
+      expect(data.borrowIntents).toHaveLength(1);
+      expect(Object.keys(data.borrowIntents[0]).sort()).toEqual(["amount", "token"]);
+    } finally {
+      config.INTERNAL_API_KEY = "";
+    }
+  });
+});
+
 describe("POST /internal/record-match-proposals", () => {
   it("creates lowercased proposals with expiresAt = now + 5 s and marks intent proposed", async () => {
     await seedBorrowIntent("bi-1", borrower);
