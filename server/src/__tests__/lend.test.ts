@@ -6,6 +6,7 @@ import { getBalance } from "../state";
 import DepositSlotModel from "../models/deposit-slot.model";
 import LendIntentModel from "../models/lend-intent.model";
 import PendingTransferModel from "../models/pending-transfer.model";
+import { poolReceives } from "./mock-vault";
 
 const wallet = ethers.Wallet.createRandom();
 const account = wallet.address;
@@ -17,6 +18,7 @@ async function initSlot(): Promise<string> {
 }
 
 async function confirm(slotId: string, w = wallet) {
+  poolReceives(w.address, NUSD, amount);
   return post("/deposit-lend/confirm", await sign(w, "Confirm Deposit", { slotId, encryptedRate: "0xenc" }));
 }
 

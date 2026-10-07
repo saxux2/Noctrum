@@ -4,6 +4,7 @@ import { post, sign, setTier, seedLoan, referenceTicks, NUSD, wei } from "./help
 import { getBalance, getCreditScore } from "../state";
 import LoanModel from "../models/loan.model";
 import PendingTransferModel from "../models/pending-transfer.model";
+import { poolReceives } from "./mock-vault";
 
 const borrower = ethers.Wallet.createRandom();
 const stranger = ethers.Wallet.createRandom();
@@ -11,8 +12,10 @@ const lenderA = ethers.Wallet.createRandom().address.toLowerCase();
 const lenderB = ethers.Wallet.createRandom().address.toLowerCase();
 const TOTAL_DUE = "106200000000000000000"; // 63 + 43.2
 
-const repay = async (loanId: string, amount: string, w = borrower) =>
-  post("/repay", await sign(w, "Repay Loan", { loanId, amount }));
+const repay = async (loanId: string, amount: string, w = borrower, transfer = true) => {
+  if (transfer) poolReceives(w.address, NUSD, amount);
+  return post("/repay", await sign(w, "Repay Loan", { loanId, amount }));
+};
 
 describe("POST /repay", () => {
   it("math snapshot: A 60 @ 5% → 63, B 40 @ 8% → 43.2 (wei, floor)", async () => {

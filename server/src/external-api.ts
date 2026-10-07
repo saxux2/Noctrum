@@ -123,3 +123,23 @@ export async function getBalance(
     timestamp,
   });
 }
+
+export async function listPoolTransactions(
+  limit: number,
+  cursor = "",
+  wallet: ethers.Wallet = poolWallet!
+): Promise<{ transactions: any[]; has_more: boolean; next_cursor: string | null }> {
+  if (!wallet) throw new Error("POOL_PRIVATE_KEY required for listPoolTransactions");
+  const account = wallet.address;
+  const timestamp = currentTimestamp();
+  const message = { account, timestamp, cursor, limit };
+  const types = {
+    "List Transactions": [
+      { name: "account", type: "address" },
+      { name: "timestamp", type: "uint256" },
+      { name: "cursor", type: "string" },
+      { name: "limit", type: "uint256" },
+    ],
+  };
+  return signAndPost(wallet, types, message, "/transactions", message);
+}

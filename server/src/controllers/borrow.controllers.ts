@@ -7,6 +7,7 @@ import BorrowIntentModel from "../models/borrow-intent.model";
 import MatchProposalModel from "../models/match-proposal.model";
 import LoanModel from "../models/loan.model";
 import LendIntentModel from "../models/lend-intent.model";
+import { claimIncomingTransfer } from "../deposits";
 
 export const submitBorrowIntent = async (c: Context) => {
   try {
@@ -78,6 +79,9 @@ export const submitBorrowIntent = async (c: Context) => {
         400,
       );
     }
+
+    if (!(await claimIncomingTransfer(account, ct, collateralAmt, "borrow-collateral")))
+      return c.json({ error: "No matching collateral transfer to the pool found" }, 402);
 
     const intentId = crypto.randomUUID();
     await BorrowIntentModel.create({

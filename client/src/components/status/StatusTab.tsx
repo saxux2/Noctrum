@@ -13,8 +13,9 @@ import {
   REPAY_LOAN_TYPES,
   nUSD,
   nETH,
+  fetchPoolAddress,
 } from "@/lib/constants";
-import { get, post, ts } from "@/lib/noctrum";
+import { get, post, privateTransfer, ts } from "@/lib/noctrum";
 
 interface BorrowIntent {
   intentId: string;
@@ -217,6 +218,7 @@ const StatusTab = () => {
       const provider = new ethers.BrowserProvider(ethereumProvider);
       const signer = await provider.getSigner();
       const account = await signer.getAddress();
+      await privateTransfer(signer, await fetchPoolAddress(), loan.token, loan.totalDue);
       const timestamp = ts();
 
       const message = { account, loanId: loan.loanId, amount: loan.totalDue, timestamp };
