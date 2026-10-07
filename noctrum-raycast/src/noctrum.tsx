@@ -140,7 +140,7 @@ export default function NoctrumCommand() {
         <List.Item
           title="Private Transfer"
           subtitle="Send tokens privately"
-          icon={{ source: "list-icons/among-us.png" }}
+          icon={{ source: "list-icons/transfer.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
             <ActionPanel>
