@@ -17,7 +17,7 @@ Checked 2026-10-07 by diffing against Ghost with the rename normalized (Ghost/gh
 - [x] **Cron schedules identical.** Staging 30/15/60 s; production 30/30/30 s, as in Ghost.
 - [x] **Timing constants.** Proposal TTL 5 s (`internal.controllers.ts`); slot TTL 10 min (`state.ts`); maturity 30 d; auth window 5 min (server `auth.ts`, vault-api `AUTH_WINDOW_SECONDS=300`); ticket 1 h (`TICKET_TTL_SECONDS=3600`).
 - [x] **Polling intervals.** Client 10 s (`useNotifications.ts`); tg 15 s (`notifier.ts`).
-- [ ] **Every UI label/status string matches Ghost apart from the rebrand.** Covered by the §5 manual pass below.
+- [x] **Every UI label/status string matches Ghost apart from the rebrand.** See the §5 line below.
 - [x] **`grep -ri ghost` residuals limited to the REBRAND §7 allow-list.** Remaining matches: `client/src/components/ui/badge.tsx` (shadcn variant); root `CLAUDE.md` (names Ghost as the reference source, same role as `noctrum-docs/`); gitignored build output (`contracts/out/`); `.git` logs.
 - [x] **No Sepolia references except as a Wormhole source chain (D-8).** `client/.../privy-provider.tsx` keeps sepolia/baseSepolia/arbitrumSepolia/optimismSepolia as bridge sources (D-8). Fixed in this task: `contracts/api-scripts/src/common.ts` pointed at the Sepolia CPT API (`CompliantPrivateTokenDemo`, 11155111, `0xE588…`). It now targets `noctrum-vault-api` (`VAULT_API_URL`, default `localhost:8081`), `NoctrumPrivateToken`, 10143 and NoctrumVault. Other matches are gitignored build output (`contracts/out/`, `client/tsconfig.tsbuildinfo`).
 
@@ -41,7 +41,8 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
 - [ ] Dungeon page and footer FAQ show Noctrum copy and "Monad Testnet"
   - ✅ source check 2026-10-07: navbar "Dungeon" → `/infinity` (200); `Footer.tsx` and `infinity/FAQSection.tsx` copy say Noctrum / nUSD / nETH / "Monad Testnet", no Chainlink CPT wording. Visual check still pending (browser extension not connected).
 - [ ] Visual review vs Ghost screenshots (T6.2 AC)
-- [ ] UI labels/status strings match Ghost apart from the rebrand (§6)
+- [x] UI labels/status strings match Ghost apart from the rebrand (§6)
+  - ✅ 2026-10-07 automated source diff (Ghost → Noctrum, after the REBRAND §1 token map) of every JSX text node and user-facing string literal: client 79 files, tg 19, raycast 24. Only differences: Sepolia → "Monad Testnet" and Etherscan → "MonadVision" in 6 client files (D-8/MONAD_MIGRATION), and a `No wallet` guard error in raycast `MyLoansView.tsx` (T6.3; Ghost would throw a null error there). No status label or button copy changed.
 
 ### Telegram (`noctrum-tg`)
 - [ ] Each command in the Ghost README table
@@ -50,4 +51,5 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
 
 ### Raycast (`noctrum-raycast`)
 - [ ] All 12 views
-- [ ] LocalStorage key `noctrum-wallet-pk`
+- [x] LocalStorage key `noctrum-wallet-pk`
+  - ✅ 2026-10-07 source check: `noctrum-raycast/src/lib/wallet.ts` `WALLET_KEY = "noctrum-wallet-pk"` (Ghost `ghost-wallet-pk`).
