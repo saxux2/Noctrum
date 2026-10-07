@@ -52,7 +52,7 @@
 |---|---|---|
 | Server trusts clients for accounting | `confirm`, `borrow-intent` and `repay` never verify that the vault deposit or private transfer happened. Anyone can create intents or "repay" without paying (the web client repays without sending funds) | High (testnet only) |
 | Double payout | execute-transfers moves funds and then confirms; if confirm fails, the transfer is re-sent next cycle | High |
-| Internal endpoint exposure | The web Explore page calls `/internal/pending-intents` without a key. Prod with a key breaks Explore; prod without a key exposes internal routes (liquidate, record proposals) to anyone | High |
+| Internal endpoint exposure | The web Explore page calls `/internal/pending-intents` without a key. Prod with a key breaks Explore; prod without a key exposes internal routes (liquidate, record proposals) to anyone | ✅ Resolved 2026-10-07 (`6ab41c8`): public `GET /pending-intents` (token + amount only) for Explore and TG; internal routes stay key-protected |
 | Float precision | Matching uses `Number(wei)` (> 2^53 precision loss for > 9007 tokens); interest uses `Number()` | Medium |
 | Plaintext key storage | TG `data/wallets/*.json`, Raycast LocalStorage | Medium |
 | Pool wallet custody | One EOA holds all pooled private balances | Medium |

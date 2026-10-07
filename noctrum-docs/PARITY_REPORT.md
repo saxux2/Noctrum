@@ -36,6 +36,7 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
   - 2026-10-07: `/profile` returns 200; `EXPLORER_URL = https://testnet.monadvision.com` (`lib/constants.ts`). Wallet-dependent parts pending.
 - [ ] Explore + pool detail render counts
   - ❌ 2026-10-07 (client dev → Railway): `/explore`, `/explore/[ticker]` return 200 but `GET /api/v1/internal/pending-intents` returns **401 Unauthorized** (Railway has `INTERNAL_API_KEY` set; the client sends no key), so no counts can render. This is the RISKS "Internal endpoint exposure" item, now live. Needs a decision before re-test.
+  - ✅ fixed 2026-10-07 (`6ab41c8`, deployed to Railway): Explore, hero, pool detail and TG `/pool_status` use public `GET /api/v1/pending-intents` (token + amount only); `/internal/pending-intents` still 401 without a key. Client dev → Railway: `/explore`, `/explore/nUSD` 200, proxy returns 4 nUSD lend / 0 borrow intents. Visual check of the rendered counts still pending (browser extension not connected).
 - [ ] Notifications bell receives Loan Matched, Payout Pending/Received
 - [ ] Dungeon page and footer FAQ show Noctrum copy and "Monad Testnet"
   - ✅ source check 2026-10-07: navbar "Dungeon" → `/infinity` (200); `Footer.tsx` and `infinity/FAQSection.tsx` copy say Noctrum / nUSD / nETH / "Monad Testnet", no Chainlink CPT wording. Visual check still pending (browser extension not connected).
