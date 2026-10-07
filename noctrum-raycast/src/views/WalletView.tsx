@@ -99,7 +99,7 @@ export function WalletView({ onDone }: { onDone?: () => void }) {
           icon={Icon.Key}
           actions={
             <ActionPanel>
-              <Action.CopyToClipboard title="Copy Private Key" content={wallet.privateKey} />
+              <Action.CopyToClipboard title="Copy Private Key" content={wallet.privateKey} concealed />
             </ActionPanel>
           }
         />

@@ -15,15 +15,27 @@ Raycast extension for interacting with the NOCTRUM Protocol private P2P lending 
 - **Transaction History** — Browse deposits, withdrawals, and transfers
 - **Credit Score & Profile** — View tier, collateral multiplier, and loan history
 
-## Setup
+## Before You Start
+
+- **Testnet only.** NOCTRUM runs on Monad Testnet (chain 10143). Tokens (nUSD, nETH, MON) have no real value. Get test MON from https://faucet.monad.xyz.
+- **Use a fresh testnet wallet.** Never import a key that holds mainnet funds.
+
+## Wallet and Key Storage
+
+On first launch, use **Manage Wallet** to create a new wallet or import a Monad Testnet private key.
+
+- The private key is saved only on your machine, in Raycast's encrypted [LocalStorage](https://developers.raycast.com/api-reference/storage). It is never sent to the NOCTRUM servers or anywhere else.
+- Transactions and EIP-712 requests are signed locally inside the extension.
+- **Copy Private Key** copies it as a concealed item, so it is not saved in Raycast's clipboard history.
+- **Delete Wallet** in Manage Wallet removes the key from the extension.
+
+## Development
 
 ```bash
 cd noctrum-raycast
 npm install
 npm run dev
 ```
-
-On first launch, use **Manage Wallet** to create or import a wallet (Monad Testnet private key).
 
 ## Architecture
 
