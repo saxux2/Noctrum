@@ -24,6 +24,7 @@
 | D-18 | TG Dockerfile bakes `.env` into the image | Keep / runtime env | ✅ **Applied 2026-10-06 (T5.5): runtime env** (`docker run --env-file .env`; `.env` in `.dockerignore`) | T5.5 |
 | D-19 | Name spelling: folder `C:\Nocturm` vs product "Noctrum" | Noctrum / Nocturm | ✅ **Decided 2026-10-06: Noctrum** | T0.1 |
 | D-20 | `poolAddress` exposure requires `POOL_PRIVATE_KEY` on the server | Keep / add `POOL_ADDRESS` env | Keep (parity), Later | — |
+| D-21 | Raycast Store review bugs (Ghost parity) | Keep / fix | ✅ **Fixed 2026-10-08 at the user's request (Raycast Store PR raycast/extensions#32041):** My Borrow Positions repay now sends the private transfer first (shared `lib/repay.ts`); lend, borrow and repay remember completed steps (`lib/progress.ts`) so retries do not deposit or transfer twice; borrow quote tied to current inputs, invalid amounts no longer throw; private balances no longer logged; wallet import trims the key; profile has Retry; Among Us icon replaced | — |
 
 ## B. Unverified values (⚠️ VERIFY before use)
 
