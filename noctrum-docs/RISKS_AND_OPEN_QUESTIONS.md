@@ -72,6 +72,7 @@
 | Monad testnet resets wipe contracts | Scripted redeploy (T3.1); addresses read from `deployments/` |
 | Railway free plan: 3 services max (TG bot not hosted), Mongo volume ~434 MB. A replica-set oplog can grow to 990 MB, and the indexer writes its cursor every poll; watch `df -h /data/db` | Paid plan or Atlas before real use |
 | Railway Mongo has no auth (private network only, no TCP proxy) | Keep it private; add a keyFile + users before exposing it |
+| Two vault-apis on one vault. The Railway indexer credits every `Deposit`, but only debits withdrawals whose ticket it issued. Tickets from the local vault-api (T5.3 AC: 10 nUSD, tx `0x4e1141bd…`; T7.1 step 4: 800 nUSD, tx `0x2133a576…`) left the Railway ledger 810 nUSD above the vault (invariant ALERT). Fixed 2026-10-07: deployer minted 810 nUSD straight to the vault (tx `0xb2a72d4b…931c`, block 68954811, no `Deposit` event, so no ledger change); invariant clean since | Never run a local vault-api with tickets against the shared Monad vault while Railway runs: use a separate vault deploy for local tests, or point local tools at the Railway vault-api |
 | Public RPC limits (50/20 rps) | Private RPC for vault-api and CRE |
 | Wormhole testnet attestation for Monad may be slow or unsupported | Bridge is non-critical; feature-flag the tab |
 
