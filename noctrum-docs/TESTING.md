@@ -108,6 +108,8 @@ Note: Ghost's step 5 expects bronze. It must run on a fresh borrower (Ghost ran 
 - 4: ticket redeemed (tx `0x2133a576…a713`); borrower on-chain nUSD 0 → 800.
 - 5: bronze, 2×. 6: repay-lender 63 / 43.2, 200 nETH collateral return queued, bronze → silver (1.8×). 7: liquidated 1, 3 transfers (5 % pool), silver → bronze, loansDefaulted 1. 8: 0.01 nETH rejected ("Insufficient collateral for credit tier", $26.96 vs $200), 0.0816 nETH accepted.
 
+✅ **Run 2026-10-07 after deposit verification (`de9d800`)**: steps 8, 6, 7 against Railway (`SERVER_URL`/`VAULT_API_URL` overrides, Railway `INTERNAL_API_KEY` from env). 8: 0.01 nETH rejected ($25.67 < $200), 0.0857 nETH accepted after `sendCollateralToPool`. 6: 0.093481 nETH collateral sent first; repay with real 106.2 nUSD transfer accepted; lenders 63.0 / 43.2; bronze → silver. 7: liquidated 1, 3 transfers (0.00420665 / 0.04795581 / 0.03197054 nETH), silver → bronze. Note: steps 6–7 build loans from synthetic lend ticks, so run alone they leave the pool short (step 7's 100 nUSD disburse stays pending while the pool holds 61.49 nUSD); a full 1–8 run funds the pool in steps 2–3.
+
 Monad port changes in `e2e-test/` (test code only):
 - Config: Monad RPC, chain 10143, Monad addresses, Noctrum CRE key; `SERVER_URL` / `VAULT_API_URL` / `RPC_URL` env overrides (defaults `localhost:8080` / `localhost:8081`); optional `INTERNAL_API_KEY` sent as `x-api-key` (needed against a server that sets it, e.g. Railway). Vault-api domain `NoctrumPrivateToken` (D-5).
 - Step 1 sends gas one tx at a time: Monad rejects Ghost's parallel same-nonce sends ("An existing transaction had higher priority").
