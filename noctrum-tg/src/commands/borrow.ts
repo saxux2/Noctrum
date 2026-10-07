@@ -13,7 +13,7 @@ import {
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
-import { loadProgress, saveProgress, clearProgress } from "../progress";
+import { loadProgress, saveProgress, clearProgress, tryStartFlow, finishFlow } from "../progress";
 
 const composer = new Composer();
 
@@ -58,6 +58,11 @@ composer.command("borrow", async (ctx) => {
     { parse_mode: "HTML" },
   );
 
+  const flowKey = `borrow:${ctx.from!.id}`;
+  if (!tryStartFlow(flowKey)) {
+    await editProgress(ctx, msg.chat.id, msg.message_id, "\u{23F3} Your previous borrow is still running. Wait for it to finish.");
+    return;
+  }
   try {
     // Pre-flight: check gas + collateral token balance
     const prov = getProvider();
@@ -141,6 +146,8 @@ composer.command("borrow", async (ctx) => {
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{274C} <b>Borrow Failed</b>\n\n${escapeHtml(friendlyError(err))}`,
     );
+  } finally {
+    finishFlow(flowKey);
   }
 });
 

@@ -36,3 +36,17 @@ export function clearProgress(key: string) {
   const fp = progressPath(key);
   if (existsSync(fp)) unlinkSync(fp);
 }
+
+// Flows currently running in this bot process. A second /lend, /borrow or /repay from the same
+// user while the first is still running is rejected instead of depositing or transferring twice.
+const running = new Set<string>();
+
+export function tryStartFlow(key: string): boolean {
+  if (running.has(key)) return false;
+  running.add(key);
+  return true;
+}
+
+export function finishFlow(key: string) {
+  running.delete(key);
+}

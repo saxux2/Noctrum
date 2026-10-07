@@ -6,7 +6,7 @@ import { noctrumPost, noctrumGet, privateTransfer, getPoolAddress, ensureGasBala
 import { getProvider } from "../wallet";
 import { requireWallet } from "../middleware";
 import { escapeHtml, friendlyError, editProgress, editError } from "../ui";
-import { loadProgress, saveProgress, clearProgress } from "../progress";
+import { loadProgress, saveProgress, clearProgress, tryStartFlow, finishFlow } from "../progress";
 
 const composer = new Composer();
 
@@ -69,6 +69,11 @@ composer.command("repay", async (ctx) => {
   const wallet = requireWallet(ctx.from!.id);
   const msg = await ctx.reply("\u{23F3} Calculating repayment amount...");
 
+  const flowKey = `repay:${ctx.from!.id}:${loanId}`;
+  if (!tryStartFlow(flowKey)) {
+    await editProgress(ctx, msg.chat.id, msg.message_id, "\u{23F3} Your previous repayment of this loan is still running. Wait for it to finish.");
+    return;
+  }
   try {
     // Pre-flight: check gas
     const prov = getProvider();
@@ -135,6 +140,8 @@ composer.command("repay", async (ctx) => {
     await editProgress(ctx, msg.chat.id, msg.message_id,
       `\u{274C} <b>Repay Failed</b>\n\n${escapeHtml(friendlyError(err))}`,
     );
+  } finally {
+    finishFlow(flowKey);
   }
 });
 
