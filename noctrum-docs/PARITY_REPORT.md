@@ -29,16 +29,21 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
 - [ ] Connect via Privy; wallet switches to 10143
 - [x] Lend flow: 5 status labels appear in order; intent listed; Cancel works
   - ✅ 2026-10-07 (Brave + Claude in Chrome, client dev → Railway, wallet `0xB7fD…1a83`): 10 nUSD @ 5 % / 30 d; Expected Return 10.50000 nUSD; "Approving token spend…" shown, approve + deposit confirmed on-chain (nonce 2, wallet 1000 → 990 nUSD); "Lend intent published!" with intent id; listed as active; Cancel → "Cancelling…" → removed (server public intents back to 4). Refund waits for CRE execute-transfers (not deployed). Intermediate labels after the first were not captured (wallet pop-ups held the flow).
-- [ ] Borrow: quote auto-fills (×1.02 buffer); tier/ratio/ETH price rows; submit; listed; cancel
-- [ ] Swap: quote and rate label; 1% slippage; tx hash shown; notification
+- [x] Borrow: quote auto-fills (×1.02 buffer); tier/ratio/ETH price rows; submit; listed; cancel
+  - ✅ 2026-10-07 (Brave, wallet `0xB7fD…1a83`): 20 nUSD → collateral auto-filled 0.01583 nETH (= 20 × 2 / $2578.09 × 1.02); rows bronze / 2x / ETH price. Submit: approve + collateral deposit on-chain (wallet 0.04545 → 0.02961 nETH), "Private transferring collateral to pool…", "Borrow intent submitted!", listed "20 nUSD · Collateral 0.01584 nETH · pending"; Cancel → "Cancelling…" → removed (server borrowIntents []). First attempt showed "Transaction rejected": MetaMask's content script logged "Extension context invalidated" (extension restarted mid-flow); page reload fixed it, not an app issue (same 4001 mapping as Ghost).
+- [x] Swap: quote and rate label; 1% slippage; tx hash shown; notification
+  - ✅ 2026-10-07: 100 nUSD → quote 0.03882757 nETH, rate label, "ETH/USD: $2575.49 (Chainlink)"; "Approving nUSD…" → "Swap successful!" with MonadVision tx link `0xf9149e3c…`; balance 990 → 890 nUSD; "Swap Complete" notification. minOut = quote × 99 %.
+  - ⚠️ Parity, not a regression: the quote uses the Chainlink price but `NoctrumSwapPool` pays at its fixed owner price ($2,200 from `08_DeploySwapPool`, as Ghost), so the wallet got 0.04545 nETH, not the quoted 0.03883. nETH → nUSD will receive ~15 % less than quoted and revert on the 1 % minOut. See RISKS.
 - [ ] Bridge: Sepolia/Base Sepolia → Monad Testnet completes (attest ≤ 10 min); first test of Wormhole `MonadTestnet` (6.1.4)
 - [ ] Status: repay, claim excess, cancel
+  - 2026-10-07: Status tab renders "Your Positions" / "No active intents or loans found." after both cancels. Repay / claim excess need a matched loan (CRE not deployed).
 - [ ] Profile: tier, stats, explorer link opens testnet.monadvision.com; Withdraw presets; ticket redeem
   - 2026-10-07: `/profile` returns 200; `EXPLORER_URL = https://testnet.monadvision.com` (`lib/constants.ts`). Wallet-dependent parts pending.
 - [x] Explore + pool detail render counts
   - ❌ 2026-10-07 (client dev → Railway): `/explore`, `/explore/[ticker]` return 200 but `GET /api/v1/internal/pending-intents` returns **401 Unauthorized** (Railway has `INTERNAL_API_KEY` set; the client sends no key), so no counts can render. This is the RISKS "Internal endpoint exposure" item, now live. Needs a decision before re-test.
   - ✅ fixed 2026-10-07 (`6ab41c8`, deployed to Railway): Explore, hero, pool detail and TG `/pool_status` use public `GET /api/v1/pending-intents` (token + amount only); `/internal/pending-intents` still 401 without a key. Client dev → Railway: `/explore`, `/explore/nUSD` 200, proxy returns 4 nUSD lend / 0 borrow intents. Visual check by user 2026-10-07: Explore shows nUSD 4 lend / 0 borrow.
-- [ ] Notifications bell receives Loan Matched, Payout Pending/Received
+- [x] Notifications bell receives Loan Matched, Payout Pending/Received
+  - ✅ partial 2026-10-07: bell received Lend Intent Active, Payout Pending, Lend Intent Consumed, Swap Complete (count 3 → 7). Loan Matched / Payout Received need CRE settle-loans / execute-transfers (not deployed).
 - [ ] Dungeon page and footer FAQ show Noctrum copy and "Monad Testnet"
   - ✅ source check 2026-10-07: navbar "Dungeon" → `/infinity` (200); `Footer.tsx` and `infinity/FAQSection.tsx` copy say Noctrum / nUSD / nETH / "Monad Testnet", no Chainlink CPT wording. Visual check still pending (browser extension not connected).
 - [ ] Visual review vs Ghost screenshots (T6.2 AC)
