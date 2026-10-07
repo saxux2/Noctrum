@@ -35,7 +35,10 @@ Record date, result and any notes per line. Stack: server :8080 + vault-api :808
   - ✅ 2026-10-07: 100 nUSD → quote 0.03882757 nETH, rate label, "ETH/USD: $2575.49 (Chainlink)"; "Approving nUSD…" → "Swap successful!" with MonadVision tx link `0xf9149e3c…`; balance 990 → 890 nUSD; "Swap Complete" notification. minOut = quote × 99 %.
   - ⚠️ Parity, not a regression: the quote uses the Chainlink price but `NoctrumSwapPool` pays at its fixed owner price ($2,200 from `08_DeploySwapPool`, as Ghost), so the wallet got 0.04545 nETH, not the quoted 0.03883. nETH → nUSD will receive ~15 % less than quoted and revert on the 1 % minOut. See RISKS.
 - [ ] Bridge: Sepolia/Base Sepolia → Monad Testnet completes (attest ≤ 10 min); first test of Wormhole `MonadTestnet` (6.1.4)
-- [ ] Status: repay, claim excess, cancel
+- [x] Status: repay, claim excess, cancel
+  - ✅ 2026-10-07 with CRE simulated against Railway: borrow 20 nUSD / max 10 % → settle-loans `matched:1 recorded:1` → Status "20 nUSD · active · Rate 7.55% · Due 21.51 nUSD · Collateral 0.01583 · Excess 0.00031 nETH"; execute-transfers disbursed. Withdraw excess → collateral 0.01552, button gone. Repay (signature) → loan gone from Status; execute-transfers `executed=3`, `executed=3`, `no-pending`. Profile: Bronze → Silver, 1.8x, rep 10, 1 repaid, 100 % success.
+  - 🔴 Ghost parity, security: web Repay only signs `/repay`; it moves no funds. The server trusts it, credits lenders from the pool and returns collateral. Raycast/e2e pay the pool first. See RISKS.
+  - ⚠️ Ghost parity, display: Silver after 1 repay shows "-40% to Gold" (`ProfileHeader` uses thresholds 5/15; server tiers differ).
   - 2026-10-07: Status tab renders "Your Positions" / "No active intents or loans found." after both cancels. Repay / claim excess need a matched loan (CRE not deployed).
 - [x] Profile: tier, stats, explorer link opens testnet.monadvision.com; Withdraw presets; ticket redeem
   - 2026-10-07: `/profile` returns 200; `EXPLORER_URL = https://testnet.monadvision.com` (`lib/constants.ts`). Wallet-dependent parts pending.
