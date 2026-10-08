@@ -63,9 +63,15 @@ function persist(notifs: Notification[]) {
 }
 
 export function useNotifications(address: string | undefined) {
-  const [notifications, setNotifications] = useState<Notification[]>(() => loadStored());
+  // Start empty so server and client render the same HTML; load stored ones after mount
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const prevSnap = useRef<Snapshot | null>(null);
   const initialized = useRef(false);
+
+  useEffect(() => {
+    const stored = loadStored();
+    setNotifications((prev) => (prev.length === 0 ? stored : [...prev, ...stored].slice(0, 50)));
+  }, []);
 
   const addNotifs = useCallback((newItems: Omit<Notification, "id" | "read" | "createdAt">[]) => {
     if (newItems.length === 0) return;
