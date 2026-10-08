@@ -22,7 +22,7 @@
 ## Verification
 - [x] CRE workflows type-check (all 3 pass)
 - [x] Server runtime test (health check ok)
-- [ ] Integration test with CRE simulation
+- [x] Integration test with CRE simulation (2026-10-07, T7.1: all 3 workflows simulated against the local stack and Railway; see noctrum-docs/TESTING.md §4)
 
 ## Liquidation, Default & Credit Score
 - [x] Add CreditTier, CreditScore types + "liquidate" reason to types.ts
@@ -35,4 +35,4 @@
 - [x] Update CRE check-loans to POST unhealthy loanIds to /internal/liquidate-loans
 - [x] Create root CLAUDE.md with project context
 - [x] Server + CRE compile clean
-- [ ] E2E verification (repay → tier up, liquidation → tier down, collateral check)
+- [x] E2E verification (repay → tier up, liquidation → tier down, collateral check) (2026-10-07: e2e steps 6–8 pass on Monad; see noctrum-docs/PARITY_REPORT.md)
