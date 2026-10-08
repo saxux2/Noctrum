@@ -1,6 +1,8 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 const config: Config = {
   title: 'Noctrum Finance Docs',
@@ -11,11 +13,11 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://docs.example.noctrum',
+  url: 'https://noctrum-docs.vercel.app',
   baseUrl: '/',
 
-  organizationName: 'example',
-  projectName: 'noctrum',
+  organizationName: 'saxux2',
+  projectName: 'Noctrum',
 
   onBrokenLinks: 'throw',
 
@@ -31,6 +33,8 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/',
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
         },
         blog: false,
         pages: false,
@@ -62,8 +66,11 @@ const config: Config = {
           position: 'left',
           label: 'Documentation',
         },
+        {to: '/litepaper', label: 'Litepaper', position: 'left'},
+        {to: '/research', label: 'Research', position: 'left'},
+        {to: '/careers', label: 'Careers', position: 'left'},
         {
-          href: 'https://github.com/example/noctrum',
+          href: 'https://github.com/saxux2/Noctrum',
           label: 'GitHub',
           position: 'right',
         },
@@ -87,6 +94,10 @@ const config: Config = {
               label: 'API Reference',
               to: '/api/authentication',
             },
+            {
+              label: 'Litepaper',
+              to: '/litepaper',
+            },
           ],
         },
         {
@@ -104,6 +115,10 @@ const config: Config = {
               label: 'CRE Workflows',
               to: '/cre-workflows/overview',
             },
+            {
+              label: 'Research',
+              to: '/research',
+            },
           ],
         },
         {
@@ -119,7 +134,11 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/example/noctrum',
+              href: 'https://github.com/saxux2/Noctrum',
+            },
+            {
+              label: 'Careers',
+              to: '/careers',
             },
           ],
         },

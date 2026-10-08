@@ -3,6 +3,8 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   docsSidebar: [
     'introduction',
+    'litepaper',
+    'research',
     {
       type: 'category',
       label: 'Protocol',
@@ -104,6 +106,7 @@ const sidebars: SidebarsConfig = {
         'development/cre-simulation',
       ],
     },
+    'careers',
   ],
 };
 

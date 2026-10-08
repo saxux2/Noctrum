@@ -1,4 +1,15 @@
+---
+id: litepaper
+slug: /litepaper
+title: Litepaper
+sidebar_label: Litepaper
+sidebar_position: 2
+description: NOCTRUM Protocol litepaper — privacy-preserving rate discovery for decentralised lending with sealed-bid discriminatory auctions settled in Chainlink CRE.
+---
+
 # NOCTRUM Protocol: Privacy-Preserving Rate Discovery for Decentralised Lending
+
+*Litepaper v1.0 · October 2026*
 
 **A Sealed-Bid Discriminatory Auction Framework with Confidential Compute Settlement**
 

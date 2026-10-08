@@ -364,7 +364,7 @@ CRE's WASM runtime.
 \subsection{Layer 2: Blind Storage}
 
 The NOCTRUM API server (Hono + Bun) functions as a deliberately blind storage
-layer. It maintains in-memory state across deposit slots, lend intents,
+layer. It persists state in MongoDB across deposit slots, lend intents,
 borrow intents, match proposals, active loans, pending transfers, and credit
 scores. All user-facing endpoints authenticate via EIP-712 typed-data
 signatures with timestamp validation ($\pm 5$ minutes) to prevent replay
@@ -550,9 +550,11 @@ remain idle.
 
 \subsection{Limitations and Future Work}
 
-The current implementation uses in-memory state, suitable for
-proof-of-concept but requiring persistent storage for production
-deployment. The credit scoring mechanism is endogenous and simple; future
+NOCTRUM is live on Monad Testnet and has not been audited. The CRE
+workflows are tested by simulation against the live services; deployment to
+the Chainlink DON is pending deploy access. The self-hosted private ledger
+(	exttt{noctrum-vault-api}) is a trusted party, reconciled against on-chain
+vault balances by an invariant job. The credit scoring mechanism is endogenous and simple; future
 iterations could integrate verifiable credential systems or zero-knowledge
 proof-based credit attestations. Multi-token lending pools, variable
 maturity structures, and secondary market trading of matched tick positions

@@ -79,7 +79,7 @@ Upon liquidation:
 
 ## Loss Distribution and Rate Risk
 
-In the litepaper's formal model, liquidation losses are absorbed by higher rate ticks first. Lenders who bid higher rates accepted more risk and therefore bear losses before conservative lenders. However, the current implementation uses simple pro rata distribution for implementation simplicity.
+Recovery is pro rata by principal contribution. A seniority rule in which higher-rate ticks absorb losses first (those lenders were paid to take more risk) is consistent with the discriminatory model; it is an open question in [Research](/research#open-questions).
 
 ## Price Feed Integration
 
