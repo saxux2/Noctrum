@@ -17,10 +17,10 @@ const navItems = [
 ];
 
 const moreLinks = [
-  { label: "Research", href: "#", external: true },
-  { label: "Litepaper", href: "#", external: true },
-  { label: "Docs", href: "#", external: true },
-  { label: "Careers", href: "#", external: true },
+  { label: "Research", href: "https://noctrum-docs.vercel.app/research", external: true },
+  { label: "Litepaper", href: "https://noctrum-docs.vercel.app/litepaper", external: true },
+  { label: "Docs", href: "https://noctrum-docs.vercel.app/", external: true },
+  { label: "Careers", href: "https://noctrum-docs.vercel.app/careers", external: true },
   { label: "Dark Dimension", href: "#", external: false, comingSoon: true },
 ];
 

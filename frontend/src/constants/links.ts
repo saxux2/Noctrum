@@ -3,7 +3,7 @@
 export const site = "https://example.noctrum";
 
 const app = "https://app.example.noctrum/";
-const docs = "https://docs.example.noctrum/";
+const docs = "https://noctrum-docs.vercel.app/";
 
 export const links = {
   app,
@@ -11,9 +11,10 @@ export const links = {
   borrow: app,
   explore: `${app}explore`,
   raycast: "#",
-  careers: "#",
+  careers: `${docs}careers`,
   docs,
-  litepaper: docs,
+  litepaper: `${docs}litepaper`,
+  research: `${docs}research`,
   blog: docs,
   tokenomics: `${docs}protocol/tokenomics`,
   privacyModel: `${docs}protocol/privacy-model`,
