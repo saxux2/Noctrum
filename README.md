@@ -4,9 +4,7 @@
 
 NOCTRUM is a decentralized lending protocol where interest rates are determined through sealed bid discriminatory price auctions. Lenders submit encrypted rate bids that only the Chainlink Confidential Runtime Environment can decrypt, preventing front running and ensuring truthful price discovery. Each lender earns their individual bid rate rather than a blended pool rate, eliminating the free rider problem that plagues traditional DeFi lending.
 
-<p align="center">
-  <img width="1920" height="1080" alt="Noctrum" src="https://github.com/user-attachments/assets/bacb681a-0635-4323-b537-2ba5877aba26" />
-</p>
+
 
 ## Architecture
 
