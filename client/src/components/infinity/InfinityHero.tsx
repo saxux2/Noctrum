@@ -8,28 +8,29 @@ const stats = [
 
 const InfinityHero = () => {
   return (
-    <section className="relative w-full overflow-hidden py-16">
-      {/* Decorative gradient blob */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-[500px] w-[500px]">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-400 via-yellow-300 to-orange-400 opacity-80 blur-sm" />
-        <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-blue-500 via-purple-400 to-pink-400 opacity-70 blur-sm" />
-        <div className="absolute inset-16 rounded-full bg-gradient-to-bl from-cyan-300 via-green-300 to-yellow-400 opacity-60 blur-md" />
-      </div>
+    <section className="relative w-full overflow-hidden rounded-2xl px-10 py-16 text-white">
+      {/* Cover photo */}
+      <img
+        src="/dungeon-cover.jpg"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 max-w-xl space-y-6">
         {/* Badge */}
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-          <span className="text-sm font-medium text-muted-foreground">Noctrum Protocol</span>
+          <span className="text-sm font-medium text-white/80">Noctrum Protocol</span>
         </div>
 
         {/* Title */}
-        <h1 className="text-5xl font-semibold leading-tight tracking-tight text-foreground">
+        <h1 className="text-5xl font-semibold leading-tight tracking-tight text-white">
           Private P2P Lending<br />with Sealed Rates
         </h1>
 
         {/* Subtitle */}
-        <p className="text-base text-muted-foreground leading-relaxed max-w-md">
+        <p className="text-base text-white/80 leading-relaxed max-w-md">
           The first lending protocol where rates are encrypted, matched
           confidentially by Chainlink CRE, and settled on-chain — no one
           sees your bid.
@@ -39,8 +40,8 @@ const InfinityHero = () => {
         <div className="flex items-center gap-10 pt-2">
           {stats.map((s) => (
             <div key={s.label}>
-              <p className="text-2xl font-semibold text-foreground">{s.value}</p>
-              <p className="text-sm text-muted-foreground">{s.label}</p>
+              <p className="text-2xl font-semibold text-white">{s.value}</p>
+              <p className="text-sm text-white/70">{s.label}</p>
             </div>
           ))}
         </div>

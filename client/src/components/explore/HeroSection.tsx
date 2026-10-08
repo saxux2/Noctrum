@@ -24,7 +24,7 @@ const HeroSection = () => {
   return (
     <div className="relative w-full overflow-hidden rounded-2xl p-10 text-white">
       <img
-        src="/banner.png"
+        src="/explore-cover.jpg"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />
