@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
 import "./globals.css";
 import { site } from "@/constants/links";
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["100", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-sans",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(site),
@@ -89,7 +82,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${poppins.variable} ${poppins.className} bg-[#101010] text-white antialiased`}>
+      <head>
+        {/* Satoshi, served by Fontshare (ITF Free Font License); the file is not committed to this repo. */}
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap" />
+      </head>
+      <body className="bg-ink font-sans text-white antialiased">
         {children}
       </body>
     </html>

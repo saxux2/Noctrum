@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  images: {
+    // 95 keeps the landing page's token art and logos crisp on high-DPI screens.
+    qualities: [75, 95],
+    formats: ["image/avif", "image/webp"],
+  },
   async headers() {
     return [
       {

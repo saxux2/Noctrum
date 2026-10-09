@@ -1,12 +1,13 @@
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import Announcement from "@/components/Announcement";
-import Features from "@/components/Features";
-import Partners from "@/components/Partners";
-import TokenBanner from "@/components/TokenBanner";
-import FollowAlong from "@/components/FollowAlong";
-import CtaBanner from "@/components/CtaBanner";
-import Footer from "@/components/Footer";
+import Nav from "@/components/landing/Nav";
+import Hero from "@/components/landing/Hero";
+import BuiltWith from "@/components/landing/BuiltWith";
+import Sealed from "@/components/landing/Sealed";
+import Stats from "@/components/landing/Stats";
+import Quote from "@/components/landing/Quote";
+import Mechanics from "@/components/landing/Mechanics";
+import Ecosystem from "@/components/landing/Ecosystem";
+import Connect from "@/components/landing/Connect";
+import Footer from "@/components/landing/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
 import { site } from "@/constants/links";
 
@@ -38,15 +39,16 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <SmoothScroll>
-        <main className="min-h-screen">
-          <Navbar />
+        <main className="min-h-screen overflow-x-clip bg-ink">
+          <Nav />
           <Hero />
-          <Announcement />
-          <Features />
-          <Partners />
-          <TokenBanner />
-          <FollowAlong />
-          <CtaBanner />
+          <BuiltWith />
+          <Sealed />
+          <Stats />
+          <Quote />
+          <Mechanics />
+          <Ecosystem />
+          <Connect />
           <Footer />
         </main>
       </SmoothScroll>

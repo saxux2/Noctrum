@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-sans, "Poppins"), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --color-noctrum-purple: #a855f7;
   --color-noctrum-purple-light: #e2a9f1;
@@ -13,6 +13,17 @@
   --color-noctrum-border-hover: rgba(255, 255, 255, 0.15);
   --color-noctrum-muted: #a1a1aa;
   --color-noctrum-accent: #e2a9f1;
+
+  /* Landing page */
+  --color-ink: #050508;
+  --color-ink-2: #06060f;
+  --color-panel: #19191c;
+  --color-panel-2: #0c0c16;
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-mute: #a1a1aa;
+  --color-dim: #71717a;
+  --color-accent: #6366f1;
+  --color-accent-2: #7c5cff;
 }
 
 html {
@@ -89,4 +100,241 @@ body {
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.4);
+}
+
+/* ───────────────────────── Landing page ───────────────────────── */
+
+body {
+  background: var(--color-ink);
+  text-rendering: optimizeLegibility;
+}
+
+.display {
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+/* Pills */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.7rem 1.35rem;
+  font-size: 0.95rem;
+  color: #fff;
+  background: linear-gradient(90deg, #5a67f7 0%, #7a63f6 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12) inset, 0 10px 30px -10px rgba(99, 102, 241, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18) inset, 0 14px 40px -10px rgba(124, 92, 255, 0.95);
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.7rem 1.35rem;
+  font-size: 0.95rem;
+  color: #fff;
+  background: rgba(10, 10, 14, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  border-radius: 9999px;
+  padding: 0.55em 1.15em;
+  font-size: clamp(11px, 1.05vw, 19px);
+  text-transform: uppercase;
+  font-weight: 400;
+  color: #fff;
+  background: rgba(104, 112, 255, 0.2);
+  border: 1px solid rgba(150, 156, 255, 0.28);
+  backdrop-filter: blur(8px);
+}
+.btn-lg {
+  font-size: clamp(15px, 1.25vw, 22px);
+  padding: 0.62em 1.15em;
+}
+
+/* Hero horizon: a huge circle whose top edge is the glowing planet rim */
+.horizon {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: max(1900px, 250vw);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 0%, #15153f 0%, #0b0b22 4%, #050508 11%);
+  box-shadow:
+    0 0 0 1.5px rgba(250, 248, 255, 1),
+    0 -3px 14px 1px rgba(232, 226, 255, 1),
+    0 -12px 46px 8px rgba(214, 212, 255, 0.55),
+    0 -16px 50px 14px rgba(150, 96, 255, 0.95),
+    0 -50px 130px 40px rgba(118, 70, 245, 0.6);
+}
+.horizon-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -320px;
+  width: max(2400px, 170vw);
+  height: max(1500px, 95vw);
+  transform: translateX(-50%);
+  /* centre sits on the planet rim (77% down this box) */
+  background:
+    radial-gradient(ellipse 18% 16% at 50% 77%, rgba(214, 216, 255, 0.85) 0%, rgba(160, 166, 252, 0.45) 50%, transparent 100%),
+    radial-gradient(ellipse 25% 50% at 50% 77%, rgba(96, 112, 240, 1) 0%, rgba(76, 84, 222, 0.6) 42%, transparent 100%),
+    radial-gradient(ellipse 34% 62% at 50% 77%, rgba(52, 48, 170, 0.45) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Coins */
+.coin {
+  position: relative;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px rgba(225, 230, 255, 0.85),
+    0 0 0 5px rgba(60, 64, 110, 0.9),
+    0 0 0 6px rgba(200, 210, 255, 0.55),
+    -10px 14px 24px rgba(0, 0, 0, 0.65);
+}
+.coin::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%, transparent 70%, rgba(0, 0, 0, 0.25) 100%);
+  pointer-events: none;
+}
+
+/* Chrome coins (hero) */
+.metal-coin {
+  position: relative;
+  border-radius: 50%;
+  transform: rotate(-24deg);
+  background:
+    radial-gradient(ellipse 55% 40% at 26% 20%, rgba(255, 255, 255, 1) 0%, rgba(235, 240, 255, 0.5) 35%, transparent 70%),
+    radial-gradient(ellipse 60% 55% at 78% 82%, rgba(110, 230, 200, 0.6) 0%, transparent 60%),
+    conic-gradient(from 210deg, #f4f6ff, #4c5487, #dfe5ff, #22284f, #c9d3f2, #5d6aa3, #f4f6ff);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.9),
+    inset -3px -4px 8px rgba(20, 24, 60, 0.6),
+    1px 1px 0 #cfd5ef,
+    2px 2px 0 #a2aad0,
+    4px 3px 0 #707aa8,
+    5px 4px 0 #4d5585,
+    7px 5px 0 #353c69,
+    8px 6px 0 #252b50,
+    10px 7px 0 #1a1f3d,
+    16px 16px 24px rgba(0, 0, 0, 0.8);
+}
+.metal-coin-inner {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 60% 45% at 26% 20%, rgba(255, 255, 255, 0.85) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 74% 78%, rgba(96, 226, 188, 0.6) 0%, transparent 62%),
+    linear-gradient(145deg, #eef1ff 0%, #7f8abf 30%, #2a3062 55%, #a3b3e2 80%, #4d5792 100%);
+  box-shadow:
+    inset 3px 3px 4px rgba(20, 24, 60, 0.7),
+    inset -2px -2px 3px rgba(255, 255, 255, 0.9),
+    0 0 0 1px rgba(40, 46, 90, 0.6);
+}
+.metal-coin-glyph {
+  width: 80%;
+  height: 80%;
+  /* engraved: dark glyph with a bright bevel on the lit side */
+  filter: drop-shadow(-1.2px -1.2px 0 rgba(255, 255, 255, 0.95)) drop-shadow(1.4px 1.4px 0 rgba(200, 210, 255, 0.55)) drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* Glass slabs (3D card stacks) */
+.slab {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  border: 1px solid rgba(214, 220, 255, 0.55);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 4px),
+    linear-gradient(160deg, rgba(196, 204, 255, 0.55) 0%, rgba(120, 112, 250, 0.42) 45%, rgba(46, 40, 130, 0.5) 100%);
+  box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  backface-visibility: visible;
+}
+.slab-front {
+  border-color: rgba(230, 236, 255, 0.85);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(150, 230, 196, 0.55) 0%, transparent 60%),
+    linear-gradient(160deg, #7f8bd8 0%, #5a58d6 45%, #2c2783 100%);
+  box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 30px 80px -20px rgba(80, 70, 220, 0.6);
+}
+.fade-bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 82%);
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 82%);
+}
+
+/* Horizontal "sealed bid" plates */
+.plate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 100%;
+  border-radius: 26px;
+  border: 1px solid rgba(225, 230, 255, 0.7);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, rgba(126, 214, 160, 0.85) 0%, rgba(120, 132, 240, 0.85) 30%, rgba(170, 170, 255, 0.9) 60%, rgba(120, 112, 220, 0.85) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    0 10px 0 -2px rgba(60, 60, 140, 0.9),
+    0 30px 60px -20px rgba(0, 0, 0, 0.9);
+}
+
+/* Panels */
+.panel {
+  background: var(--color-panel);
+  border-radius: 10px;
+}
+.panel-glow {
+  background:
+    radial-gradient(ellipse 90% 70% at 60% 0%, rgba(110, 110, 255, 0.55) 0%, rgba(70, 60, 210, 0.25) 45%, transparent 75%),
+    var(--color-panel);
+}
+
+/* Marquee for the ecosystem rail */
+@keyframes rail {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.rail {
+  animation: rail 60s linear infinite;
+}
+.rail:hover,
+.rail:focus-within {
+  animation-play-state: paused;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail { animation: none; }
 }
