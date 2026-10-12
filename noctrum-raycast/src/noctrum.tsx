@@ -201,7 +201,7 @@ export default function NoctrumCommand() {
         <List.Item
           title="Credit Score & Profile"
           subtitle="Tier, stats, multiplier"
-          icon={{ source: "pfp.jpg" }}
+          icon={{ source: "noctrum-logo.png" }}
           accessories={!wallet ? [{ icon: Icon.Lock }] : []}
           actions={
             <ActionPanel>

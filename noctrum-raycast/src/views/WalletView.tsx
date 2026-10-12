@@ -1,6 +1,55 @@
-import { List, Action, ActionPanel, Icon, showToast, Toast, Clipboard, confirmAlert } from "@raycast/api";
+import { List, Form, Action, ActionPanel, Icon, showToast, Toast, confirmAlert, useNavigation } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { getStoredWallet, createWallet, storeWallet, deleteWallet, WalletData } from "../lib/wallet";
+
+// MetaMask's "Show private key" gives the key without the 0x prefix, so accept both forms.
+function normalizeKey(input: string): string | null {
+  const raw = input.trim();
+  const key = /^[0-9a-fA-F]{64}$/.test(raw) ? `0x${raw}` : raw;
+  return /^0x[0-9a-fA-F]{64}$/.test(key) ? key : null;
+}
+
+// Paste-in form instead of reading the clipboard, which proved unreliable on Raycast for Windows.
+function ImportWalletForm({ onImported }: { onImported: (w: WalletData) => void }) {
+  const { pop } = useNavigation();
+  const [error, setError] = useState<string | undefined>();
+
+  async function handleSubmit(values: { privateKey: string }) {
+    const key = normalizeKey(values.privateKey ?? "");
+    if (!key) {
+      setError("Enter a 64-character hex private key (with or without 0x)");
+      return;
+    }
+    try {
+      const w = await storeWallet(key);
+      showToast(Toast.Style.Success, "Wallet imported", w.address);
+      onImported(w);
+      pop();
+    } catch {
+      setError("Invalid private key");
+    }
+  }
+
+  return (
+    <Form
+      navigationTitle="Import Wallet"
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm title="Import Wallet" icon={Icon.Key} onSubmit={handleSubmit} />
+        </ActionPanel>
+      }
+    >
+      <Form.Description text="Paste the private key of a Monad Testnet wallet. It is stored only in Raycast on this computer. Use a test-only wallet." />
+      <Form.PasswordField
+        id="privateKey"
+        title="Private Key"
+        placeholder="0x… or 64 hex characters"
+        error={error}
+        onChange={() => setError(undefined)}
+      />
+    </Form>
+  );
+}
 
 export function WalletView({ onDone }: { onDone?: () => void }) {
   const [wallet, setWallet] = useState<WalletData | null>(null);
@@ -24,20 +73,9 @@ export function WalletView({ onDone }: { onDone?: () => void }) {
     onDone?.();
   }
 
-  async function handleImport() {
-    const text = (await Clipboard.readText())?.trim();
-    if (!text || !text.startsWith("0x") || text.length !== 66) {
-      showToast(Toast.Style.Failure, "Paste a valid private key to clipboard first");
-      return;
-    }
-    try {
-      const w = await storeWallet(text);
-      setWallet(w);
-      showToast(Toast.Style.Success, "Wallet imported", w.address);
-      onDone?.();
-    } catch {
-      showToast(Toast.Style.Failure, "Invalid private key");
-    }
+  function handleImported(w: WalletData) {
+    setWallet(w);
+    onDone?.();
   }
 
   async function handleDelete() {
@@ -48,6 +86,12 @@ export function WalletView({ onDone }: { onDone?: () => void }) {
       onDone?.();
     }
   }
+
+  const importAction = (
+    <ActionPanel>
+      <Action.Push title="Import Wallet" icon={Icon.Key} target={<ImportWalletForm onImported={handleImported} />} />
+    </ActionPanel>
+  );
 
   if (isLoading) return <List isLoading />;
 
@@ -65,16 +109,7 @@ export function WalletView({ onDone }: { onDone?: () => void }) {
               </ActionPanel>
             }
           />
-          <List.Item
-            title="Import from Clipboard"
-            subtitle="Paste a 0x-prefixed private key"
-            icon={Icon.Clipboard}
-            actions={
-              <ActionPanel>
-                <Action title="Import Wallet" onAction={handleImport} />
-              </ActionPanel>
-            }
-          />
+          <List.Item title="Import Wallet" subtitle="Paste a private key" icon={Icon.Key} actions={importAction} />
         </List.Section>
       </List>
     );
@@ -105,16 +140,7 @@ export function WalletView({ onDone }: { onDone?: () => void }) {
         />
       </List.Section>
       <List.Section title="Actions">
-        <List.Item
-          title="Import Different Wallet"
-          subtitle="Replace with key from clipboard"
-          icon={Icon.Clipboard}
-          actions={
-            <ActionPanel>
-              <Action title="Import Wallet" onAction={handleImport} />
-            </ActionPanel>
-          }
-        />
+        <List.Item title="Import Different Wallet" subtitle="Replace with another private key" icon={Icon.Key} actions={importAction} />
         <List.Item
           title="Delete Wallet"
           subtitle="Remove stored wallet"
