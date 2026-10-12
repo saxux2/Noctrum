@@ -278,11 +278,21 @@ const BorrowCard = () => {
       const progress = loadProgress(progressKey);
       const save = (step: number) => saveProgress(progressKey, { step, data: {} });
 
+      // Check the wallet holds the collateral before approving, so a short balance
+      // shows a clear message instead of an "unknown custom error" revert from deposit.
+      if (progress.step < 2) {
+        const bal: bigint = await new ethers.Contract(collateralCoin.address, ERC20_ABI, signer).balanceOf(account);
+        if (bal < BigInt(collateralAmtWei)) {
+          throw new Error(`Not enough ${collateralCoin.symbol}: you have ${ethers.formatEther(bal)}, need ${ethers.formatEther(collateralAmtWei)}`);
+        }
+      }
+
       // Step 1: Approve collateral token to vault
       if (progress.step < 1) {
         setStatus("approving");
         const token = new ethers.Contract(collateralCoin.address, ERC20_ABI, signer);
-        const approveTx = await token.approve(VAULT_ADDRESS, ethers.MaxUint256);
+        // Exact amount, not unlimited: wallets flag unlimited approvals as a drainer pattern.
+        const approveTx = await token.approve(VAULT_ADDRESS, collateralAmtWei);
         await approveTx.wait();
         save(1);
       }

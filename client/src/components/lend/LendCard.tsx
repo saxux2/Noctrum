@@ -182,11 +182,21 @@ const LendCard = () => {
       let slotId = progress.data.slotId;
       const save = (step: number) => saveProgress(progressKey, { step, data: slotId ? { slotId } : {} });
 
+      // Check the wallet holds the amount before approving, so a short balance
+      // shows a clear message instead of an "unknown custom error" revert from deposit.
+      if (progress.step < 2) {
+        const bal: bigint = await new ethers.Contract(tokenAddr, ERC20_ABI, signer).balanceOf(account);
+        if (bal < BigInt(amountWei)) {
+          throw new Error(`Not enough ${lendCoin.symbol}: you have ${ethers.formatEther(bal)}, need ${ethers.formatEther(amountWei)}`);
+        }
+      }
+
       // Step 1: Approve token to vault
       if (progress.step < 1) {
         setStatus("approving");
         const token = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
-        const approveTx = await token.approve(VAULT_ADDRESS, ethers.MaxUint256);
+        // Exact amount, not unlimited: wallets flag unlimited approvals as a drainer pattern.
+        const approveTx = await token.approve(VAULT_ADDRESS, amountWei);
         await approveTx.wait();
         save(1);
       }
