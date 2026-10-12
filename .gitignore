@@ -4,3 +4,7 @@ node_modules/
 .next/
 .DS_Store
 .secrets/
+
+# local CRE scheduler log
+noctrum-settler/auto-settle.log
+noctrum-settler/.env.staging
