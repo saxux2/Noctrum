@@ -1,6 +1,6 @@
+import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { links } from "@/constants/links";
-import GlassStack from "./GlassStack";
 import Reveal from "./Reveal";
 
 function Door({
@@ -8,13 +8,13 @@ function Door({
   cta,
   href,
   primary,
-  coin,
+  art,
 }: {
   title: string;
   cta: string;
   href: string;
   primary?: boolean;
-  coin: string;
+  art: string;
 }) {
   return (
     <div className="relative overflow-hidden rounded-[14px] border border-white/[0.07] bg-[linear-gradient(180deg,#0e0e18_0%,#0a0a14_55%,#141350_100%)]">
@@ -25,10 +25,14 @@ function Door({
         </a>
       </div>
       <div className="pointer-events-none relative mt-6 h-[300px] overflow-hidden sm:h-[340px]">
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(ellipse_60%_100%_at_50%_100%,rgba(99,102,241,0.45),transparent)]" />
-        <div className="absolute left-1/2 top-6 origin-top -translate-x-1/2 scale-[0.8] sm:scale-100">
-          <GlassStack src={coin} count={3} gap={22} width={380} height={340} rotateX={22} rotateY={-14} imageSize={190} />
-        </div>
+        <Image
+          src={art}
+          alt=""
+          fill
+          quality={95}
+          sizes="(min-width: 768px) 560px, 100vw"
+          className="object-cover object-top [mask-image:linear-gradient(to_bottom,transparent_0%,#000_18%)]"
+        />
       </div>
       <div className="pointer-events-none absolute inset-0 rounded-[14px] ring-1 ring-inset ring-[#6366f1]/30" />
     </div>
@@ -49,8 +53,8 @@ export default function Connect() {
       </Reveal>
 
       <Reveal delay={0.1} className="mx-auto mt-14 grid max-w-[1140px] gap-4 sm:mt-16 md:grid-cols-2">
-        <Door title="Lenders" cta="Start Lending" href={links.lend} primary coin="/nusd.png" />
-        <Door title="Borrowers" cta="Start Borrowing" href={links.borrow} coin="/neth.png" />
+        <Door title="Lenders" cta="Start Lending" href={links.lend} primary art="/landing/lenders-art.png" />
+        <Door title="Borrowers" cta="Start Borrowing" href={links.borrow} art="/landing/borrowers-art.png" />
       </Reveal>
     </section>
   );

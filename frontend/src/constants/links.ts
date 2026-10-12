@@ -1,8 +1,8 @@
-// TODO(D-9): domains and socials are undecided. Domains are placeholders;
+// TODO(D-9): custom domains and socials are undecided. These are the Vercel URLs;
 // socials that would point at the old project's accounts are "#" until decided.
-export const site = "https://example.noctrum";
+export const site = "https://noctrum.vercel.app";
 
-const app = "https://app.example.noctrum/";
+const app = "https://noctrum-app.vercel.app/";
 const docs = "https://noctrum-docs.vercel.app/";
 
 export const links = {

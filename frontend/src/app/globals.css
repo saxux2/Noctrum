@@ -149,22 +149,8 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55em;
-  border-radius: 9999px;
-  padding: 0.55em 1.15em;
-  font-size: clamp(11px, 1.05vw, 19px);
-  text-transform: uppercase;
-  font-weight: 400;
-  color: #fff;
-  background: rgba(104, 112, 255, 0.2);
-  border: 1px solid rgba(150, 156, 255, 0.28);
-  backdrop-filter: blur(8px);
-}
 .btn-lg {
-  font-size: clamp(15px, 1.25vw, 22px);
+  font-size: clamp(15px, 1.1vw, 20px);
   padding: 0.62em 1.15em;
 }
 
@@ -177,13 +163,29 @@ body {
   aspect-ratio: 1;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 0%, #15153f 0%, #0b0b22 4%, #050508 11%);
+  background: radial-gradient(circle at 50% 0%, #0e0e2c 0%, #07071a 4%, #030306 11%);
   box-shadow:
-    0 0 0 1.5px rgba(250, 248, 255, 1),
-    0 -3px 14px 1px rgba(232, 226, 255, 1),
-    0 -12px 46px 8px rgba(214, 212, 255, 0.55),
-    0 -16px 50px 14px rgba(150, 96, 255, 0.95),
-    0 -50px 130px 40px rgba(118, 70, 245, 0.6);
+    0 0 0 1.5px rgba(190, 170, 255, 0.95),
+    0 -2px 8px 1px rgba(170, 140, 255, 0.85),
+    0 -10px 34px 6px rgba(150, 96, 255, 0.85),
+    0 -30px 90px 20px rgba(122, 70, 240, 0.6),
+    0 -90px 200px 60px rgba(86, 60, 210, 0.4),
+    inset 0 2px 4px rgba(160, 160, 255, 0.5),
+    inset 0 12px 28px rgba(70, 74, 210, 0.45),
+    inset 0 40px 80px rgba(34, 30, 130, 0.35);
+}
+/* soft white flare where the rim meets the coins */
+.horizon-flare {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 5;
+  width: min(700px, 46vw);
+  height: clamp(60px, 4.5vw, 90px);
+  transform: translate(-50%, -62%);
+  background: radial-gradient(ellipse 40% 45% at 50% 100%, rgba(236, 232, 255, 0.6) 0%, rgba(200, 190, 255, 0.25) 50%, transparent 100%);
+  filter: blur(4px);
+  pointer-events: none;
 }
 .horizon-glow {
   position: absolute;
@@ -194,9 +196,11 @@ body {
   transform: translateX(-50%);
   /* centre sits on the planet rim (77% down this box) */
   background:
-    radial-gradient(ellipse 18% 16% at 50% 77%, rgba(214, 216, 255, 0.85) 0%, rgba(160, 166, 252, 0.45) 50%, transparent 100%),
-    radial-gradient(ellipse 25% 50% at 50% 77%, rgba(96, 112, 240, 1) 0%, rgba(76, 84, 222, 0.6) 42%, transparent 100%),
-    radial-gradient(ellipse 34% 62% at 50% 77%, rgba(52, 48, 170, 0.45) 0%, transparent 100%);
+    radial-gradient(ellipse 8% 7% at 50% 77%, rgba(200, 198, 255, 0.5) 0%, rgba(160, 158, 250, 0.2) 50%, transparent 100%),
+    radial-gradient(ellipse 24% 36% at 50% 77%, rgba(88, 96, 222, 0.8) 0%, rgba(70, 72, 200, 0.45) 45%, transparent 100%),
+    radial-gradient(ellipse 30% 22% at 30% 80%, rgba(124, 64, 236, 0.7) 0%, transparent 100%),
+    radial-gradient(ellipse 30% 22% at 70% 80%, rgba(124, 64, 236, 0.7) 0%, transparent 100%),
+    radial-gradient(ellipse 40% 60% at 50% 77%, rgba(52, 44, 170, 0.5) 0%, transparent 100%);
   pointer-events: none;
 }
 
@@ -221,25 +225,26 @@ body {
 }
 
 /* Chrome coins (hero) */
-.metal-coin {
+.metal-coin-slot {
   position: relative;
+  perspective: 480px;
+  filter: drop-shadow(10px 14px 10px rgba(4, 4, 20, 0.85)) drop-shadow(18px 26px 24px rgba(0, 0, 0, 0.55));
+}
+.metal-coin {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateZ(-20deg) rotateY(52deg) rotateX(4deg);
+}
+.metal-coin-face {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
-  transform: rotate(-24deg);
-  background:
-    radial-gradient(ellipse 55% 40% at 26% 20%, rgba(255, 255, 255, 1) 0%, rgba(235, 240, 255, 0.5) 35%, transparent 70%),
-    radial-gradient(ellipse 60% 55% at 78% 82%, rgba(110, 230, 200, 0.6) 0%, transparent 60%),
-    conic-gradient(from 210deg, #f4f6ff, #4c5487, #dfe5ff, #22284f, #c9d3f2, #5d6aa3, #f4f6ff);
+  background: conic-gradient(from 210deg, #ffffff, #9aa4d6, #ffffff, #3a4278, #e4e9ff, #6f7bb4, #ffffff);
   box-shadow:
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.9),
-    inset -3px -4px 8px rgba(20, 24, 60, 0.6),
-    1px 1px 0 #cfd5ef,
-    2px 2px 0 #a2aad0,
-    4px 3px 0 #707aa8,
-    5px 4px 0 #4d5585,
-    7px 5px 0 #353c69,
-    8px 6px 0 #252b50,
-    10px 7px 0 #1a1f3d,
-    16px 16px 24px rgba(0, 0, 0, 0.8);
+    inset 0 0 0 1.5px #fff,
+    inset -4px -5px 8px rgba(10, 12, 40, 0.55),
+    inset 3px 3px 4px rgba(255, 255, 255, 0.8);
 }
 .metal-coin-inner {
   position: absolute;
@@ -249,61 +254,72 @@ body {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(ellipse 60% 45% at 26% 20%, rgba(255, 255, 255, 0.85) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 60% at 74% 78%, rgba(96, 226, 188, 0.6) 0%, transparent 62%),
-    linear-gradient(145deg, #eef1ff 0%, #7f8abf 30%, #2a3062 55%, #a3b3e2 80%, #4d5792 100%);
+    radial-gradient(ellipse 50% 38% at 30% 22%, rgba(255, 255, 255, 1) 0%, rgba(245, 248, 255, 0.7) 40%, transparent 75%),
+    radial-gradient(ellipse 62% 52% at 22% 84%, rgba(120, 244, 214, 0.95) 0%, rgba(120, 244, 214, 0.3) 50%, transparent 70%),
+    radial-gradient(ellipse 52% 62% at 90% 38%, rgba(190, 150, 255, 0.85) 0%, transparent 64%),
+    radial-gradient(ellipse 40% 34% at 64% 66%, rgba(90, 100, 170, 0.5) 0%, transparent 80%),
+    linear-gradient(150deg, #ffffff 0%, #e2e8ff 30%, #9aa6dc 55%, #c8d4ff 78%, #ffffff 100%);
   box-shadow:
-    inset 3px 3px 4px rgba(20, 24, 60, 0.7),
-    inset -2px -2px 3px rgba(255, 255, 255, 0.9),
-    0 0 0 1px rgba(40, 46, 90, 0.6);
+    inset 4px 4px 6px rgba(8, 10, 34, 0.85),
+    inset -2px -2px 3px rgba(255, 255, 255, 0.95),
+    inset -8px -10px 14px rgba(8, 10, 34, 0.35),
+    0 0 0 1px rgba(20, 24, 64, 0.8);
 }
 .metal-coin-glyph {
-  width: 80%;
-  height: 80%;
-  /* engraved: dark glyph with a bright bevel on the lit side */
-  filter: drop-shadow(-1.2px -1.2px 0 rgba(255, 255, 255, 0.95)) drop-shadow(1.4px 1.4px 0 rgba(200, 210, 255, 0.55)) drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.35));
+  width: 70%;
+  height: 70%;
+  overflow: visible;
+  /* embossed: bright chrome glyph with a dark outline */
+  filter: drop-shadow(1.4px 1.4px 0 #0a0c26) drop-shadow(-1px -1px 0 #0a0c26) drop-shadow(1.5px 2.5px 2px rgba(0, 0, 0, 0.6));
 }
 
-/* Glass slabs (3D card stacks) */
-.slab {
+/* Skewed glass card stack (hero) */
+.hero-cards {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 40%, rgba(0, 0, 0, 0.35) 58%, transparent 74%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 40%, rgba(0, 0, 0, 0.35) 58%, transparent 74%);
+}
+.hero-card {
   position: absolute;
-  inset: 0;
-  border-radius: 22px;
-  border: 1px solid rgba(214, 220, 255, 0.55);
+  width: 360px;
+  height: 330px;
+  border-radius: 18px;
+  transform: skewY(-7deg) skewX(-13deg);
+  transform-origin: 0 100%;
+}
+.hero-card-back {
+  border: 1px solid rgba(190, 206, 255, 0.4);
+  border-top: 1.5px solid rgba(220, 250, 244, 0.95);
+  border-right: 2px solid #ffffff;
   background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 4px),
-    linear-gradient(160deg, rgba(196, 204, 255, 0.55) 0%, rgba(120, 112, 250, 0.42) 45%, rgba(46, 40, 130, 0.5) 100%);
-  box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  backface-visibility: visible;
+    repeating-linear-gradient(62deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 2.5px),
+    linear-gradient(90deg, transparent calc(100% - 20px), rgba(10, 14, 70, 0.28) 100%),
+    linear-gradient(180deg, #d8f2ef 0%, #bcd6f5 16%, #93aaee 32%, #6176dc 50%, #3a46b4 66%, #1c2270 82%, #080a24 100%);
+  box-shadow: 5px 0 9px -2px rgba(200, 222, 255, 0.45), inset -2px 0 4px rgba(255, 255, 255, 0.6);
 }
-.slab-front {
-  border-color: rgba(230, 236, 255, 0.85);
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
-    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(150, 230, 196, 0.55) 0%, transparent 60%),
-    linear-gradient(160deg, #7f8bd8 0%, #5a58d6 45%, #2c2783 100%);
-  box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 30px 80px -20px rgba(80, 70, 220, 0.6);
-}
-.fade-bottom {
-  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 82%);
-  mask-image: linear-gradient(to bottom, #000 35%, transparent 82%);
-}
-
-/* Horizontal "sealed bid" plates */
-.plate {
-  position: absolute;
+.hero-card-front {
   left: 0;
-  right: 0;
-  height: 100%;
-  border-radius: 26px;
-  border: 1px solid rgba(225, 230, 255, 0.7);
+  top: 150px;
+  z-index: 21;
+  overflow: hidden;
+  border: 1px solid rgba(170, 186, 250, 0.4);
+  border-top: 1.5px solid rgba(200, 250, 232, 0.8);
   background:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 4px),
-    linear-gradient(90deg, rgba(126, 214, 160, 0.85) 0%, rgba(120, 132, 240, 0.85) 30%, rgba(170, 170, 255, 0.9) 60%, rgba(120, 112, 220, 0.85) 100%);
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.7),
-    0 10px 0 -2px rgba(60, 60, 140, 0.9),
-    0 30px 60px -20px rgba(0, 0, 0, 0.9);
+    repeating-linear-gradient(62deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 55% 32% at 74% 0%, rgba(168, 236, 214, 0.95) 0%, rgba(150, 220, 210, 0.35) 55%, transparent 100%),
+    radial-gradient(ellipse 45% 55% at 86% 34%, rgba(206, 212, 255, 0.8) 0%, transparent 72%),
+    linear-gradient(98deg, #2c2f86 0%, #4248b4 38%, #6a73d6 72%, #a2adf0 100%);
+  box-shadow: 14px 0 22px -6px rgba(4, 4, 22, 0.65), 0 40px 90px -30px rgba(70, 60, 210, 0.5);
+}
+/* darkens the back cards toward the lower right so the stack falls into shadow */
+.hero-cards-shade {
+  position: absolute;
+  inset: -40px;
+  z-index: 20;
+  pointer-events: none;
+  background:
+    linear-gradient(196deg, transparent 0%, transparent 36%, rgba(3, 3, 12, 0.55) 46%, rgba(3, 3, 10, 0.9) 56%, #030308 68%),
+    linear-gradient(90deg, transparent 70%, rgba(3, 3, 10, 0.75) 92%, #030308 100%),
+    radial-gradient(ellipse 40% 30% at 12% 20%, rgba(3, 3, 12, 0.35) 0%, transparent 100%);
 }
 
 /* Panels */

@@ -12,7 +12,6 @@ function ChainlinkMark() {
 const stack: { name: string; icon: React.ReactNode }[] = [
   { name: "Chainlink CRE", icon: <ChainlinkMark /> },
   { name: "Monad", icon: <Image src="/chains/monad.png" alt="" width={56} height={56} quality={95} className="h-7 w-7 rounded-full" /> },
-  { name: "Arbitrum", icon: <Image src="/chains/arbitrum.png" alt="" width={56} height={56} quality={95} className="h-7 w-7 rounded-full" /> },
   { name: "Wormhole", icon: <Image src="/wormhole.png" alt="" width={56} height={56} quality={95} className="h-7 w-7 rounded-full" /> },
   { name: "Ethereum", icon: <Image src="/chains/ethereum.png" alt="" width={56} height={56} quality={95} className="h-7 w-7 rounded-full" /> },
 ];

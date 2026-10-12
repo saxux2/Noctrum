@@ -1,7 +1,6 @@
 /**
- * A chrome coin drawn in CSS + SVG (no bitmaps), so it is sharp at any size.
- * The face is an ellipse tilted like a coin standing on its edge; stacked
- * shadows give it a visible rim.
+ * A chrome coin drawn in CSS 3D + SVG (no bitmaps), so it is sharp at any size.
+ * The face is tilted in 3D; ten stacked discs behind it form the rim.
  */
 
 const glyphs: Record<string, React.ReactNode> = {
@@ -29,24 +28,39 @@ const glyphs: Record<string, React.ReactNode> = {
 
 export type CoinGlyph = keyof typeof glyphs;
 
-export default function MetalCoin({ glyph, label, size }: { glyph: CoinGlyph; label: string; size: string }) {
+// Rim discs, back to front: a dark back face, a dark edge, and a bright lip next to the face.
+const EDGE = Array.from({ length: 10 }, (_, k) => 10 - k).map((i) => ({
+  z: -i,
+  bg:
+    i <= 1
+      ? "linear-gradient(120deg, #c9d0f2 0%, #5c6698 40%, #1c2048 70%, #7b86bd 100%)"
+      : i >= 9
+        ? "#020208"
+        : "linear-gradient(120deg, #3a3f62 0%, #12142a 30%, #05060f 60%, #1b1e38 100%)",
+}));
+
+export default function MetalCoin({ glyph, label }: { glyph: CoinGlyph; label: string }) {
   const id = `chrome-${glyph}`;
   return (
-    <div role="img" aria-label={label} className="metal-coin" style={{ width: `calc(${size} * 0.8)`, height: size }}>
-      <div className="metal-coin-inner">
-        <svg viewBox="0 0 24 24" className="metal-coin-glyph" aria-hidden>
-          <defs>
-            <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#4a5590" />
-              <stop offset="0.45" stopColor="#1c2250" />
-              <stop offset="0.75" stopColor="#2e3670" />
-              <stop offset="1" stopColor="#141a3e" />
-            </linearGradient>
-          </defs>
-          <g fill={`url(#${id})`} stroke={`url(#${id})`}>
-            {glyphs[glyph]}
-          </g>
-        </svg>
+    <div role="img" aria-label={label} className="metal-coin">
+      {EDGE.map((e) => (
+        <div key={e.z} className="absolute inset-0 rounded-full" style={{ background: e.bg, transform: `translateZ(${e.z}px)` }} />
+      ))}
+      <div className="metal-coin-face">
+        <div className="metal-coin-inner">
+          <svg viewBox="0 0 24 24" className="metal-coin-glyph" aria-hidden>
+            <defs>
+              <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#ffffff" />
+                <stop offset="0.5" stopColor="#dfe5ff" />
+                <stop offset="1" stopColor="#a9b6ee" />
+              </linearGradient>
+            </defs>
+            <g fill={`url(#${id})`} stroke={`url(#${id})`}>
+              {glyphs[glyph]}
+            </g>
+          </svg>
+        </div>
       </div>
     </div>
   );
